@@ -1,0 +1,9 @@
+# 车间与失败人物素材 v5
+
+使用内置 imagegen。素材保存在同目录 Workshop.png、FailureCutout.png，原始 alpha 保留。
+
+## Workshop
+Create a production 16:9 anime manga game environment background, a working blacksmith workshop inside a salvaged spacecraft frontier camp. Dark teal steel structural beams and ribbed walls, tool racks on sides, furnace glowing orange on left side, warm light on floor mixed with cyan practical lamps. Eye-level frontal camera, wide room with clear open central floor for a separate full body hero and anvil. Floor occupies bottom quarter with plausible perspective and contact lighting. Crisp detailed inked anime rendering matching illustrated astronaut game assets, painterly cel shading, atmospheric cinematic depth. No people, no central anvil, no text, no UI, no white comic paper, no panels, no borders. Center remains visually quiet and illuminated, richly detailed workshop equipment at edges. Landscape 16:9 opaque environment plate.
+
+## FailureCutout
+Use reference as character identity and drawing style only. Create one isolated transparent PNG anime character for a painful forging failure reaction sweeping across a game screen. Same young dark-haired astronaut, ivory scuffed armor, teal undersuit, amber visor raised, cyan ear lamps. Large expressive upper-body portrait including head, torso, both arms, waist. Eyes squeezed shut in exaggerated anime pain, mouth open anguished grimace, soot on cheeks, small tears, both gloved hands clutching helmet/head, hunched shoulders. Dynamic diagonal pose, emotional manga comedy. Crisp ink outlines and detailed colored cel shading. ONLY the character silhouette on genuine transparent alpha background, no environment, no rectangular panel, no white background, no rays, no detached symbols, no typography, no vignette, no glow behind character. Full silhouette inside frame with margin; high quality 1024x1024.
