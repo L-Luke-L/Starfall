@@ -58,12 +58,13 @@ namespace Starfall {
    if(Paused||FailurePresentationActive||RewardPresentationActive||(State!=ForgeState.Ready&&State!=ForgeState.Success&&State!=ForgeState.Failure))return false;
    if(!inventory.TryReserve(out activeOre)){InteractionFeel.Play(FeelCue.Deny,.55f);return false;}
    InteractionFeel.Play(FeelCue.Click,.65f);
+   if(CampaignRuntime.Current){CampaignRules.ForgeProfile(activeOre.Metal,out float width,out float speed,out float duration,out int variants);float[] w={.12f,.10f,.085f},s={1.12f,1.30f,1.48f},t={2.9f,2.5f,2.2f};for(int i=0;i<3;i++){targetWidths[i]=w[i]*width;pointerSpeeds[i]=s[i]*speed;roundDurations[i]=t[i]*duration;rhythmDeck[i]=(ForgeRhythmKind)(i%variants);}}
    for(int i=2;i>0;i--){int j=random.Next(i+1);var swap=rhythmDeck[i];rhythmDeck[i]=rhythmDeck[j];rhythmDeck[j]=swap;}
    if((int)rhythmDeck[0]==previousOpening){var swap=rhythmDeck[0];rhythmDeck[0]=rhythmDeck[1];rhythmDeck[1]=swap;}
    previousOpening=(int)rhythmDeck[0];Hits=0;ResultAge=0;FailureReason="";BeginRound();return true;
   }
   void BeginRound(){
-   RoundIndex=Mathf.Clamp(Hits,0,2);State=ForgeState.Timing;roundElapsed=0;reversePointer=random.Next(2)==0;Rhythm=rhythmDeck[RoundIndex];rhythmPhase=(float)random.NextDouble()*Mathf.PI*2;TargetHome=.32f+(float)random.NextDouble()*.36f;WarmupRemaining=ForgeRhythm.WarmupSeconds;TimeRemaining=roundDurations[RoundIndex];EvaluateRhythm();PreviousPointer=Pointer;
+   RoundIndex=Mathf.Clamp(Hits,0,2);State=ForgeState.Timing;roundElapsed=0;reversePointer=random.Next(2)==0;Rhythm=rhythmDeck[RoundIndex];rhythmPhase=(float)random.NextDouble()*Mathf.PI*2;TargetHome=.32f+(float)random.NextDouble()*.36f;WarmupRemaining=CampaignRuntime.Current ? .5f : ForgeRhythm.WarmupSeconds;TimeRemaining=roundDurations[RoundIndex];EvaluateRhythm();PreviousPointer=Pointer;
   }
   void EvaluateRhythm(){ForgeRhythm.Evaluate(Rhythm,roundElapsed,pointerSpeeds[RoundIndex],reversePointer,TargetHome,rhythmPhase,out float pointer,out float target);Pointer=pointer;TargetCenter=target;}
   public bool SubmitStrike(){

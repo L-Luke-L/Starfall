@@ -53,7 +53,7 @@ namespace Starfall {
   }
   void SetState(CreatureState value){State=value;timer=0;repath=0;warning.enabled=false;Agent.ResetPath();Agent.isStopped=false;struck=false;}
   void Destination(Vector3 point,float speed){
-   Agent.speed=speed;Agent.angularSpeed=kind==CreatureKind.RiftMauler?240:180;
+   Agent.speed=CampaignRuntime.Current?CampaignRules.EnemySpeed(speed):speed;Agent.angularSpeed=kind==CreatureKind.RiftMauler?240:180;
    if(repath>0)return;repath=.3f;
    if(NavMesh.SamplePosition(point,out var hit,5,NavMesh.AllAreas)){destination=hit.position;Agent.SetDestination(hit.position);}
   }
@@ -78,14 +78,14 @@ namespace Starfall {
      for(int i=0;i<warning.positionCount;i++){var point=transform.position+chargeDirection*(14*i/(warning.positionCount-1f));point.y=AlienSurfaceLandmarks.Height(point.x,point.z)+.13f;warning.SetPosition(i,point);}
      if(timer>=.65f){SetState(CreatureState.Charge);Attacks++;Charges++;}break;
     case CreatureState.Charge:
-     Agent.isStopped=true;Vector3 from=transform.position;Vector3 step=chargeDirection*17.5f*dt;
+     Agent.isStopped=true;Vector3 from=transform.position;Vector3 step=chargeDirection*(CampaignRuntime.Current?CampaignRules.EnemySpeed(17.5f):17.5f)*dt;
      if(Agent.Raycast(from+step,out var edge)){SetState(CreatureState.Recover);cooldown=2.1f;break;}
      Agent.Move(step);var closest=Closest(from,from+step,target);
-     if(!struck&&CreatureArena.FlatDistance(closest,target)<1.65f&&Mathf.Abs(target.y-transform.position.y)<2&&arena.ClearSight(mouth.position,target+Vector3.up,this)){struck=true;if(arena.Damage(44,this))Hits++;}
+     if(!struck&&CreatureArena.FlatDistance(closest,target)<1.65f&&Mathf.Abs(target.y-transform.position.y)<2&&arena.ClearSight(mouth.position,target+Vector3.up,this)){struck=true;if(arena.Damage(CampaignRuntime.Current?CampaignRules.EnemyDamage(44):44,this))Hits++;}
      if(timer>1.05f){SetState(CreatureState.Recover);cooldown=2.1f;}break;
     case CreatureState.BiteTell:
      Agent.isStopped=true;if(timer<.25f)Face(target,dt);
-     if(timer>=.42f){Attacks++;Bites++;var biteDirection=target-transform.position;biteDirection.y=0;if(distance<3.8f&&Vector3.Dot(transform.forward,biteDirection.normalized)>.15f&&arena.ClearSight(mouth.position,target+Vector3.up,this)){if(arena.Damage(32,this))Hits++;arena.Impact(mouth.position,Color.yellow);}SetState(CreatureState.Recover);cooldown=1.15f;}break;
+     if(timer>=.42f){Attacks++;Bites++;var biteDirection=target-transform.position;biteDirection.y=0;if(distance<3.8f&&Vector3.Dot(transform.forward,biteDirection.normalized)>.15f&&arena.ClearSight(mouth.position,target+Vector3.up,this)){if(arena.Damage(CampaignRuntime.Current?CampaignRules.EnemyDamage(32):32,this))Hits++;arena.Impact(mouth.position,Color.yellow);}SetState(CreatureState.Recover);cooldown=1.15f;}break;
     case CreatureState.Recover:Agent.isStopped=true;if(timer>.5f)SetState(CreatureState.Pursue);break;
     default:
      if(!see&&distance>36){SetRoam(dt);break;}

@@ -86,7 +86,7 @@ namespace Starfall {
     if(Action(new Rect(690,839,220,41),State==ForgeState.Striking?"·":WarmupRemaining>0?"· · ·":"空格",StrikeReady))SubmitStrike();
    }else{
     if(State==ForgeState.Failure)Label(new Rect(550,724,500,53),"矿石 −1",24,light,true,TextAnchor.MiddleCenter);
-    if(Action(new Rect(650,811,300,58),inventory.UnknownCount>0?(State==ForgeState.Ready?"空格  开始":"空格  继续"):"暂无矿石",inventory.UnknownCount>0))BeginForge();
+    if(Action(new Rect(650,811,300,58),(CampaignRuntime.Current?CampaignRuntime.Current.State.bag.Count(CampaignRules.Raw(inventory.SelectedMetal))+CampaignRuntime.Current.State.warehouse.Count(CampaignRules.Raw(inventory.SelectedMetal))>0:inventory.UnknownCount>0)?(State==ForgeState.Ready?"空格  开始":"空格  继续"):"暂无矿石",(CampaignRuntime.Current?CampaignRuntime.Current.State.bag.Count(CampaignRules.Raw(inventory.SelectedMetal))+CampaignRuntime.Current.State.warehouse.Count(CampaignRules.Raw(inventory.SelectedMetal))>0:inventory.UnknownCount>0)))BeginForge();
    }
   }
  }

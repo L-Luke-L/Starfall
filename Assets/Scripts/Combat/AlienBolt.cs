@@ -16,7 +16,7 @@ namespace Starfall {
    foreach(var hit in hits){
     if(hit.collider.GetComponentInParent<AlienCreature>()==owner)continue;
     var player=hit.collider.GetComponentInParent<FirstPersonExplorer>();
-    if(player==arena.player){if(arena.Damage(19,owner)&&owner)owner.RegisterHit();}else {HitWorld=true;arena.BlockedProjectiles++;}
+    if(player==arena.player){if(arena.Damage(CampaignRuntime.Current?CampaignRules.EnemyDamage(19):19,owner)&&owner)owner.RegisterHit();}else {HitWorld=true;arena.BlockedProjectiles++;}
     arena.Impact(hit.point,Color.cyan);Destroy(gameObject);return;
    }
    transform.position+=velocity*dt;

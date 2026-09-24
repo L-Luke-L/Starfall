@@ -39,6 +39,7 @@ namespace Starfall {
   public float cableLength {get;private set;}=1.1f;
   float angle, targetAngle, toastUntil, startTime,moveIntent,stepClock,focusAge;
   public bool MinimalHud=>true;
+  int pickupQuantity=1;
   float orePopupUntil=-1,orePopupStarted=-1,counterDelayUntil=-1,counterFlashUntil=-1;
   string toast="信号微弱。前往中央矿井，调查地下回声。";
   Interactable cargo, nearest;
@@ -60,6 +61,7 @@ namespace Starfall {
    if(Time.time>=counterDelayUntil&&DisplayedOreCount!=oreCount){DisplayedOreCount=oreCount;counterFlashUntil=Time.time+.65f;}
    if(Input.GetKeyDown(KeyCode.F11))Screen.fullScreen=!Screen.fullScreen;
    if(forge&&forge.IsOpen)return;
+   if(CampaignRuntime.Current&&(CampaignRuntime.Current.Modal||CampaignRuntime.Current.Busy||CampaignRuntime.Current.ConsumedInput))return;
    if(Input.GetKeyDown(KeyCode.Tab))photoMode=!photoMode;
    if(Input.GetKeyDown(KeyCode.Escape))SetPaused(!paused);
    if(paused||RecoveryLocked)return;
@@ -97,6 +99,7 @@ namespace Starfall {
   }
   public void Interact(){
    if(paused||RecoveryLocked||Transitioning||(forge&&forge.IsOpen))return;
+   if(CampaignRuntime.Current&&CampaignRuntime.Current.SurfaceInteract())return;
    FindNearest();if(nearest==null){InteractionFeel.Play(FeelCue.Deny,.4f);return;}
    InteractionFeel.Play(FeelCue.Click,.5f);nearest.Invoke();
    if(nearest.kind==SiteKind.Mine){
@@ -116,7 +119,7 @@ namespace Starfall {
    toastUntil=0;InteractionFeel.Play(FeelCue.Click,.4f);
   }
   public bool Cast(){
-   if(paused||Time.timeScale<=0||RecoveryLocked||Transitioning||hookState!=HookState.Swinging||(forge&&forge.IsOpen)){InteractionFeel.Play(FeelCue.Deny,.4f);return false;}
+   if((CampaignRuntime.Current&&CampaignRuntime.Current.Busy)||paused||Time.timeScale<=0||RecoveryLocked||Transitioning||hookState!=HookState.Swinging||(forge&&forge.IsOpen)){InteractionFeel.Play(FeelCue.Deny,.4f);return false;}
    if(!underground){InteractionFeel.Play(FeelCue.Deny,.4f);return false;}
    InteractionFeel.Play(FeelCue.Cast,.7f);targetAngle=angle;hookState=HookState.Extending;return true;
   }
@@ -134,13 +137,13 @@ namespace Starfall {
    if(hookState==HookState.Extending){
     foreach(var ore in ores){if(ore.collected)continue;
      Vector3 seg=end-previous;float f=seg.sqrMagnitude<.00001f?0:Mathf.Clamp01(Vector3.Dot(ore.transform.position-previous,seg)/seg.sqrMagnitude);
-     if(Vector3.Distance(previous+seg*f,ore.transform.position)<ore.radius){cargo=ore;var sample=ore.GetComponent<BuriedSample>();if(sample)sample.LiftFromRock();ore.collected=true;hookState=HookState.Returning;InteractionFeel.Play(FeelCue.Catch,.8f);break;}
+     if(Vector3.Distance(previous+seg*f,ore.transform.position)<ore.radius){var node=ore.GetComponent<CampaignNode>();if(CampaignRuntime.Current&&node&&!CampaignRuntime.Current.State.bag.CanAdd(node.item,node.quantity)){Say("背包已满");hookState=HookState.Returning;break;}cargo=ore;var sample=ore.GetComponent<BuriedSample>();if(sample)sample.LiftFromRock();ore.collected=true;hookState=HookState.Returning;InteractionFeel.Play(FeelCue.Catch,.8f);break;}
     }
     if(cableLength>=maxCableLength)hookState=HookState.Returning;
    }
    if(cargo)cargo.transform.position=end+Vector3.down*.3f;
    if(hookState==HookState.Returning&&cableLength<=1.101f){
-    if(cargo){var sample=cargo.GetComponent<BuriedSample>();if(sample)sample.NotifyRecovered();AwardRecoveredOre(sample?sample.Definition:null,cargo.GetInstanceID());cargo.Invoke();cargo.gameObject.SetActive(false);cargo=null;}
+    if(cargo){var sample=cargo.GetComponent<BuriedSample>();var node=cargo.GetComponent<CampaignNode>();bool ok=CampaignRuntime.Current&&node?CampaignRuntime.Current.CollectNode(node):AwardRecoveredOre(sample?sample.Definition:null,cargo.GetInstanceID());if(ok){if(sample)sample.NotifyRecovered();cargo.Invoke();cargo.gameObject.SetActive(false);if(CampaignRuntime.Current){pickupQuantity=node?node.quantity:1;InteractionFeel.Play(FeelCue.Pickup,.75f);orePopupStarted=Time.time;orePopupUntil=Time.time+1.3f;counterDelayUntil=Time.time+.52f;}}else{cargo.collected=false;if(node)cargo.transform.position=node.origin;Say("背包已满，矿物已放回");}cargo=null;}
     hookState=HookState.Swinging;
    }
   }
@@ -163,7 +166,7 @@ namespace Starfall {
    Text(new Rect(p.x-110,p.y+24,220,22),subtitle,10,muted,TextAnchor.MiddleCenter);
   }
   void OnGUI(){
-   if(!worldCamera||(forge&&forge.IsOpen))return;
+   if(!worldCamera||(forge&&forge.IsOpen)||(CampaignRuntime.Current&&CampaignRuntime.Current.Modal))return;
    float w=Mathf.Min(Screen.width,Screen.height*16f/9),h=w*9/16;
    float ox=(Screen.width-w)/2,oy=(Screen.height-h)/2;
    // Black areas outside fixed cinematic aspect ratio.
@@ -173,14 +176,14 @@ namespace Starfall {
    if(!photoMode){
     float intro=Mathf.Clamp01(1-(Time.time-startTime-2.5f)/1.5f);
     if(intro>0){if(!wormhole||!wormhole.Unlocked)Text(new Rect(48,43,370,42),"星陨边境",25,new Color(.86f,.91f,.92f,intro));Text(new Rect(590,850,420,26),"A / D  移动     E  交互",13,new Color(.7f,.8f,.82f,intro),TextAnchor.MiddleCenter);}
-    Text(new Rect(1240,35,300,28),"未知矿石  "+DisplayedOreCount,17,Time.time<counterFlashUntil?gold:cyan,TextAnchor.MiddleRight);
+    Text(new Rect(1240,35,300,28),(CampaignRuntime.Current?"原矿  ":"未知矿石  ")+DisplayedOreCount,17,Time.time<counterFlashUntil?gold:cyan,TextAnchor.MiddleRight);
     if(inventory&&(inventory.MetalTotal>0||inventory.FuelCount>0))Text(new Rect(1140,65,400,23),"金属 "+inventory.MetalTotal+"   燃料 "+inventory.FuelCount,12,muted,TextAnchor.MiddleRight);
-    if(wormhole&&wormhole.Unlocked){bool before=GUI.enabled;GUI.enabled=wormhole.CanEnter;if(Button(new Rect(42,35,170,35),"断崖盆地  ↗"))wormhole.TryEnter();GUI.enabled=before;}
+    if(wormhole&&wormhole.Unlocked){bool before=GUI.enabled;GUI.enabled=wormhole.CanEnter;if(Button(new Rect(42,35,170,35),CampaignRuntime.Current?"星界坐标  ↗":"断崖盆地  ↗"))wormhole.TryEnter();GUI.enabled=before;}
     if(!Transitioning&&!RecoveryLocked){
      if(underground){
       if(hookState==HookState.Swinging){if(Button(new Rect(660,839,280,38),"空格  下放"))Cast();}
       else Text(new Rect(660,839,280,38),hookState==HookState.Extending?"↓":"↑",22,gold,TextAnchor.MiddleCenter);
-      if(Button(new Rect(1380,839,170,38),"E  返回"))Interact();
+      if(Button(new Rect(1380,839,170,38),CampaignRuntime.Current?"返回地表":"E  返回")){if(CampaignRuntime.Current)StartCoroutine(Travel(false));else Interact();}
       var tip=ScreenPoint(hook.position);InteractionFeel.Ring(tip,14,hookState==HookState.Swinging?1:cableLength/maxCableLength,new Color(.6f,.83f,.83f,.45f),1);
      }else if(nearest){
       var p=ScreenPoint(player.position+Vector3.up*1.72f);float fade=Mathf.Clamp01((Time.time-focusAge)*7);Text(new Rect(p.x-135,p.y-35,270,34),"E  "+nearest.displayName,15,new Color(gold.r,gold.g,gold.b,fade),TextAnchor.MiddleCenter);
@@ -189,7 +192,7 @@ namespace Starfall {
     }
     if(Time.time<toastUntil)Text(new Rect(455,764,690,34),toast,16,new Color(.85f,.92f,.92f,Mathf.Clamp01(toastUntil-Time.time)),TextAnchor.MiddleCenter);
    }
-   if(PickupPopupVisible){float age=Time.time-orePopupStarted,alpha=Mathf.Clamp01((orePopupUntil-Time.time)*2.8f);var p=ScreenPoint(player.position+Vector3.up*(1.8f+age*.33f));var r=new Rect(p.x-76,p.y-19,152,38);Text(new Rect(r.x+1,r.y+2,r.width,r.height),"矿石+1",21,new Color(.03f,.06f,.08f,alpha),TextAnchor.MiddleCenter);Text(r,"矿石+1",21,new Color(1,.89f,.51f,alpha),TextAnchor.MiddleCenter);}
+   if(PickupPopupVisible){float age=Time.time-orePopupStarted,alpha=Mathf.Clamp01((orePopupUntil-Time.time)*2.8f);var p=ScreenPoint(player.position+Vector3.up*(1.8f+age*.33f));var r=new Rect(p.x-76,p.y-19,152,38);Text(new Rect(r.x+1,r.y+2,r.width,r.height),"矿石+"+pickupQuantity,21,new Color(.03f,.06f,.08f,alpha),TextAnchor.MiddleCenter);Text(r,"矿石+"+pickupQuantity,21,new Color(1,.89f,.51f,alpha),TextAnchor.MiddleCenter);}
    if(paused){
     Box(new Rect(0,0,1600,900),new Color(.008f,.02f,.03f,.58f));Text(new Rect(600,260,400,65),"暂停",30,gold,TextAnchor.MiddleCenter);
     if(Button(new Rect(650,371,300,48),"继续"))SetPaused(false);

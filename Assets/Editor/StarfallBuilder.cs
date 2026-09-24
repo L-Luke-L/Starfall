@@ -123,6 +123,7 @@ public static class StarfallBuilder {
  public static void Build(){
   Directory.CreateDirectory("Builds/Windows");
   var scenes=File.Exists("Assets/Scenes/Scene02_Encounter.unity")?new[]{"Assets/Scenes/Scene01_Starfall.unity","Assets/Scenes/Scene02_Encounter.unity"}:new[]{"Assets/Scenes/Scene01_Starfall.unity"};
+  if(File.Exists("Assets/Scenes/Scene03_WreckRift.unity"))scenes=new[]{"Assets/Scenes/Scene01_Starfall.unity","Assets/Scenes/Scene02_Encounter.unity","Assets/Scenes/Scene03_WreckRift.unity"};
   var r=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenes,locationPathName="Builds/Windows/Starfall.exe",target=BuildTarget.StandaloneWindows64,options=BuildOptions.None});
   if(r.summary.result!=BuildResult.Succeeded)throw new Exception("Build failed: "+r.summary.result);
   File.WriteAllText("QA/build-result.txt","PASS / Unity "+Application.unityVersion+" / Windows x64 / "+DateTime.Now.ToString("s"));Debug.Log("STARFALL_BUILD_PASS");

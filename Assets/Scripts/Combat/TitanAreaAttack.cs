@@ -62,7 +62,7 @@ namespace Starfall {
     float sweep=(PhaseTime%BandSeconds)/BandSeconds;float z=LockedCenter.z+Mathf.Lerp(-HalfLength,HalfLength,sweep);float x=BandX(ActiveBand);var contact=new Vector3(x,AlienSurfaceLandmarks.Height(x,z)+.2f,z);
     beam.SetPosition(0,muzzle.position);beam.SetPosition(1,contact);beamCore.SetPosition(0,muzzle.position);beamCore.SetPosition(1,contact);
     for(int i=0;i<eruptions.Length;i++){float ex=x+(i%3-1)*5.5f+Mathf.Sin(i*8.3f)*1.1f,ez=LockedCenter.z-HalfLength+(i/3)*7.2f;var p=new Vector3(ex,AlienSurfaceLandmarks.Height(ex,ez)+.16f,ez);eruptions[i].enabled=true;float height=1.5f+Mathf.Sin(PhaseTime*13+i*4.3f)*1.1f;for(int j=0;j<6;j++){float u=j/5f;eruptions[i].SetPosition(j,p+new Vector3(Mathf.Sin(i+j*2+PhaseTime*12)*.32f*u,height*u,Mathf.Cos(i+j+PhaseTime*10)*.22f*u));}}
-    if(!hitThisAttack&&InBand(titan.player.transform.position,ActiveBand)&&titan.arena.Damage(65,null)){hitThisAttack=true;HitCount++;}
+    if(!hitThisAttack&&InBand(titan.player.transform.position,ActiveBand)&&titan.arena.Damage(CampaignRuntime.Current?CampaignRules.EnemyDamage(65):65,null)){hitThisAttack=true;HitCount++;}
    }
   }
   void OnGUI(){

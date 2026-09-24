@@ -17,8 +17,9 @@ namespace Starfall {
   public SampleRecoveredEvent onRecovered=new SampleRecoveredEvent();
   public SubsurfaceDefinition Definition=>definition;
   public bool Recovered {get;private set;}
-  public void Configure(SubsurfaceDefinition content,MineralShell exterior){definition=content;shell=exterior;}
-  public void LiftFromRock(){if(mineralShell){mineralShell.sharedMaterial=looseMaterial;mineralShell.color=Color.white;}}
+  Material embedded;void Awake(){if(mineralShell)embedded=mineralShell.sharedMaterial;}
+  public void Configure(SubsurfaceDefinition content,MineralShell exterior){definition=content;shell=exterior;Recovered=false;if(mineralShell&&embedded)mineralShell.sharedMaterial=embedded;}
+  public void LiftFromRock(){if(mineralShell){mineralShell.sharedMaterial=looseMaterial;if(!CampaignRuntime.Current)mineralShell.color=Color.white;}}
   public void NotifyRecovered(){
    if(Recovered)return;
    Recovered=true;

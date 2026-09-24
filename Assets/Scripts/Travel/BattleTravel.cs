@@ -9,7 +9,9 @@ namespace Starfall {
   public const string SceneName="Scene02_Encounter";
   public SceneDirector director;
   public RecoveryEncounter encounter;
-  public readonly BasinProgress Progress=new BasinProgress();
+  readonly BasinProgress legacyProgress=new BasinProgress();
+  public BasinProgress Progress=>CampaignRuntime.Current?CampaignRuntime.Current.ProgressFor(CampaignRuntime.Current.State.region):legacyProgress;
+  string activeScene=SceneName;
   public EncounterRequest Request {get;private set;}
   public FirstPersonExplorer Explorer {get;private set;}
   public bool IsEngaged {get;private set;}
@@ -30,22 +32,23 @@ namespace Starfall {
    oldFog=RenderSettings.fog;oldFogColor=RenderSettings.fogColor;oldFogDensity=RenderSettings.fogDensity;oldSky=RenderSettings.skybox;oldAmbient=RenderSettings.ambientLight;
    oldSun=RenderSettings.sun;oldAmbientMode=RenderSettings.ambientMode;oldFogMode=RenderSettings.fogMode;oldSkyAmbient=RenderSettings.ambientSkyColor;oldEquator=RenderSettings.ambientEquatorColor;oldGround=RenderSettings.ambientGroundColor;
    yield return FadeTo(1);
-   var load=SceneManager.LoadSceneAsync(SceneName,LoadSceneMode.Additive);if(load==null){IsEngaged=false;IsTransitioning=false;yield return FadeTo(0);yield break;}yield return load;
-   var battle=SceneManager.GetSceneByName(SceneName);SceneManager.SetActiveScene(battle);
+   activeScene=CampaignRuntime.Current&&CampaignRuntime.Current.State.region==1?"Scene03_WreckRift":SceneName;
+   var load=SceneManager.LoadSceneAsync(activeScene,LoadSceneMode.Additive);if(load==null){IsEngaged=false;IsTransitioning=false;yield return FadeTo(0);yield break;}yield return load;
+   var battle=SceneManager.GetSceneByName(activeScene);SceneManager.SetActiveScene(battle);
    foreach(var root in expedition.GetRootGameObjects())if(root!=gameObject&&root.activeSelf){hiddenRoots.Add(root);root.SetActive(false);}
    director.enabled=false;QualitySettings.antiAliasing=4;
    foreach(var root in battle.GetRootGameObjects()){Explorer=root.GetComponentInChildren<FirstPersonExplorer>(true);if(Explorer)break;}
-   if(Explorer){Explorer.Automated=Array.Exists(Environment.GetCommandLineArgs(),x=>x.EndsWith("QA",StringComparison.OrdinalIgnoreCase));Explorer.Begin(this);if(Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-titanPreview"))Explorer.Look(0,16);}
+   if(Explorer){Explorer.Automated=Array.Exists(Environment.GetCommandLineArgs(),x=>x.EndsWith("QA",StringComparison.OrdinalIgnoreCase));Explorer.Begin(this);if(CampaignRuntime.Current)CampaignRuntime.Current.ConfigureRegion(Explorer);if(Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-titanPreview"))Explorer.Look(0,16);}
    yield return FadeTo(0);IsTransitioning=false;Entered?.Invoke(Request);
   }
   public void ReturnToExpedition(){if(IsEngaged&&!IsTransitioning)StartCoroutine(ReturnRoutine());}
   IEnumerator ReturnRoutine(){
    InteractionFeel.Play(FeelCue.Portal,.65f);IsTransitioning=true;if(Explorer){if(Explorer.expedition)Explorer.expedition.Save();Explorer.Ready=false;}Cursor.lockState=CursorLockMode.None;Cursor.visible=true;
-   yield return FadeTo(1);SceneManager.SetActiveScene(expedition);yield return SceneManager.UnloadSceneAsync(SceneName);
+   yield return FadeTo(1);SceneManager.SetActiveScene(expedition);yield return SceneManager.UnloadSceneAsync(activeScene);
    foreach(var root in hiddenRoots)if(root)root.SetActive(true);hiddenRoots.Clear();director.enabled=originalDirectorEnabled;
    RenderSettings.fog=oldFog;RenderSettings.fogColor=oldFogColor;RenderSettings.fogDensity=oldFogDensity;RenderSettings.skybox=oldSky;RenderSettings.ambientLight=oldAmbient;QualitySettings.antiAliasing=oldAA;Time.timeScale=oldTimeScale;
    RenderSettings.sun=oldSun;RenderSettings.ambientMode=oldAmbientMode;RenderSettings.fogMode=oldFogMode;RenderSettings.ambientSkyColor=oldSkyAmbient;RenderSettings.ambientEquatorColor=oldEquator;RenderSettings.ambientGroundColor=oldGround;
-   Explorer=null;yield return FadeTo(0);IsEngaged=false;IsTransitioning=false;Returned?.Invoke();
+   Explorer=null;yield return FadeTo(0);IsEngaged=false;IsTransitioning=false;if(CampaignRuntime.Current)CampaignRuntime.Current.Returned();Returned?.Invoke();
   }
   void OnGUI(){if(fade<=0)return;var m=GUI.matrix;GUI.matrix=Matrix4x4.identity;GUI.depth=-500;GUI.color=new Color(.005f,.009f,.015f,fade);GUI.DrawTexture(new Rect(0,0,Screen.width,Screen.height),Texture2D.whiteTexture);GUI.color=Color.white;GUI.matrix=m;}
  }

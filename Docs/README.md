@@ -2,6 +2,8 @@
 
 ## 玩法与操作
 
+- [剧情探索版本：库存、五层矿井与双结局](Gameplay/CAMPAIGN.md)
+
 - [沉浸交互与操作](Gameplay/IMMERSION.md)
 - [高难度战斗、掉落与采矿](Gameplay/HARD_EXPEDITION.md)
 - [矿石锻造与隐藏遭遇](Gameplay/FORGING.md)
@@ -16,4 +18,4 @@
 - [地表视觉设计](Design/VISUAL_REVISION.md)
 - [场景结构与可编辑元素](Design/SCENE_OVERVIEW.md)
 
-玩法数值以高难度探索说明为准，界面表现以沉浸交互说明为准。早期设计记录用于了解结构，旧演示媒体已清理。
+新剧情的规则以剧情探索说明为准；其余玩法与界面文档保留旧系统设计背景。早期设计记录用于了解结构，旧演示媒体已清理。

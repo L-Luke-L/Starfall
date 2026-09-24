@@ -42,7 +42,7 @@ source_readme = f'''# Starfall / 星陨边境
 在 Unity Hub 中选择添加磁盘上的项目，选择本文件所在的 UnityProject 文件夹。安装匹配版本编辑器及 Windows Build Support (Mono)。首次打开需等待 Unity 导入资源。
 
 主场景：Assets/Scenes/Scene01_Starfall.unity。
-第一人称场景：Assets/Scenes/Scene02_Encounter.unity。
+第一遗骸星界：Assets/Scenes/Scene03_WreckRift.unity；后期区域使用 Scene02_Encounter 的地形与独立进度。
 Unity 菜单 Starfall / Build Windows 可构建当前场景。Create Scene 01 会重新生成初始场景，日常编辑无需点击。
 
 ## 目录
@@ -80,9 +80,10 @@ guide = f'''星陨边境 · 完整分享包
 Esc 暂停，F11 全屏。暂停页可查看操作、关闭声音或减弱镜头反馈。
 
 四、当前状态
-包含地表、地下抓钩、锻造、虫洞、第一人称高难度战斗、概率掉落和采矿。
-初次试玩需先从地下回收矿石；抓到隐藏怪物后进入盆地，并解锁虫洞。
-同一轮游戏的虫洞往返保留物资和战斗状态；关闭游戏后开启新一轮，虫洞解锁单独保存。
+包含五层矿井、背包仓库、制作锻造、五个星界区域、死亡回收、剧情手账、修船和双结局。
+初次试玩先回收裂纹紫铜，再在矿口按 E 主动进入遗骸。取得货舱装置并在入口校准后可自由使用营地虫洞。
+B 背包、J 手账、F5 保存。新剧情跨启动保存全部进度，旧试玩记录单独保留。
+完整规则与原型范围见 UnityProject/Docs/Gameplay/CAMPAIGN.md。
 
 五、内容说明
 本包同时包含可运行程序与完整源码。旧演示、历史备份、录制帧、开发日志和 Unity 本地缓存未打包。

@@ -6,7 +6,7 @@ namespace Starfall {
   public FirstPersonExplorer player;public BasinExpedition expedition;
   public Transform rifle,tool,muzzle;public Light muzzleLight;public Material tracerMaterial;
   public int Magazine {get;private set;}=12;
-  public int Reserve {get;private set;}=60;
+  int legacyReserve=60;public int Reserve {get=>CampaignRuntime.Current?CampaignRuntime.Current.State.bag.Count(ItemId.Ammo):legacyReserve;private set {if(CampaignRuntime.Current){int delta=value-Reserve;if(delta>0)CampaignRuntime.Current.State.bag.Add(ItemId.Ammo,delta);else if(delta<0)CampaignRuntime.Current.State.bag.Remove(ItemId.Ammo,-delta);}else legacyReserve=value;}}
   public float Stamina {get;private set;}=100;
   public float ReloadRemaining {get;private set;}
   public bool IsBusy=>ReloadRemaining>0||cooldown>.12f;
@@ -17,9 +17,9 @@ namespace Starfall {
   BasinProgress progress;bool initialized,exhausted,pendingMelee;float meleeDelay,reloadVisual,weaponClock,toolVisual;
   public bool MeleePending=>pendingMelee;
   public bool MinimalHud=>true;float cooldown,recoil,melee,flash,hitMarker,restDelay;CreatureVitality target;Vector3 rifleRest,toolRest;
-  public void Initialize(BasinProgress state){if(initialized)return;initialized=true;progress=state;Magazine=state.magazine;Reserve=state.reserve;rifleRest=rifle.localPosition;toolRest=tool.localPosition;}
+  public void Initialize(BasinProgress state){if(initialized)return;initialized=true;progress=state;Magazine=CampaignRuntime.Current?CampaignRuntime.Current.State.magazine:state.magazine;if(!CampaignRuntime.Current)Reserve=state.reserve;rifleRest=rifle.localPosition;toolRest=tool.localPosition;}
   public void AddAmmo(int amount){Reserve=Mathf.Min(180,Reserve+Mathf.Max(0,amount));Sync();}
-  void Sync(){if(progress==null)return;progress.magazine=Magazine;progress.reserve=Reserve;}
+  void Sync(){if(progress==null)return;progress.magazine=Magazine;progress.reserve=Reserve;if(CampaignRuntime.Current)CampaignRuntime.Current.State.magazine=Magazine;}
   public bool SpendStamina(float amount){if(!initialized)return true;if(Stamina<amount)return false;Stamina-=amount;restDelay=1.1f;return true;}
   public bool Sprint(float dt){if(!initialized)return true;if(exhausted){if(Stamina<28)return false;exhausted=false;}if(Stamina<26*dt){exhausted=true;return false;}return SpendStamina(26*dt);}
   public bool Reload(){if(!Ready||ReloadRemaining>0||cooldown>0||Magazine>=12||Reserve<=0)return false;ReloadRemaining=2.35f;InteractionFeel.Play(FeelCue.Reload,.7f);return true;}
@@ -31,7 +31,8 @@ namespace Starfall {
   void ResolveAttack(bool close){
    var origin=player.viewCamera.transform.position;var direction=player.viewCamera.transform.forward;float range=close?3.2f:160;RaycastHit hit;
    bool found=Aim(origin,direction,range,out hit);var endpoint=found?hit.point:origin+direction*range;
-   if(found){var vitality=hit.collider.GetComponentInParent<CreatureVitality>();if(vitality&&!vitality.Dead){int damage=close?44:Mathf.RoundToInt(26*vitality.DamageMultiplier(hit.point));if(vitality.TakeDamage(damage,hit.point)){ConfirmedHits++;hitMarker=.18f;target=vitality;player.arena.Impact(hit.point,Color.cyan);}}else player.arena.Impact(hit.point,Color.gray);}
+   if(found&&hit.collider.GetComponent<CampaignBossPart>() is CampaignBossPart part){if(part.boss.Hit(part.node,close?44:CampaignRules.GunDamage(1))){ConfirmedHits++;hitMarker=.18f;player.arena.Impact(hit.point,Color.cyan);}}
+   else if(found){var vitality=hit.collider.GetComponentInParent<CreatureVitality>();if(vitality&&!vitality.Dead){int damage=close?44:CampaignRuntime.Current?CampaignRules.GunDamage(vitality.DamageMultiplier(hit.point)):Mathf.RoundToInt(26*vitality.DamageMultiplier(hit.point));if(vitality.TakeDamage(damage,hit.point)){ConfirmedHits++;hitMarker=.18f;target=vitality;player.arena.Impact(hit.point,Color.cyan);}}else player.arena.Impact(hit.point,Color.gray);}
    if(!close){var g=new GameObject("Player shot tracer");g.transform.SetParent(player.arena.transform);var line=g.AddComponent<LineRenderer>();line.sharedMaterial=tracerMaterial;line.positionCount=2;line.SetPosition(0,muzzle.position);line.SetPosition(1,endpoint);line.startWidth=.022f;line.endWidth=.006f;line.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;var fx=g.AddComponent<PlayerShotTrace>();fx.arena=player.arena;}
   }
   public bool Aim(Vector3 origin,Vector3 direction,float distance,out RaycastHit first){

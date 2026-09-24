@@ -25,7 +25,7 @@ namespace Starfall {
   public void SetPaused(bool value){InteractionFeel.Play(FeelCue.Click,.5f);Paused=value;if(arena)arena.SetPaused(value);Cursor.lockState=value?CursorLockMode.None:CursorLockMode.Locked;Cursor.visible=value;if(!value)Input.ResetInputAxes();}
   void OnApplicationFocus(bool focused){if(!focused&&Ready&&!Automated)SetPaused(true);}
   void Update(){
-   if(!Ready||Automated)return;
+   if(!Ready||Automated||(CampaignRuntime.Current&&(CampaignRuntime.Current.Modal||CampaignRuntime.Current.ConsumedInput)))return;
    if(Input.GetKeyDown(KeyCode.F11))Screen.fullScreen=!Screen.fullScreen;
    if(Input.GetKeyDown(KeyCode.Escape))SetPaused(!Paused);
    if(Paused||(arena&&arena.Downed))return;
@@ -33,7 +33,7 @@ namespace Starfall {
    Look(Input.GetAxisRaw("Mouse X")*mouseSensitivity,Input.GetAxisRaw("Mouse Y")*mouseSensitivity);
    var move=new Vector2((Input.GetKey(KeyCode.D)||Input.GetKey(KeyCode.RightArrow)?1:0)-(Input.GetKey(KeyCode.A)||Input.GetKey(KeyCode.LeftArrow)?1:0),(Input.GetKey(KeyCode.W)||Input.GetKey(KeyCode.UpArrow)?1:0)-(Input.GetKey(KeyCode.S)||Input.GetKey(KeyCode.DownArrow)?1:0));
    Drive(move,Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift),Input.GetKeyDown(KeyCode.Space),Time.deltaTime);
-   if(Input.GetKeyDown(KeyCode.E)&&returnBeacon&&Vector3.Distance(transform.position,returnBeacon.position)<4)Return();
+   if(Input.GetKeyDown(KeyCode.E)){if(CampaignRuntime.Current&&CampaignRuntime.Current.RegionView&&CampaignRuntime.Current.RegionView.Interact())return;if(returnBeacon&&Vector3.Distance(transform.position,returnBeacon.position)<4)Return();}
   }
   public void Look(float yaw,float pitch){if(Paused)return;transform.Rotate(0,yaw,0);Pitch=Mathf.Clamp(Pitch-pitch,-85,85);viewCamera.transform.localRotation=Quaternion.Euler(Pitch,0,0);}
   public void Drive(Vector2 input,bool running,bool jump,float dt){
@@ -52,13 +52,13 @@ namespace Starfall {
   void LateUpdate(){if(!Ready||Paused)return;impact=Mathf.MoveTowards(impact,0,Time.deltaTime*4);float movement=InteractionFeel.ReducedMotion?0:Mathf.Clamp01(motor.velocity.magnitude/runSpeed)*1.4f+impact*.6f;viewCamera.fieldOfView=Mathf.Lerp(viewCamera.fieldOfView,baseFov+movement,1-Mathf.Exp(-Time.deltaTime*12));}
   public void ResetMotion(){smoothInput=Vector2.zero;vertical=0;steps=0;}
   public void Respawn(){ResetMotion();motor.enabled=false;transform.position=spawn;vertical=0;motor.enabled=true;}
-  public void Return(){if(session)session.ReturnToExpedition();}
+  public void Return(){if(CampaignRuntime.Current&&CampaignRuntime.Current.BombSeconds>=0){CampaignRuntime.Current.Notice("请前往入口信标撤离");return;}if(session)session.ReturnToExpedition();}
   void Label(Rect r,string s,int size,Color c,TextAnchor align=TextAnchor.MiddleLeft){GUI.Label(r,s,new GUIStyle(GUI.skin.label){font=uiFont,fontSize=size,normal={textColor=c},alignment=align});}
   void Fill(Rect r,Color c){GUI.color=c;GUI.DrawTexture(r,Texture2D.whiteTexture);GUI.color=Color.white;}
   bool Button(Rect r,string text){return InteractionFeel.Button(r,text,uiFont,20,new Color(.87f,.75f,.52f));}
   void OnGUI(){
-   if(!Ready)return;var prior=GUI.matrix;GUI.depth=-20;float s=Mathf.Min(Screen.width/1600f,Screen.height/900f);GUI.matrix=Matrix4x4.TRS(new Vector3((Screen.width-1600*s)/2,(Screen.height-900*s)/2,0),Quaternion.identity,new Vector3(s,s,1));
-   float intro=Mathf.Clamp01(tipUntil-Time.unscaledTime);if(intro>0)Label(new Rect(43,32,350,40),"断崖盆地",23,new Color(.86f,.9f,.9f,intro));
+   if(!Ready||(CampaignRuntime.Current&&CampaignRuntime.Current.Modal))return;var prior=GUI.matrix;GUI.depth=-20;float s=Mathf.Min(Screen.width/1600f,Screen.height/900f);GUI.matrix=Matrix4x4.TRS(new Vector3((Screen.width-1600*s)/2,(Screen.height-900*s)/2,0),Quaternion.identity,new Vector3(s,s,1));
+   float intro=Mathf.Clamp01(tipUntil-Time.unscaledTime);if(intro>0)Label(new Rect(43,32,350,40),CampaignRuntime.Current?CampaignRules.Regions[CampaignRuntime.Current.State.region]:"断崖盆地",23,new Color(.86f,.9f,.9f,intro));
    if(!Paused){Fill(new Rect(798,448,4,4),new Color(.8f,.9f,.92f,.72f));
     if(Time.unscaledTime<tipUntil)Label(new Rect(390,847,820,28),"Esc  操作与暂停",13,new Color(.81f,.86f,.86f,intro),TextAnchor.MiddleCenter);
     if(returnBeacon&&Vector3.Distance(transform.position,returnBeacon.position)<4)Label(new Rect(590,757,420,38),"E  返回",16,new Color(.93f,.77f,.49f),TextAnchor.MiddleCenter);

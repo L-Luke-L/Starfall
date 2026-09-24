@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Starfall {
  public enum BasinLootKind {None,Fuel,Ore,Ammo,Medkit}
- public sealed class BasinDrop {
+ [System.Serializable] public sealed class BasinDrop {
   public int id;public BasinLootKind kind;public Vector3 position;public bool collected;
  }
  // Owned by the main scene. Wormhole visits share one expedition; restarting starts a fresh expedition.

@@ -28,7 +28,7 @@ namespace Starfall {
    if(!Active){if(!audioPaused){breath.Pause();voice.Pause();audioPaused=true;}return;}
    if(audioPaused){breath.UnPause();voice.UnPause();audioPaused=false;}
    float dt=Time.deltaTime;AnimationTime+=dt;float t=AnimationTime;
-   transform.position=home+new Vector3(Mathf.Sin(t*.034f)*9,Mathf.Sin(t*.11f)*1.2f,Mathf.Sin(t*.026f)*6);
+   transform.position=home+new Vector3(Mathf.Sin(t*.034f)*(CampaignRuntime.Current?9.9f:9),Mathf.Sin(t*.11f)*(CampaignRuntime.Current?1.32f:1.2f),Mathf.Sin(t*.026f)*(CampaignRuntime.Current?6.6f:6));
    transform.rotation=Quaternion.Euler(Mathf.Sin(t*.05f)*.8f,Mathf.Sin(t*.032f)*3,Mathf.Sin(t*.06f)*.7f);
    for(int i=0;i<wings.Length;i++){float sign=i==0?-1:1;wings[i].localRotation=wingRest[i]*Quaternion.Euler(0,0,sign*(Mathf.Sin(t*.24f)*3.8f));}
    for(int i=0;i<tail.Length;i++)tail[i].localRotation=tailRest[i]*Quaternion.Euler(Mathf.Sin(t*.18f-i*.65f)*2.3f,Mathf.Sin(t*.14f-i*.65f)*4,0);

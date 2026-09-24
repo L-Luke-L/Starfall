@@ -11,5 +11,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Scene02_Encounter.unity
     guid: e373e0c9acca6244895c64751783cb62
+  - enabled: 1
+    path: Assets/Scenes/Scene03_WreckRift.unity
+    guid: 9c86bce2cb4830f489709c457859571e
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

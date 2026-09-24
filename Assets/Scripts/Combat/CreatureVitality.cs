@@ -2,7 +2,8 @@ using UnityEngine;
 
 namespace Starfall {
  public sealed class CreatureVitality:MonoBehaviour {
-  public int maxHealth=180;
+  public int maxHealth=180;public string persistentId;
+  string SaveKey=>CampaignRuntime.Current?persistentId:gameObject.name;
   public int Health {get;private set;}
   public bool Dead=>Health<=0;
   public string DisplayName=>giant?"蚀穹古龙":actor.kind==CreatureKind.RiftMauler?"玄脊地龙":"苍翼飞龙";
@@ -10,14 +11,14 @@ namespace Starfall {
   Vector3 visualPosition;Quaternion visualRotation;MaterialPropertyBlock tint;
   public void Initialize(BasinExpedition owner){
    if(initialized)return;initialized=true;expedition=owner;arena=owner.player.arena;actor=GetComponent<AlienCreature>();giant=GetComponent<SkyTitan>();
-   Health=owner.Progress.enemyHealth.TryGetValue(gameObject.name,out var saved)?saved:maxHealth;tint=new MaterialPropertyBlock();
+   Health=owner.Progress.enemyHealth.TryGetValue(SaveKey,out var saved)?saved:maxHealth;tint=new MaterialPropertyBlock();
    if(actor){visualPosition=actor.visual.localPosition;visualRotation=actor.visual.localRotation;}
    if(Dead)ApplyDeath(false);
   }
   public bool TakeDamage(int damage,Vector3 point){
    if(!initialized||Dead||!arena.CanTarget||damage<=0)return false;
-   InteractionFeel.Play(FeelCue.Hit,.55f);Health=Mathf.Max(0,Health-damage);expedition.Progress.enemyHealth[gameObject.name]=Health;flash=.12f;
-   if(actor)actor.AlertToPlayer();if(Dead)ApplyDeath(true);return true;
+   InteractionFeel.Play(FeelCue.Hit,.55f);Health=Mathf.Max(0,Health-damage);expedition.Progress.enemyHealth[SaveKey]=Health;flash=.12f;
+   if(actor)actor.AlertToPlayer();if(Dead)ApplyDeath(true);if(CampaignRuntime.Current)CampaignRuntime.Current.Changed();return true;
   }
   public float DamageMultiplier(Vector3 point){if(giant)return Vector3.Distance(point,giant.head.position)<28?1.5f:.35f;return point.y>transform.position.y+(actor.kind==CreatureKind.RiftMauler?2.2f:.2f)?1.65f:1;}
   void ApplyDeath(bool reward){

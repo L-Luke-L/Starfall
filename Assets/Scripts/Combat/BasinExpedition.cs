@@ -18,7 +18,7 @@ namespace Starfall {
   public void Initialize(){
    if(initialized)return;initialized=true;Progress=player.session!=null?player.session.Progress:new BasinProgress();
    if(!player.session)localInventory=gameObject.AddComponent<OreInventory>();arsenal.Initialize(Progress);player.arena.RestoreHealth(Progress.health);
-   foreach(var c in player.arena.creatures)c.GetComponent<CreatureVitality>().Initialize(this);
+   foreach(var c in player.arena.creatures)if(c&&c.gameObject.activeInHierarchy)c.GetComponent<CreatureVitality>().Initialize(this);
    var titan=FindFirstObjectByType<SkyTitan>();if(titan)titan.GetComponent<CreatureVitality>().Initialize(this);
    foreach(var r in resources)if(Progress.mined.Contains(r.id))r.Exhaust();foreach(var drop in Progress.drops)if(!drop.collected)SpawnPickup(drop);
   }
@@ -32,10 +32,10 @@ namespace Starfall {
   public void MiningProgressReset(){MiningProgress=0;mining=null;}
   public void Tell(string text){Notice=text;noticeTime=2.4f;}
   public void OnDefeated(CreatureVitality target,bool giant){
-   InteractionFeel.Play(FeelCue.Kill,.8f);Kills++;Tell("击败");var kind=BasinProgress.RollLoot(Random.value);if(kind!=BasinLootKind.None){var p=target.transform.position;if(giant)p=player.transform.position+player.transform.forward*3;AddDrop(kind,p);}
+   InteractionFeel.Play(FeelCue.Kill,.8f);Kills++;Tell("击败");var kind=BasinProgress.RollLoot(Random.value);if(CampaignRuntime.Current&&CampaignRuntime.Current.State.region==1&&kind==BasinLootKind.Ore)kind=BasinLootKind.Fuel;if(kind!=BasinLootKind.None){var p=target.transform.position;if(giant)p=player.transform.position+player.transform.forward*3;AddDrop(kind,p);}
   }
   public BasinPickup AddDrop(BasinLootKind kind,Vector3 point){
-   point.y=AlienSurfaceLandmarks.Height(point.x,point.z)+.6f;var d=new BasinDrop{id=Progress.drops.Count,kind=kind,position=point};Progress.drops.Add(d);return SpawnPickup(d);
+   point.y=AlienSurfaceLandmarks.Height(point.x,point.z)+.6f;var d=new BasinDrop{id=Progress.drops.Count,kind=kind,position=point};Progress.drops.Add(d);if(CampaignRuntime.Current)CampaignRuntime.Current.Changed();return SpawnPickup(d);
   }
   BasinPickup SpawnPickup(BasinDrop data){
    bool canister=data.kind==BasinLootKind.Fuel||data.kind==BasinLootKind.Medkit;var g=GameObject.CreatePrimitive(canister?PrimitiveType.Cylinder:PrimitiveType.Cube);g.name="Dropped supply · "+data.kind;g.transform.SetParent(transform);g.transform.position=data.position;g.transform.localScale=canister?new Vector3(.34f,.24f,.34f):new Vector3(.42f,.32f,.30f);var material=data.kind==BasinLootKind.Fuel?fuelMaterial:data.kind==BasinLootKind.Ore?oreMaterial:data.kind==BasinLootKind.Ammo?ammoMaterial:medicalMaterial;g.GetComponent<Renderer>().sharedMaterial=material;
@@ -44,6 +44,7 @@ namespace Starfall {
   }
   public bool Collect(BasinPickup p){
    if(!p||p.expedition!=this||p.data.collected||!player.arena.CanTarget||Vector3.Distance(player.viewCamera.transform.position,p.transform.position)>3.3f||!Visible(p.transform.position,p.transform))return false;
+   if(CampaignRuntime.Current){var campaign=CampaignRuntime.Current;if(!campaign.State.bag.Add(CampaignRuntime.DropItem(p.data.kind),CampaignRuntime.DropCount(p.data.kind))){Tell("背包已满");return false;}p.data.collected=true;campaign.Changed();InteractionFeel.Play(FeelCue.Pickup,.75f);Tell(p.DisplayName);Destroy(p.gameObject);return true;}
    if(p.data.kind==BasinLootKind.Fuel){if(!Inventory)return false;Inventory.AddFuel(2);}
    else if(p.data.kind==BasinLootKind.Ore){if(!Inventory)return false;Inventory.AddGathered(RepairResource.FerricAlloy);}
    else if(p.data.kind==BasinLootKind.Ammo){if(arsenal.Reserve>=180){Tell("弹药已满");InteractionFeel.Play(FeelCue.Deny,.35f);return false;}arsenal.AddAmmo(18);}
@@ -73,6 +74,7 @@ namespace Starfall {
    if(damageStamp!=player.arena.DamageCount){damageStamp=player.arena.DamageCount;MiningProgress=0;InteractionFeel.Play(FeelCue.Deny,.5f);Tell("中断");return false;}
    chipTimer-=dt;if(chipTimer<=0){chipTimer=.38f;InteractionFeel.Play(FeelCue.Chip,.55f);player.arena.Impact(resource.transform.position+Vector3.up*.65f,Color.cyan);}
    MiningProgress+=dt/MiningSeconds;if(MiningProgress<1)return false;
+   if(!Inventory.CanGather(resource.metal)){Tell("背包已满");MiningProgress=0;return false;}
    if(!Progress.mined.Add(resource.id)){MiningProgress=0;return false;}InteractionFeel.Play(FeelCue.Pickup,.8f);Focus(null);resource.Exhaust();Inventory.AddGathered(resource.metal);MiningProgress=0;Tell(resource.DisplayName+" +1");return true;
   }
   void OnDestroy(){Focus(null);Save();}

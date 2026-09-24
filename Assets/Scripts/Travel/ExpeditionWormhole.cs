@@ -16,14 +16,14 @@ namespace Starfall {
   void Awake(){ReloadSavedState();}
   void OnEnable(){if(travel){travel.Entered+=OnEntered;travel.Returned+=RefreshVisual;}}
   void OnDisable(){if(travel){travel.Entered-=OnEntered;travel.Returned-=RefreshVisual;}}
-  public void ReloadSavedState(){Unlocked=PlayerPrefs.GetInt(StorageKey,0)==1;RefreshVisual();}
-  void OnEntered(EncounterRequest request){if(Unlocked)return;Unlocked=true;PlayerPrefs.SetInt(StorageKey,1);PlayerPrefs.Save();pendingNotice=true;RefreshVisual();}
-  void RefreshVisual(){if(portalVisual)portalVisual.SetActive(Unlocked&&travel&&!travel.IsEngaged);}
+  public void ReloadSavedState(){Unlocked=CampaignRuntime.Current?CampaignRuntime.Current.State.calibrated:PlayerPrefs.GetInt(StorageKey,0)==1;RefreshVisual();}
+  void OnEntered(EncounterRequest request){if(CampaignRuntime.Current||Unlocked)return;Unlocked=true;PlayerPrefs.SetInt(StorageKey,1);PlayerPrefs.Save();pendingNotice=true;RefreshVisual();}
+  void RefreshVisual(){if(CampaignRuntime.Current)Unlocked=CampaignRuntime.Current.State.calibrated&&!CampaignRuntime.Current.State.Has("rift-destroyed");if(portalVisual)portalVisual.SetActive(Unlocked&&travel&&!travel.IsEngaged);}
   void Update(){
    RefreshVisual();if(!portalVisual||!portalVisual.activeInHierarchy)return;
    if(pendingNotice&&director.enabled&&!travel.IsEngaged){pendingNotice=false;director.Say("虫洞已稳定");}
    for(int i=0;i<arcs.Length;i++)if(arcs[i])arcs[i].localRotation=Quaternion.Euler(0,0,Time.time*(i%2==0?12:-9)+i*65);
   }
-  public bool TryEnter(){if(!CanEnter){InteractionFeel.Play(FeelCue.Deny,.4f);return false;}travel.Enter(null);return travel.IsEngaged;}
+  public bool TryEnter(){if(!CanEnter){InteractionFeel.Play(FeelCue.Deny,.4f);return false;}if(CampaignRuntime.Current){CampaignRuntime.Current.Open("coordinates");return true;}travel.Enter(null);return travel.IsEngaged;}
  }
 }

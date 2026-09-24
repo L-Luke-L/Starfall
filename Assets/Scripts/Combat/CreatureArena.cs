@@ -41,7 +41,7 @@ namespace Starfall {
   public bool Damage(int amount,AlienCreature source){
    if(!CanTarget||immune>0||amount<=0)return false;
    InteractionFeel.Play(FeelCue.Hurt,.8f);player.ImpactPulse(.65f);Health=Mathf.Max(0,Health-amount);DamageCount++;immune=.32f;hitFlash=.45f;quiet=0;PlayerDamaged?.Invoke(amount,source);
-   if(Downed){downTimer=1.5f;ClearBolts();}return true;
+   if(Downed){downTimer=1.5f;ClearBolts();if(CampaignRuntime.Current){if(CampaignRuntime.Current.BombSeconds>=0)CampaignRuntime.Current.StartCoroutine(CampaignRuntime.Current.Restore("before-core"));else CampaignRuntime.Current.DropOnDeath(player.transform.position);}}return true;
   }
   public void ClearBolts(){foreach(var b in GetComponentsInChildren<AlienBolt>())Destroy(b.gameObject);}
   public AlienBolt Fire(AlienCreature owner,Vector3 origin,Vector3 aim){
