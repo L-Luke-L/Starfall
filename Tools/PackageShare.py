@@ -11,8 +11,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('destination', type=Path)
 args = parser.parse_args()
 destination = args.destination.resolve()
-if destination.suffix.lower() != '.zip' or destination.exists():
-    raise SystemExit('Choose a new .zip destination.')
+if destination.suffix.lower() != '.zip':
+    raise SystemExit('Destination must be a .zip file.')
 destination.parent.mkdir(parents=True, exist_ok=True)
 version = re.search(r'^m_EditorVersion: (.+)$', (project/'ProjectSettings/ProjectVersion.txt').read_text(), re.M).group(1)
 player = project/'Builds/Windows'
@@ -24,7 +24,7 @@ for folder in ('Assets', 'Packages', 'ProjectSettings', 'Tools'):
     for file in (project/folder).rglob('*'):
         if file.is_file() and '__pycache__' not in file.parts:
             files['Starfall/UnityProject/'+file.relative_to(project).as_posix()] = file
-for folder in ('Docs/Gameplay', 'Docs/Design'):
+for folder in ('Docs',):
     for file in (project/folder).rglob('*'):
         if file.is_file():files['Starfall/UnityProject/'+file.relative_to(project).as_posix()] = file
 files['Starfall/UnityProject/.gitignore'] = project/'.gitignore'
@@ -42,8 +42,8 @@ source_readme = f'''# Starfall / 星陨边境
 在 Unity Hub 中选择添加磁盘上的项目，选择本文件所在的 UnityProject 文件夹。安装匹配版本编辑器及 Windows Build Support (Mono)。首次打开需等待 Unity 导入资源。
 
 主场景：Assets/Scenes/Scene01_Starfall.unity。
-第一遗骸星界：Assets/Scenes/Scene03_WreckRift.unity；后期区域使用 Scene02_Encounter 的地形与独立进度。
-Unity 菜单 Starfall / Build Windows 可构建当前场景。Create Scene 01 会重新生成初始场景，日常编辑无需点击。
+五个独立星界：Assets/Scenes/Scene03_WreckRift.unity 至 Scene07_Core.unity；Scene02_Encounter 是独立盆地预览。
+Unity 菜单 Starfall / Build Windows 可构建七个场景。Create Scene 01 会重新生成初始场景，日常编辑无需点击。
 
 ## 目录
 
@@ -76,25 +76,23 @@ guide = f'''星陨边境 · 完整分享包
 三、操作
 地表：A/D 移动，E 交互；地下：空格下放抓钩。
 锻造：空格开始/落锤，三次命中产出金属，失误损失当前矿石。
-第一人称：WASD 移动，鼠标观察，Shift 奔跑，空格跳跃，左键射击，右键近战，R 换弹，E 拾取/长按采矿。
+第一人称：WASD 移动，鼠标观察，Shift 奔跑，空格跳跃，左键射击，右键近战，R 换弹，1/2/3 切枪，Q 扫描，左 Ctrl 闪避，E 拾取/长按采矿。
 Esc 暂停，F11 全屏。暂停页可查看操作、关闭声音或减弱镜头反馈。
 
 四、当前状态
-包含五层矿井、背包仓库、制作锻造、五个星界区域、死亡回收、剧情手账、修船和双结局。
+包含五层矿井、背包仓库、制作锻造、五个独立星界区域、三位营地伙伴、六条支线、三种枪械、四种装备模块、两只精英、死亡回收、剧情手账、修船和双结局。
 初次试玩先回收裂纹紫铜，再在矿口按 E 主动进入遗骸。取得货舱装置并在入口校准后可自由使用营地虫洞。
-B 背包、J 手账、F5 保存。新剧情跨启动保存全部进度，旧试玩记录单独保留。
+B 背包、J 手账、F5 保存。新剧情跨启动保存全部进度，旧剧情存档自动备份后迁移，旧试玩记录单独保留。
 完整规则与原型范围见 UnityProject/Docs/Gameplay/CAMPAIGN.md。
 
 五、内容说明
 本包同时包含可运行程序与完整源码。旧演示、历史备份、录制帧、开发日志和 Unity 本地缓存未打包。
 SHA256SUMS.json 记录包内文件校验值。分享给他人时发送整个 ZIP 即可。
 '''
-doc_index = (project/'Docs/README.md').read_text(encoding='utf-8').split('## 维护')[0]
 generated = {
     'Starfall/先看这里.txt': guide.replace('\n', '\r\n').encode('utf-8-sig'),
     'Starfall/StartGame.cmd': b'@echo off\r\ncd /d "%~dp0WindowsGame"\r\nstart "" "Starfall.exe" -force-d3d11\r\n',
     'Starfall/UnityProject/README.md': source_readme.encode('utf-8'),
-    'Starfall/UnityProject/Docs/README.md': doc_index.encode('utf-8'),
 }
 hashes = {}
 with zipfile.ZipFile(destination, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as archive:

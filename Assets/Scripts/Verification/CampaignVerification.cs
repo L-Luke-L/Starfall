@@ -28,7 +28,7 @@ namespace Starfall {
    Check("Difficulty exactly once",CampaignRules.GunDamage(1)==22&&CampaignRules.GunDamage(1.65f)==36&&CampaignRules.EnemyDamage(44)==57&&CampaignRules.EnemyDamage(32)==42&&CampaignRules.EnemyDamage(19)==25&&Mathf.Approximately(CampaignRules.EnemySpeed(5.8f),6.38f));
    Check("Undiscovered area cannot enter",!c.EnterRegion(5));Check("Not enough fixed nodes blocks drilling",!c.StartDrill());
    yield return Shot("01-surface");
-   yield return d.Travel(true);Check("First layer only purple and one crack",d.ores.FindAll(x=>x.GetComponent<CampaignNode>().fragment).Count==1&&d.ores.TrueForAll(x=>x.GetComponent<CampaignNode>().item==ItemId.PurpleOre));
+   yield return d.Travel(true);Check("First layer only purple and one crack",d.ores.FindAll(x=>x.gameObject.activeSelf&&x.GetComponent<CampaignNode>().fragment).Count==1&&d.ores.FindAll(x=>x.gameObject.activeSelf).TrueForAll(x=>x.GetComponent<CampaignNode>().item==ItemId.PurpleOre));
    yield return Shot("02-copper-layer");
    var node=d.ores[11].GetComponent<CampaignNode>();d.ores[11].transform.position=d.winchAnchor.position+Vector3.down*2.5f;
    typeof(SceneDirector).GetField("angle",BindingFlags.NonPublic|BindingFlags.Instance).SetValue(d,0f);Check("Actual grapple starts",d.Cast());yield return Until(()=>d.hookState==SceneDirector.HookState.Swinging);

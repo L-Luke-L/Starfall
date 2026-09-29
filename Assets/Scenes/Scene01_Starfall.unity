@@ -161526,6 +161526,7 @@ GameObject:
   - component: {fileID: 1881454318}
   - component: {fileID: 1881454320}
   - component: {fileID: 1881454319}
+  - component: {fileID: 1881454321}
   m_Layer: 0
   m_Name: Scene Director
   m_TagString: Untagged
@@ -161845,7 +161846,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8b43ca2470d3b0945b4d66835cdec6e1, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Starfall.CampaignVerification
 --- !u!114 &1881454320
 MonoBehaviour:
@@ -161857,7 +161858,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c80a9142e0eec245ba1cc052ab1d19a, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Starfall.CampaignRuntime
   mineralSprites:
   - {fileID: 21300000, guid: b0c22046b7596854eabffc02a73b0335, type: 3}
@@ -161867,6 +161868,18 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 26f0aaa3eb534d24f8920e54030045bc, type: 3}
   - {fileID: 21300000, guid: 26f0aaa3eb534d24f8920e54030045bc, type: 3}
   director: {fileID: 1881454303}
+--- !u!114 &1881454321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1881454300}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc92cef58920d8244bda672ddff55271, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Starfall.LostRealmVerification
 --- !u!1 &1882259326
 GameObject:
   m_ObjectHideFlags: 0

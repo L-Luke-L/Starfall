@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Starfall {
- public enum ItemId {PurpleOre,IronOre,CopperOre,CobaltOre,StarOre,PurpleIngot,IronIngot,CopperIngot,CobaltIngot,StarIngot,Fuel,Ammo,Medkit,AlienCrystal}
+ public enum ItemId {PurpleOre,IronOre,CopperOre,CobaltOre,StarOre,PurpleIngot,IronIngot,CopperIngot,CobaltIngot,StarIngot,Fuel,Ammo,Medkit,AlienCrystal,MachineParts}
  [Serializable] public sealed class ItemStack {public ItemId item;public int count;public ItemStack(ItemId id,int n){item=id;count=n;}public ItemStack Copy()=>new ItemStack(item,count);}
  [Serializable] public sealed class ItemContainer {
   public int capacity;public List<ItemStack> stacks=new List<ItemStack>();
@@ -15,18 +15,19 @@ namespace Starfall {
   public bool Remove(ItemId item,int count){if(count<0||Count(item)<count)return false;for(int i=stacks.Count-1;i>=0&&count>0;i--){if(stacks[i].item!=item)continue;int n=Math.Min(count,stacks[i].count);stacks[i].count-=n;count-=n;if(stacks[i].count==0)stacks.RemoveAt(i);}return true;}
   public bool TransferTo(ItemContainer other,ItemId item,int count){if(other==this||count<=0||Count(item)<count||!other.CanAdd(item,count))return false;Remove(item,count);other.Add(item,count);return true;}
   public bool Split(int index){if(index<0||index>=stacks.Count||stacks.Count>=capacity||stacks[index].count<2)return false;var s=stacks[index];int n=s.count/2;s.count-=n;stacks.Insert(index+1,new ItemStack(s.item,n));return true;}
-  public void Sort(){var sums=new int[14];foreach(var s in stacks)sums[(int)s.item]+=s.count;stacks.Clear();for(int i=0;i<sums.Length;i++)Add((ItemId)i,sums[i]);}
+  public void Sort(){var sums=new int[CampaignRules.ItemNames.Length];foreach(var s in stacks)if((int)s.item>=0&&(int)s.item<sums.Length)sums[(int)s.item]+=s.count;stacks.Clear();for(int i=0;i<sums.Length;i++)Add((ItemId)i,sums[i]);}
  }
  [Serializable] public sealed class SavedEnemy {public string id;public int health;}
  [Serializable] public sealed class SavedCrate {public string id;public int region;public Vector3 position;public ItemContainer items=new ItemContainer(48);}
  [Serializable] public sealed class RegionState {public int id;public List<SavedEnemy> enemies=new List<SavedEnemy>();public List<int> mined=new List<int>();public List<BasinDrop> drops=new List<BasinDrop>();}
  [Serializable] public sealed class JournalRecord {public string id;public string acquired;public int region;}
  [Serializable] public sealed class CampaignState {
-  public int version=1;public ItemContainer bag=new ItemContainer(16),warehouse=new ItemContainer(48);
-  public int magazine=12,health=100,unlockedLayer=1,layer=1,region;public float surfaceX=-10;
+  public int version=2;public ItemContainer bag=new ItemContainer(16),warehouse=new ItemContainer(48);
+  public int magazine=12,shotgunMagazine=8,railMagazine=3,selectedWeapon,health=100,unlockedLayer=1,layer=1,region;public float surfaceX=-10;
   public bool underground,device,calibrated,escapeComplete,saviorComplete;public List<int> coordinates=new List<int>();
   public List<string> minedNodes=new List<string>(),flags=new List<string>(),repairs=new List<string>();
   public List<JournalRecord> journal=new List<JournalRecord>();public List<RegionState> regions=new List<RegionState>();public List<SavedCrate> crates=new List<SavedCrate>();
+  public List<string> expansionProgress=new List<string>(),craftedModules=new List<string>(),equippedModules=new List<string>();
   public int pendingForge=-1;public string lastSaved;
   public static CampaignState New(){var s=new CampaignState();s.bag.Add(ItemId.Ammo,24);s.bag.Add(ItemId.Fuel,2);return s;}
   public bool Has(string key)=>flags.Contains(key);
@@ -36,7 +37,7 @@ namespace Starfall {
   public RegionState Region(int id){var r=regions.Find(x=>x.id==id);if(r==null){r=new RegionState{id=id};regions.Add(r);}return r;}
  }
  public static class CampaignRules {
-  public static readonly string[] ItemNames={"紫铜原矿","陨铁原矿","赤辉铜原矿","霜蓝钴原矿","星髓原矿","紫铜锭","陨铁锭","赤辉铜锭","霜钴锭","星髓合金锭","燃料","备用弹药","急救剂","稳定异晶"};
+  public static readonly string[] ItemNames={"紫铜原矿","陨铁原矿","赤辉铜原矿","霜蓝钴原矿","星髓原矿","紫铜锭","陨铁锭","赤辉铜锭","霜钴锭","星髓合金锭","燃料","备用弹药","急救剂","稳定异晶","机械组件"};
   public static readonly string[] Regions={"营地","探险船遗骸","撤离战场","同盟医疗站","军用船坞","D4空间核心"};
   public static readonly string[] RepairNames={"船体与支撑","配电与能源","引擎冷却","导航与稳定器"};
   public static ItemId Raw(RepairResource r)=>r==RepairResource.PurpleCopper?ItemId.PurpleOre:(ItemId)((int)r+1);

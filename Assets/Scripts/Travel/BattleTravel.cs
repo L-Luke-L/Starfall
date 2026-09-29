@@ -32,7 +32,7 @@ namespace Starfall {
    oldFog=RenderSettings.fog;oldFogColor=RenderSettings.fogColor;oldFogDensity=RenderSettings.fogDensity;oldSky=RenderSettings.skybox;oldAmbient=RenderSettings.ambientLight;
    oldSun=RenderSettings.sun;oldAmbientMode=RenderSettings.ambientMode;oldFogMode=RenderSettings.fogMode;oldSkyAmbient=RenderSettings.ambientSkyColor;oldEquator=RenderSettings.ambientEquatorColor;oldGround=RenderSettings.ambientGroundColor;
    yield return FadeTo(1);
-   activeScene=CampaignRuntime.Current&&CampaignRuntime.Current.State.region==1?"Scene03_WreckRift":SceneName;
+   int region=CampaignRuntime.Current?CampaignRuntime.Current.State.region:0;activeScene=region==1?"Scene03_WreckRift":region==2?"Scene04_Battlefield":region==3?"Scene05_Medical":region==4?"Scene06_Shipyard":region==5?"Scene07_Core":SceneName;
    var load=SceneManager.LoadSceneAsync(activeScene,LoadSceneMode.Additive);if(load==null){IsEngaged=false;IsTransitioning=false;yield return FadeTo(0);yield break;}yield return load;
    var battle=SceneManager.GetSceneByName(activeScene);SceneManager.SetActiveScene(battle);
    foreach(var root in expedition.GetRootGameObjects())if(root!=gameObject&&root.activeSelf){hiddenRoots.Add(root);root.SetActive(false);}
@@ -43,7 +43,7 @@ namespace Starfall {
   }
   public void ReturnToExpedition(){if(IsEngaged&&!IsTransitioning)StartCoroutine(ReturnRoutine());}
   IEnumerator ReturnRoutine(){
-   InteractionFeel.Play(FeelCue.Portal,.65f);IsTransitioning=true;if(Explorer){if(Explorer.expedition)Explorer.expedition.Save();Explorer.Ready=false;}Cursor.lockState=CursorLockMode.None;Cursor.visible=true;
+   InteractionFeel.Play(FeelCue.Portal,.65f);IsTransitioning=true;if(Explorer){if(Explorer.expedition)Explorer.expedition.Save();if(CampaignRuntime.Current)CampaignRuntime.Current.Save();Explorer.Ready=false;}Cursor.lockState=CursorLockMode.None;Cursor.visible=true;
    yield return FadeTo(1);SceneManager.SetActiveScene(expedition);yield return SceneManager.UnloadSceneAsync(activeScene);
    foreach(var root in hiddenRoots)if(root)root.SetActive(true);hiddenRoots.Clear();director.enabled=originalDirectorEnabled;
    RenderSettings.fog=oldFog;RenderSettings.fogColor=oldFogColor;RenderSettings.fogDensity=oldFogDensity;RenderSettings.skybox=oldSky;RenderSettings.ambientLight=oldAmbient;QualitySettings.antiAliasing=oldAA;Time.timeScale=oldTimeScale;

@@ -27,6 +27,8 @@ namespace Starfall {
   Quaternion[] limbRest,finRest;Vector3 visualRest,coreRest;
   void Awake(){Agent=GetComponent<NavMeshAgent>();Home=transform.position;lastPosition=Home;visualRest=visual.localPosition;coreRest=core.localScale;limbRest=new Quaternion[limbs.Length];for(int i=0;i<limbs.Length;i++)limbRest[i]=limbs[i].localRotation;finRest=new Quaternion[fins.Length];for(int i=0;i<fins.Length;i++)finRest[i]=fins[i].localRotation;}
   void Start(){ResetToHome();}
+  public void SetHome(Vector3 position){Home=position;lastPosition=position;}
+  public void ResumeFromElite(){SetState(kind==CreatureKind.RiftMauler?CreatureState.Pursue:CreatureState.Orbit);cooldown=2;}
   void OnDisable(){if(arena)arena.Release(this);}
   public void ResetToHome(){
    if(!Agent)Agent=GetComponent<NavMeshAgent>();
@@ -79,7 +81,7 @@ namespace Starfall {
      if(timer>=.65f){SetState(CreatureState.Charge);Attacks++;Charges++;}break;
     case CreatureState.Charge:
      Agent.isStopped=true;Vector3 from=transform.position;Vector3 step=chargeDirection*(CampaignRuntime.Current?CampaignRules.EnemySpeed(17.5f):17.5f)*dt;
-     if(Agent.Raycast(from+step,out var edge)){SetState(CreatureState.Recover);cooldown=2.1f;break;}
+     if(Agent.Raycast(from+step,out var edge)){var elite=GetComponent<EliteCreature>();if(elite)elite.Expose(2.8f);SetState(CreatureState.Recover);cooldown=2.1f;break;}
      Agent.Move(step);var closest=Closest(from,from+step,target);
      if(!struck&&CreatureArena.FlatDistance(closest,target)<1.65f&&Mathf.Abs(target.y-transform.position.y)<2&&arena.ClearSight(mouth.position,target+Vector3.up,this)){struck=true;if(arena.Damage(CampaignRuntime.Current?CampaignRules.EnemyDamage(44):44,this))Hits++;}
      if(timer>1.05f){SetState(CreatureState.Recover);cooldown=2.1f;}break;
@@ -126,7 +128,7 @@ namespace Starfall {
     visual.localRotation=Quaternion.Euler(State==CreatureState.BiteTell?-12:State==CreatureState.Charge?8:0,0,0);
     for(int i=0;i<limbs.Length;i++)limbs[i].localRotation=limbRest[i]*Quaternion.Euler(Mathf.Sin(animationClock*9+i*Mathf.PI)*27*moving,0,0);
    }else{
-    Agent.updateRotation=State==CreatureState.Roam;Agent.baseOffset=3.0f+Mathf.Sin(animationClock*1.9f)*.3f;
+    Agent.updateRotation=State==CreatureState.Roam;var elite=GetComponent<EliteCreature>();Agent.baseOffset=elite&&elite.Landed ? .5f : 3.0f+Mathf.Sin(animationClock*1.9f)*.3f;
     visual.localRotation=Quaternion.Euler(Mathf.Sin(animationClock*1.4f)*4,0,Mathf.Sin(animationClock*2)*6);
     for(int i=0;i<limbs.Length;i++)limbs[i].localRotation=limbRest[i]*Quaternion.Euler(Mathf.Sin(animationClock*2.8f+i)*12,0,Mathf.Cos(animationClock*2+i)*9);
    }

@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 namespace Starfall {
- public sealed class CampaignRegion:MonoBehaviour {
+ public sealed partial class CampaignRegion:MonoBehaviour {
   public CampaignRuntime campaign;public FirstPersonExplorer player;public int id;public CampaignBoss boss;
   readonly Dictionary<string,Transform> sites=new Dictionary<string,Transform>();readonly List<Material> materials=new List<Material>();readonly Dictionary<string,GameObject> crates=new Dictionary<string,GameObject>();
   public Material steel,accent,dark,warningMaterial;GameObject root;string focus;Mesh armorMesh;
@@ -12,17 +12,17 @@ namespace Starfall {
    steel=Mat("Weathered alloy",new Color(.24f,.29f,.31f));accent=Mat("Anchor glow",new Color(.25f,.76f,.84f),.7f);dark=Mat("Dark panels",new Color(.07f,.10f,.13f));warningMaterial=Mat("D4 amber warning",new Color(1,.32f,.08f),.65f);armorMesh=CampaignGeometry.Armor();
    if(region==1){foreach(var resource in player.expedition.resources)resource.gameObject.SetActive(false);player.expedition.resources=new BasinResource[0];Wreck();}
    else{
-    if(region<3){var titan=FindFirstObjectByType<SkyTitan>();if(titan)titan.gameObject.SetActive(false);}
+    if(region<4){var titan=FindFirstObjectByType<SkyTitan>();if(titan)titan.gameObject.SetActive(false);}
     if(region==5){var titan=FindFirstObjectByType<SkyTitan>();if(titan)titan.gameObject.SetActive(false);foreach(var actor in player.arena.creatures)actor.gameObject.SetActive(false);player.arena.creatures=new AlienCreature[0];}
     for(int i=0;i<player.expedition.resources.Length;i++){var r=player.expedition.resources[i];r.metal=region==2?(i%2==0?RepairResource.FerricAlloy:RepairResource.CopperCompound):region==3?RepairResource.CobaltSilicate:RepairResource.RareComposite;r.gameObject.SetActive(region!=5);var block=new MaterialPropertyBlock();block.SetColor("_Color",OreInventory.MetalColor(r.metal)*.48f);block.SetColor("_EmissionColor",OreInventory.MetalColor(r.metal)*.08f);foreach(var renderer in r.crystals.GetComponentsInChildren<Renderer>())renderer.SetPropertyBlock(block);}
     var station=MakeSite("terminal",new Vector3(-6,0,-20),"档案与补给");Box("Console",station,new Vector3(0,.6f,0),new Vector3(1.7f,1.2f,.7f),steel,true);Box("Screen",station,new Vector3(0,1.28f,-.08f),new Vector3(1.4f,.10f,.8f),accent,false);
-    Decorate(region);
+    // Each campaign region carries its own saved geometry and navigation scene.
     if(region==5){boss=new GameObject("D4 guardian mech").AddComponent<CampaignBoss>();boss.transform.SetParent(root.transform);boss.Configure(this);var control=MakeSite("core",new Vector3(0,0,21),"D4核心");Box("Isolation terminal",control,Vector3.up*.9f,new Vector3(2.2f,1.8f,1),steel,true);Box("Isolation light",control,new Vector3(0,1.5f,-.53f),new Vector3(1.8f,.45f,.03f),accent,false);}
    }
-   foreach(var c in campaign.State.crates)if(c.region==id)SpawnCrate(c);
+   BuildExpansion();RelocateSavedLoot();foreach(var c in campaign.State.crates)if(c.region==id)SpawnCrate(c);
   }
   Material Mat(string name,Color color,float glow=0){var m=new Material(Shader.Find("Standard")){name=name,color=color};m.SetFloat("_Metallic",.6f);m.SetFloat("_Glossiness",.25f);if(glow>0){m.EnableKeyword("_EMISSION");m.SetColor("_EmissionColor",color*glow);}materials.Add(m);return m;}
-  public Transform Box(string name,Transform parent,Vector3 local,Vector3 size,Material material,bool collide){var g=GameObject.CreatePrimitive(PrimitiveType.Cube);g.name=name;g.transform.SetParent(parent,false);g.transform.localPosition=local;g.transform.localScale=size;g.GetComponent<Renderer>().sharedMaterial=material;g.GetComponent<MeshFilter>().sharedMesh=armorMesh;if(!collide)Destroy(g.GetComponent<Collider>());else if(name=="Medical habitat"||name=="Stored D4 cells"||name.StartsWith("Core blast shelter")){var obstacle=g.AddComponent<NavMeshObstacle>();obstacle.shape=NavMeshObstacleShape.Box;obstacle.size=Vector3.one;obstacle.carving=true;}return g.transform;}
+  public Transform Box(string name,Transform parent,Vector3 local,Vector3 size,Material material,bool collide){var g=GameObject.CreatePrimitive(PrimitiveType.Cube);g.name=name;g.transform.SetParent(parent,false);g.transform.localPosition=local;g.transform.localScale=size;g.GetComponent<Renderer>().sharedMaterial=material;g.GetComponent<MeshFilter>().sharedMesh=armorMesh;if(!collide)Destroy(g.GetComponent<Collider>());else if(name=="Medical habitat"||name=="Stored D4 cells"||name.StartsWith("Core blast shelter")||name.StartsWith("Power barrier")){var obstacle=g.AddComponent<NavMeshObstacle>();obstacle.shape=NavMeshObstacleShape.Box;obstacle.size=Vector3.one;obstacle.carving=true;}return g.transform;}
   Transform MakeSite(string key,Vector3 position,string label){var g=new GameObject(label).transform;g.SetParent(root.transform);position.y=AlienSurfaceLandmarks.Height(position.x,position.z);if(NavMesh.SamplePosition(position,out var nav,5,NavMesh.AllAreas))position=nav.position;g.position=position;sites[key]=g;return g;}
   void Wreck(){
    var wreck=MakeSite("wreck",new Vector3(0,0,-4),"Half buried explorer ship");wreck.rotation=Quaternion.Euler(0,-14,-7);
@@ -46,15 +46,16 @@ namespace Starfall {
    if(!player.Ready||player.Paused||!player.arena.Active)return;
    focus=null;float closest=4;
    foreach(var s in sites){if(s.Key=="wreck")continue;float distance=Vector3.Distance(player.transform.position,s.Value.position);if(distance<closest&&Near(s.Key)){focus=s.Key;closest=distance;}}
-   foreach(var id in new List<string>(crates.Keys))if(!campaign.State.crates.Exists(x=>x.id==id&&x.region==this.id)){sites.Remove("crate:"+id);Destroy(crates[id]);crates.Remove(id);}
+   TickRegionalEvent();foreach(var id in new List<string>(crates.Keys))if(!campaign.State.crates.Exists(x=>x.id==id&&x.region==this.id)){sites.Remove("crate:"+id);Destroy(crates[id]);crates.Remove(id);}
   }
   public bool Interact(){
    if(campaign.Modal||player.Paused)return false;
    if(Vector3.Distance(player.transform.position,player.returnBeacon.position)<4){if(campaign.BombSeconds>=0){campaign.Evacuate();return true;}if(campaign.State.device&&!campaign.State.calibrated)campaign.CalibrateDevice();player.Return();return true;}
    if(focus==null)return false;if(focus.StartsWith("crate:")){if(!campaign.RecoverCrate(focus.Substring(6)))campaign.Notice("背包空间不足");return true;}
+   if(IsExpansionSite(focus)){campaign.ExpansionInteract(focus);RefreshExpansionSite(focus);return true;}
    campaign.Open(focus=="chest"?"chest":focus=="core"?"core":"terminal");return true;
   }
-  void OnGUI(){if(!player.Ready||player.Paused||campaign.Modal||focus==null)return;var title=focus.StartsWith("crate:")?"回收物资":focus=="chest"?"打开遗骸货舱":focus=="core"?"核心控制台":"查看区域终端";InteractionFeel.Text(new Rect(Screen.width/2-230,Screen.height*.69f,460,35),"E  "+title,player.uiFont,18,new Color(.92f,.77f,.49f),TextAnchor.MiddleCenter);}
+  void OnGUI(){if(!player.Ready||player.Paused||campaign.Modal)return;DrawScanMarkers();if(focus==null)return;var title=focus.StartsWith("crate:")?"回收物资":IsExpansionSite(focus)?ExpansionSiteName(focus):focus=="chest"?"打开遗骸货舱":focus=="core"?"核心控制台":"查看区域终端";InteractionFeel.Text(new Rect(Screen.width/2-230,Screen.height*.69f,460,35),"E  "+title,player.uiFont,18,new Color(.92f,.77f,.49f),TextAnchor.MiddleCenter);}
   public void DrawTerminalView(){
    campaign.StoryText(new Rect(240,215,1110,165),id==2?"撤离记录仍在循环。\n军需官（救援站频道）：先修好中继，我们就能一起回家。":id==3?"医疗报告、裂隙实验与中继日志保存在这里。\n诊断上传只需要局部数据；完整请求包含现实端出口权限。":id==4?"军用船坞内的军令、原型维护记录与舰队清单相互吻合。\n指挥官：把装置交出来，我们可以一起离开。你也能分享下一次远征。":"同盟最后的隔离方案与种源库记录已找到。\n共用核心连接全部星界，切断现实耦合才能限制坍缩。",22);
    if(campaign.StoryAction(new Rect(260,429,1040,55),"读取档案与领取补给")){ReadArchive();}

@@ -1,0 +1,122 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9eeb0a4adacb8f6448e81ed56c74bf2d, type: 3}
+  m_Name: LostRealmCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Starfall.LostRealmCatalog
+  weapons:
+  - id: pistol
+    title: "P12\u624B\u67AA"
+    magazine: 12
+    ammoPerShot: 1
+    bodyDamage: 22
+    weakDamage: 36
+    range: 160
+    reload: 2.35
+    interval: 0.28
+    charge: 0
+  - id: scatter
+    title: "\u7834\u969C\u9730\u5C04\u5668"
+    magazine: 8
+    ammoPerShot: 2
+    bodyDamage: 14
+    weakDamage: 23
+    range: 18
+    reload: 2.7
+    interval: 0.72
+    charge: 0
+  - id: rail
+    title: "\u78C1\u8F68\u7A7F\u523A\u67AA"
+    magazine: 3
+    ammoPerShot: 3
+    bodyDamage: 70
+    weakDamage: 120
+    range: 100
+    reload: 1.8
+    interval: 1.25
+    charge: 0.9
+  modules:
+  - id: stamina
+    title: "\u7EED\u822A\u7535\u5BB9"
+    description: "\u4F53\u529B\u4E0A\u9650 +25"
+    unlock: doctor-rescued
+    parts: 5
+  - id: reload
+    title: "\u5FEB\u6362\u673A\u6784"
+    description: "\u6362\u5F39\u65F6\u95F4 -20%"
+    unlock: engineer-rescued
+    parts: 5
+  - id: magnet
+    title: "\u62FE\u8352\u78C1\u73AF"
+    description: "\u666E\u901A\u6389\u843D\u81EA\u52A8\u62FE\u53D6"
+    unlock: drone-rescued
+    parts: 5
+  - id: weakness
+    title: "\u730E\u624B\u955C\u7EC4"
+    description: "\u5F31\u70B9\u4F24\u5BB3 +20%"
+    unlock: signals-complete
+    parts: 5
+  regions:
+  - id: 1
+    title: "\u63A2\u9669\u8239\u9057\u9AB8"
+    environment: "\u65AD\u5D16\u76C6\u5730"
+    uniqueEvent: "\u5929\u7EBF\u9635\u5217"
+    fog: {r: 0.2, g: 0.27, b: 0.31, a: 1}
+    accent: {r: 0.94, g: 0.47, b: 0.18, a: 1}
+  - id: 2
+    title: "\u64A4\u79BB\u6218\u573A"
+    environment: "\u6C99\u5C18\u6218\u58D5"
+    uniqueEvent: "\u6C99\u5899"
+    fog: {r: 0.41, g: 0.27, b: 0.17, a: 1}
+    accent: {r: 0.94, g: 0.47, b: 0.18, a: 1}
+  - id: 3
+    title: "\u540C\u76DF\u533B\u7597\u7AD9"
+    environment: "\u7ED3\u6676\u5E9F\u589F"
+    uniqueEvent: "\u7ED3\u6676\u5171\u9E23"
+    fog: {r: 0.15, g: 0.3, b: 0.42, a: 1}
+    accent: {r: 0.39, g: 0.86, b: 0.98, a: 1}
+  - id: 4
+    title: "\u519B\u7528\u8239\u575E"
+    environment: "\u5DE8\u8230\u5E9F\u589F"
+    uniqueEvent: "\u7535\u78C1\u8109\u51B2"
+    fog: {r: 0.23, g: 0.25, b: 0.33, a: 1}
+    accent: {r: 0.8, g: 0.6, b: 0.27, a: 1}
+  - id: 5
+    title: "D4\u7A7A\u95F4\u6838\u5FC3"
+    environment: "\u7384\u6B66\u5CA9\u73AF"
+    uniqueEvent: "\u6838\u5FC3\u8109\u51B2"
+    fog: {r: 0.12, g: 0.1, b: 0.18, a: 1}
+    accent: {r: 0.72, g: 0.41, b: 1, a: 1}
+  quests:
+  - id: antenna
+    title: "\u4FEE\u590D\u4E09\u6BB5\u5929\u7EBF"
+    companion: "\u62FE\u5149"
+    reward: "\u626B\u63CF"
+  - id: signals
+    title: "\u8BB0\u5F55\u5F02\u5E38\u4FE1\u53F7"
+    companion: "\u62FE\u5149"
+    reward: "\u730E\u624B\u955C\u7EC4"
+  - id: engineer
+    title: "\u5F00\u542F\u907F\u96BE\u8231"
+    companion: "\u5C9A"
+    reward: "\u9730\u5C04\u5668\u4E0E\u5DE5\u574A"
+  - id: crane
+    title: "\u6062\u590D\u540A\u673A"
+    companion: "\u5C9A"
+    reward: "\u78C1\u8F68\u67AA"
+  - id: doctor
+    title: "\u89E3\u9664\u9694\u79BB"
+    companion: "\u82CF\u79BE"
+    reward: "\u533B\u7597\u8BBE\u65BD"
+  - id: samples
+    title: "\u6536\u96C6\u751F\u6001\u6837\u672C"
+    companion: "\u82CF\u79BE"
+    reward: "\u6E29\u5BA4"

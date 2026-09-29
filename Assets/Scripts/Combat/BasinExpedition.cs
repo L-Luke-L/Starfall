@@ -13,7 +13,7 @@ namespace Starfall {
   Renderer[] focusRenderers;MaterialPropertyBlock focusBlock;float chipTimer;
   public int Kills {get;private set;}
   public const float MiningSeconds=3.4f;
-  BasinResource mining;int damageStamp;float noticeTime;bool initialized;OreInventory localInventory;
+  BasinResource mining;int damageStamp;float noticeTime,magnetTick;bool initialized;OreInventory localInventory;
   public OreInventory Inventory=>player.session?player.session.director.inventory:localInventory;
   public void Initialize(){
    if(initialized)return;initialized=true;Progress=player.session!=null?player.session.Progress:new BasinProgress();
@@ -26,13 +26,14 @@ namespace Starfall {
    if(!initialized){if(player.Ready&&(!player.session||!player.session.IsTransitioning))Initialize();return;}
    if(noticeTime>0&&player.arena.Active){noticeTime-=Time.deltaTime;if(noticeTime<=0)Notice=null;}
    if(!player.Ready||player.Paused||player.arena.Downed){MiningProgress=0;return;}
+   if(CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("magnet")){magnetTick-=Time.deltaTime;if(magnetTick<=0){magnetTick=.25f;foreach(var pickup in GetComponentsInChildren<BasinPickup>())if(pickup&&Vector3.Distance(player.transform.position,pickup.transform.position)<4)Collect(pickup);}}
    if(!player.Automated)Interact(Input.GetKey(KeyCode.E),Time.deltaTime);
   }
   public void Save(){if(!initialized||!player||!player.arena||!arsenal)return;Progress.health=player.arena.Health;Progress.magazine=arsenal.Magazine;Progress.reserve=arsenal.Reserve;}
   public void MiningProgressReset(){MiningProgress=0;mining=null;}
   public void Tell(string text){Notice=text;noticeTime=2.4f;}
   public void OnDefeated(CreatureVitality target,bool giant){
-   InteractionFeel.Play(FeelCue.Kill,.8f);Kills++;Tell("击败");var kind=BasinProgress.RollLoot(Random.value);if(CampaignRuntime.Current&&CampaignRuntime.Current.State.region==1&&kind==BasinLootKind.Ore)kind=BasinLootKind.Fuel;if(kind!=BasinLootKind.None){var p=target.transform.position;if(giant)p=player.transform.position+player.transform.forward*3;AddDrop(kind,p);}
+   InteractionFeel.Play(FeelCue.Kill,.8f);Kills++;Tell("击败");var elite=target.GetComponent<EliteCreature>();if(elite&&CampaignRuntime.Current)CampaignRuntime.Current.EliteDefeated(elite.Id);var kind=BasinProgress.RollLoot(Random.value);if(CampaignRuntime.Current&&CampaignRuntime.Current.State.region==1&&kind==BasinLootKind.Ore)kind=BasinLootKind.Fuel;if(kind!=BasinLootKind.None){var p=target.transform.position;if(giant)p=player.transform.position+player.transform.forward*3;AddDrop(kind,p);}
   }
   public BasinPickup AddDrop(BasinLootKind kind,Vector3 point){
    point.y=AlienSurfaceLandmarks.Height(point.x,point.z)+.6f;var d=new BasinDrop{id=Progress.drops.Count,kind=kind,position=point};Progress.drops.Add(d);if(CampaignRuntime.Current)CampaignRuntime.Current.Changed();return SpawnPickup(d);
@@ -43,7 +44,7 @@ namespace Starfall {
    var p=g.AddComponent<BasinPickup>();p.data=data;p.expedition=this;return p;
   }
   public bool Collect(BasinPickup p){
-   if(!p||p.expedition!=this||p.data.collected||!player.arena.CanTarget||Vector3.Distance(player.viewCamera.transform.position,p.transform.position)>3.3f||!Visible(p.transform.position,p.transform))return false;
+   if(!p||p.expedition!=this||p.data.collected||!player.arena.CanTarget||Vector3.Distance(player.viewCamera.transform.position,p.transform.position)>(CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("magnet")?4.3f:3.3f)||!Visible(p.transform.position,p.transform))return false;
    if(CampaignRuntime.Current){var campaign=CampaignRuntime.Current;if(!campaign.State.bag.Add(CampaignRuntime.DropItem(p.data.kind),CampaignRuntime.DropCount(p.data.kind))){Tell("背包已满");return false;}p.data.collected=true;campaign.Changed();InteractionFeel.Play(FeelCue.Pickup,.75f);Tell(p.DisplayName);Destroy(p.gameObject);return true;}
    if(p.data.kind==BasinLootKind.Fuel){if(!Inventory)return false;Inventory.AddFuel(2);}
    else if(p.data.kind==BasinLootKind.Ore){if(!Inventory)return false;Inventory.AddGathered(RepairResource.FerricAlloy);}
