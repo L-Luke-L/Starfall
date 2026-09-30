@@ -13,7 +13,7 @@ namespace Starfall {
    if(Modal||Busy)return true;
    if(State.Has("ecology-chosen")&&!director.underground&&TryEcology())return true;
    if(director.underground){if(State.coordinates.Contains(State.layer)){Open("coordinates");return true;}return false;}
-   if(TryCampCompanion())return true;
+   if(TryFrontierTerminal()||TryCampCompanion())return true;
    if(AtCamp){Open("camp");return true;}if(AtShip){Open("ship");return true;}return false;
   }
   string Objective {
@@ -37,16 +37,17 @@ namespace Starfall {
    if(Modal){
     GUI.color=new Color(.015f,.026f,.037f,.90f);GUI.DrawTexture(new Rect(120,90,1360,720),Texture2D.whiteTexture);GUI.color=Color.white;
     Caption(new Rect(175,122,950,42),Title(panel),30);if(Action(new Rect(1335,124,90,35),"Esc"))Close();
-    if(panel=="companion")DrawCompanion();else if(panel=="bag"||panel=="camp"||panel=="warehouse")DrawInventory();else if(panel=="workshop")DrawWorkshop();else if(panel=="forge")DrawForgeSelect();else if(panel=="craft")DrawCraft();else if(panel=="ship")DrawShip();else if(panel=="takeoff")DrawTakeoff();else if(panel=="coordinates")DrawCoordinates();else if(panel=="journal")DrawJournal();else if(panel=="system")DrawSystem();else if(panel=="new-game")DrawNewGame();else if(panel=="layers")DrawLayers();else if(panel=="chest")DrawChest();else if(panel=="terminal")DrawTerminal();else if(panel=="permission")DrawPermission();else if(panel=="core")DrawCore();else if(panel=="detonate")DrawDetonate();else if(panel=="remain")DrawRemain();else if(panel=="escaped"||panel=="saved")DrawEnding();
+    if(panel=="frontier")DrawFrontier();else if(panel=="companion")DrawCompanion();else if(panel=="bag"||panel=="camp"||panel=="warehouse")DrawInventory();else if(panel=="workshop")DrawWorkshop();else if(panel=="forge")DrawForgeSelect();else if(panel=="craft")DrawCraft();else if(panel=="ship")DrawShip();else if(panel=="takeoff")DrawTakeoff();else if(panel=="coordinates")DrawCoordinates();else if(panel=="journal")DrawJournal();else if(panel=="system")DrawSystem();else if(panel=="new-game")DrawNewGame();else if(panel=="layers")DrawLayers();else if(panel=="chest")DrawChest();else if(panel=="terminal")DrawTerminal();else if(panel=="permission")DrawPermission();else if(panel=="core")DrawCore();else if(panel=="detonate")DrawDetonate();else if(panel=="remain")DrawRemain();else if(panel=="escaped"||panel=="saved")DrawEnding();
     if(toastAge>0)Caption(new Rect(180,755,1240,32),toast,15,new Color(1,.79f,.42f));
    }
    DrawPresentation();GUI.matrix=previous;GUI.color=Color.white;
   }
-  static string Title(string page){switch(page){case "companion":return "营地伙伴";case "workshop":return "营地工坊";case "camp":case "warehouse":return "营地 · 物资整备";case "bag":return "随身背包";case "forge":return "选择原矿";case "craft":return "制作与应急回收";case "ship":return "飞船维修终端";case "coordinates":return "已记录坐标";case "journal":return "探险者手账";case "system":return "故事与存档";case "new-game":return "开始新的故事？";case "layers":return "矿井升降控制";case "chest":return "同盟探险船 · 密封货舱";case "permission":return "现实端出口 · 权限确认";case "terminal":return "区域档案终端";case "core":return "D4核心控制台";case "detonate":return "确认引爆？";case "takeoff":return "确认起飞？";case "remain":return "裂隙已经熄灭";case "escaped":return "结局 · 下一段航程";case "saved":return "结局 · 星球的守望者";default:return page;}}
+  static string Title(string page){switch(page){case "frontier":return "余烬重建";case "companion":return "营地伙伴";case "workshop":return "营地工坊";case "camp":case "warehouse":return "营地 · 物资整备";case "bag":return "随身背包";case "forge":return "选择原矿";case "craft":return "制作与应急回收";case "ship":return "飞船维修终端";case "coordinates":return "已记录坐标";case "journal":return "探险者手账";case "system":return "故事与存档";case "new-game":return "开始新的故事？";case "layers":return "矿井升降控制";case "chest":return "同盟探险船 · 密封货舱";case "permission":return "现实端出口 · 权限确认";case "terminal":return "区域档案终端";case "core":return "D4核心控制台";case "detonate":return "确认引爆？";case "takeoff":return "确认起飞？";case "remain":return "裂隙已经熄灭";case "escaped":return "结局 · 下一段航程";case "saved":return "结局 · 星球的守望者";default:return page;}}
   void DrawInventory(){
    bool camp=AtCamp;Caption(new Rect(180,183,1100,32),"绑定装备：手枪  ·  冲击镐  ·  抓钩"+(State.device?"  ·  同盟跃迁装置":"")+"   ｜   装备与已记录知识死亡不掉落",15);
    if(camp){if(Action(new Rect(180,225,180,38),"锻造"))panel="forge";if(Action(new Rect(370,225,220,38),"制作 / 回收"))panel="craft";if(Action(new Rect(600,225,180,38),"手账"))panel="journal";if(Action(new Rect(790,225,180,38),"存档"))panel="system";if(Action(new Rect(980,225,180,38),Exp("engineer-rescued")?"工坊 / 医疗":"医疗",Exp("engineer-rescued")||Exp("doctor-rescued")))panel="workshop";if(Action(new Rect(1170,225,195,38),"转运回收箱")){TransportCrates();Notice("回收箱已转运到营地");}}
-   Caption(new Rect(180,277,550,28),"背包 "+State.bag.stacks.Count+" / 16",18);ContainerGrid(State.bag,new Vector2(180,318),false,0);
+   bagPage=Mathf.Clamp(bagPage,0,(State.bag.capacity-1)/16);Caption(new Rect(180,277,550,28),"背包 "+State.bag.stacks.Count+" / "+State.bag.capacity,18);ContainerGrid(State.bag,new Vector2(180,318),false,bagPage*16);
+   if(State.bag.capacity>16){if(Action(new Rect(200,633,160,30),"上一页"))bagPage=1-bagPage;Caption(new Rect(370,633,70,30),(bagPage+1)+" / 2",15);if(Action(new Rect(460,633,160,30),"下一页"))bagPage=1-bagPage;}
    if(camp){Caption(new Rect(830,277,480,28),"帐篷仓库 "+State.warehouse.stacks.Count+" / 48",18);ContainerGrid(State.warehouse,new Vector2(830,318),true,warehousePage*16);if(Action(new Rect(850,633,160,30),"上一页"))warehousePage=(warehousePage+2)%3;Caption(new Rect(1020,633,70,30),(warehousePage+1)+" / 3",15);if(Action(new Rect(1110,633,160,30),"下一页"))warehousePage=(warehousePage+1)%3;}
    else Paragraph(new Rect(845,325,500,175),"普通物资死亡后留在回收箱。\n到帐篷可存取仓库与制作。\n\n任务栏："+(State.Has("bomb-crafted")?"异晶炸弹（受保护）":"暂无主线成品"));
    var container=fromWarehouse?State.warehouse:State.bag;
@@ -91,13 +92,14 @@ namespace Starfall {
   void DrawSystem(){Paragraph(new Rect(245,226,1070,96),"自动保存 + F5 手动保存。旧试玩的虫洞记录独立保留，新故事使用统一存档。\n绑定装备、知识、安装结构和回收箱跨读档保留。",18);if(Action(new Rect(250,371,430,50),"保存当前进度")){if(Save())Notice("已保存");}if(Action(new Rect(870,371,430,50),"读取当前存档"))StartCoroutine(Restore("campaign"));if(Action(new Rect(250,461,430,50),"恢复起飞前",System.IO.File.Exists(Store.PathFor("before-flight"))))StartCoroutine(Restore("before-flight"));if(Action(new Rect(870,461,430,50),"恢复引爆前",System.IO.File.Exists(Store.PathFor("before-core"))))StartCoroutine(Restore("before-core"));if(Action(new Rect(510,626,570,50),"新故事（保留上一轮备份）"))panel="new-game";}
   void DrawNewGame(){Paragraph(new Rect(310,265,980,180),"会从迫降重新开始。当前故事先保存到独立备份，正常自动存档将用于新故事。\n\n新故事从手枪12发装填、24发备用与2份应急燃料开始。",23);if(Action(new Rect(380,580,360,60),"确认开始"))StartCoroutine(NewGame());if(Action(new Rect(860,580,360,60),"返回"))panel="system";}
   void DrawJournal(){
-   string[] pages={"当前目标","已获线索","已证实事实","物种与矿物","修复清单","失落星界"};for(int i=0;i<pages.Length;i++)if(Action(new Rect(195+i*203,190,190,42),pages[i]))tab=i;
+   string[] pages={"当前目标","已获线索","已证实事实","物种与矿物","修复清单","失落星界","余烬重建"};for(int i=0;i<pages.Length;i++)if(Action(new Rect(195+i*176,190,166,42),pages[i]))tab=i;
    if(tab==0){Paragraph(new Rect(250,281,1100,220),Objective+"\n\n矿井深度："+State.unlockedLayer+" / 5\n已发现区域："+State.coordinates.Count+"\n飞船修复："+State.repairs.Count+" / 4",24);if(Action(new Rect(1020,635,300,50),"存档与检查点"))panel="system";}
    if(tab==1){for(int i=0;i<State.journal.Count;i++){var r=State.journal[i];if(Action(new Rect(200,250+i*51,305,43),r.id+" · "+CampaignJournal.Title(r.id)))selectedJournal=i;}if(State.journal.Count>0){selectedJournal=Mathf.Clamp(selectedJournal,0,State.journal.Count-1);var r=State.journal[selectedJournal];Caption(new Rect(565,260,750,50),CampaignJournal.Title(r.id),25);Paragraph(new Rect(565,330,750,320),CampaignJournal.Text(r.id),21);Caption(new Rect(565,693,750,32),CampaignRules.Regions[r.region]+" · "+r.acquired+" UTC",13);}else Paragraph(new Rect(260,285,1100,100),"找到遗骸中的探险者手账后，可以记录线索。");}
    if(tab==2){int i=0;foreach(var id in new[]{"J04","J06","J07"}){Paragraph(new Rect(260,278+i*133,1090,105),State.Knows(id)?CampaignJournal.Fact(id):"未证实 · 继续调查区域档案",22);i++;}}
    if(tab==3){Paragraph(new Rect(245,270,1130,340),"紫铜矿：已识别，原矿用于弹药；金属用于配电。\n"+(State.Has("identified-0")?"陨铁：结构金属。\n":"")+(State.Has("identified-1")?"赤辉铜：与紫铜不同的能源材料。\n":"")+(State.Has("identified-2")?"霜钴：耐热与冷却。\n":"")+(State.Has("identified-3")?"星髓：导航稳定材料。\n":"")+(State.unlockedLayer==5?"稳定异晶：D4结晶，直接使用，不参与锻造。\n":"")+(State.Knows("J04")?"地龙与飞龙：变异本土生物。D4污染改变了它们的生理与行为。":"物种来源尚未查明。"),22);}
    if(tab==4){for(int i=0;i<4;i++)Paragraph(new Rect(235,271+i*100,1150,80),CampaignRules.RepairNames[i]+" · "+(State.repairs.Contains(i.ToString())?"已安装":Cost(CampaignRules.RepairCost(i))),20);}
    if(tab==5)DrawExpansionJournal();
+   if(tab==6){if(Action(new Rect(450,355,700,60),"建设、委托与野外记录"))panel="frontier";Paragraph(new Rect(450,447,700,90),"可选成长不影响修船与结局。在营地按 C 打开整备台。",21);}
   }
  }
  public static class CampaignJournal {

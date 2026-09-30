@@ -69,6 +69,7 @@ namespace Starfall {
   void TickTreatment(){if(treatmentTime<=0)return;if(!AtCamp||Modal&&panel!="workshop"&&!(panel=="companion"&&selectedCompanion==2)){treatmentTime=0;return;}treatmentTime-=Time.unscaledDeltaTime;if(treatmentTime<=0){State.health=100;Notice("治疗完成");Changed();}}
   void DrawWorkshop(){
    Caption(new Rect(195,184,1100,34),"岚的工坊 · 装备和材料",22);
+   if(Action(new Rect(1110,184,230,36),"建设 / 战术整备"))panel="frontier";
    for(int i=0;i<3;i++){string name=i==0?"P12 手枪":i==1?"破障霰射器":"磁轨穿刺枪";if(Action(new Rect(200+i*395,246,360,54),name+(WeaponUnlocked(i)?" · 已解锁":" · 未解锁"),WeaponUnlocked(i))){State.selectedWeapon=i;Changed();Notice("已装备 "+name);}}
    var catalog=LostRealmCatalog.Current;
    string[] ids={"stamina","reload","magnet","weakness"};string[] names={"续航电容","快换机构","拾荒磁环","猎手镜组"};

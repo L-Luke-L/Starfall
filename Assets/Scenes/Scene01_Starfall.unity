@@ -161527,6 +161527,7 @@ GameObject:
   - component: {fileID: 1881454320}
   - component: {fileID: 1881454319}
   - component: {fileID: 1881454321}
+  - component: {fileID: 1881454322}
   m_Layer: 0
   m_Name: Scene Director
   m_TagString: Untagged
@@ -161880,6 +161881,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc92cef58920d8244bda672ddff55271, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Starfall.LostRealmVerification
+--- !u!114 &1881454322
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1881454300}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2a5f0c4970722644b2a910e6d640d06, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Starfall.FrontierVerification
 --- !u!1 &1882259326
 GameObject:
   m_ObjectHideFlags: 0

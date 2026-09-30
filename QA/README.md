@@ -1,5 +1,11 @@
 # 开发验证
 
+## 余烬重建
+
+运行 `-frontierQA` 使用独立验证存档，输出 `QA/Reports/Frontier/frontier-report.txt` 和 1600×900 相机截图。覆盖四项建设、背包扩容/死亡回收、旧版二号存档兼容与历史补记、真实矿点与锻造委托、五区勘测、松键/移动/暂停中断、三种物理机关、错误灯序列重试、两种变体预警、击杀与图鉴、战术投放/数量/冷却/暂停/墙体遮挡、满仓奖励进入回收箱、重复领取及非法存档。使用人物实际碰撞控制器沿导航路走到调查点、遗迹支路和返回入口。后期材料与定位可由套件预置，不代表人工通关。
+
+新套件与 `-campaignQA`、`-lostRealmQA` 分别运行；日志以 `FRONTIER_QA_PASS` 或 `FRONTIER_QA_FAIL` 结束。正常存档仍在 `CampaignV1`，不由验证套件读写。
+
 ## 剧情版本
 
 运行 Windows 程序时添加 `-campaignQA`，使用独立测试存档；不会读写正常故事的 `CampaignV1`。输出为 `QA/Reports/Campaign/campaign-report.txt` 和流程截图。

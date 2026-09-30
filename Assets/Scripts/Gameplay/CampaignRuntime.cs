@@ -11,20 +11,20 @@ namespace Starfall {
   public static CampaignRuntime Current {get;private set;}
   public SceneDirector director;public CampaignState State {get;private set;}public CampaignStore Store {get;private set;}
   public CampaignRegion RegionView {get;private set;}public bool Busy {get;private set;}public float BombSeconds {get;private set;}=-1;
-  public bool Modal=>panel!="";public bool IsQA=>Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-campaignQA"||x=="-lostRealmQA");
+  public bool Modal=>panel!="";public bool IsQA=>Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-campaignQA"||x=="-lostRealmQA"||x=="-frontierQA");
   public bool AtCamp=>!director.battle.IsEngaged&&!director.underground&&!director.Transitioning&&Mathf.Abs(director.player.position.x-director.camp.transform.position.x)<=Mathf.Max(director.camp.radius,5.4f);
   public bool AtShip=>!director.battle.IsEngaged&&!director.underground&&Mathf.Abs(director.player.position.x-director.wreck.transform.position.x)<=director.wreck.radius;
   public FirstPersonExplorer Explorer=>director.battle.Explorer;
   bool loading,saveBlocked;float autosave,toastAge;string toast;Vector3[] oreOrigins;List<SubsurfaceDefinition> generated=new List<SubsurfaceDefinition>();
   readonly Dictionary<int,BasinProgress> progress=new Dictionary<int,BasinProgress>();
   void Awake(){
-   if(Array.Exists(Environment.GetCommandLineArgs(),x=>(x.EndsWith("QA",StringComparison.OrdinalIgnoreCase)&&x!="-campaignQA"&&x!="-lostRealmQA")||x=="-battlePreview"||x=="-titanPreview")){enabled=false;return;}
+   if(Array.Exists(Environment.GetCommandLineArgs(),x=>(x.EndsWith("QA",StringComparison.OrdinalIgnoreCase)&&x!="-campaignQA"&&x!="-lostRealmQA"&&x!="-frontierQA")||x=="-battlePreview"||x=="-titanPreview")){enabled=false;return;}
    Current=this;if(!director)director=GetComponent<SceneDirector>();Store=new CampaignStore(Path.Combine(Application.persistentDataPath,IsQA?"CampaignVerification":"CampaignV1"));
-   State=IsQA?CampaignState.New():Store.Load()??CampaignState.New();saveBlocked=!IsQA&&Store.Error!=null;RecoverForge();ReconcileExpansionState();
+   State=IsQA?CampaignState.New():Store.Load()??CampaignState.New();saveBlocked=!IsQA&&Store.Error!=null;RecoverForge();ReconcileExpansionState();ReconcileFrontierState();
   }
   IEnumerator Start(){
    if(Current!=this)yield break;yield return null;CreateBonusNodes();oreOrigins=new Vector3[director.ores.Count];for(int i=0;i<oreOrigins.Length;i++)oreOrigins[i]=director.ores[i].transform.position;
-   ApplyLayer();CreateSurfaceSites();CreateCompanions();SetupPresentation();director.player.position=new Vector3(State.surfaceX,director.surfaceY,0);
+   ApplyLayer();CreateSurfaceSites();CreateCompanions();CreateFrontierCamp();SetupPresentation();director.player.position=new Vector3(State.surfaceX,director.surfaceY,0);
    if(saveBlocked){Notice("存档读取异常，已保留原文件。请在手账中选择新故事或重试读档。");Open("system");yield break;}
    if(State.region>0&&!State.Has("rift-destroyed")){int area=State.region;State.region=0;EnterRegion(area);}
    else if(State.underground)yield return director.Travel(true);
@@ -53,7 +53,7 @@ namespace Starfall {
   public void Returned(){RegionView=null;State.region=0;Save();if(State.Has("rift-destroyed")&&!State.Has("ecology-chosen")){returnFlash=1;Open("remain");}}
   public bool CollectNode(CampaignNode node){
    string id=CampaignRules.NodeId(node.layer,node.index);if(State.minedNodes.Contains(id)||!State.bag.CanAdd(node.item,node.quantity))return false;
-   State.bag.Add(node.item,node.quantity);State.minedNodes.Add(id);
+   State.bag.Add(node.item,node.quantity);State.minedNodes.Add(id);FrontierEvent("mining",id);
    if(node.fragment&&!State.coordinates.Contains(node.layer)){State.coordinates.Add(node.layer);Notice("发现空间碎片 · E 触碰核心");InteractionFeel.Play(FeelCue.Alert,.8f);}
    Changed();return true;
   }
@@ -89,7 +89,7 @@ namespace Starfall {
   public void Learn(string id){State.Learn(id,State.region);Changed();}
   public bool UseMedkit(){if(State.bag.Count(ItemId.Medkit)==0)return false;bool used=Explorer?Explorer.arena.Heal(25):State.health<100;if(!used)return false;if(!Explorer)State.health=Math.Min(100,State.health+25);State.bag.Remove(ItemId.Medkit,1);Changed();return true;}
   public SavedCrate DropOnDeath(Vector3 point){
-   var c=new SavedCrate{id=Guid.NewGuid().ToString("N"),region=State.region,position=point,items=State.bag.Copy()};State.bag=new ItemContainer(16);State.health=100;
+   var c=new SavedCrate{id=Guid.NewGuid().ToString("N"),region=State.region,position=point,items=State.bag.Copy()};State.bag=new ItemContainer(State.bag.capacity);State.health=100;
    if(c.items.stacks.Count>0){if(NavMesh.SamplePosition(point,out var hit,10,NavMesh.AllAreas))c.position=hit.position;else if(Explorer)c.position=Explorer.returnBeacon.position+Vector3.right*3;State.crates.Add(c);if(RegionView)RegionView.SpawnCrate(c);}
    Changed();return c;
   }
@@ -121,14 +121,14 @@ namespace Starfall {
   public IEnumerator Restore(string slot){
    var restored=Store.Load(slot);if(restored==null){Notice("没有可用的检查点");yield break;}loading=true;bool escape=State.escapeComplete,savior=State.saviorComplete;Close();BombSeconds=-1;
    if(director.battle.IsEngaged){director.battle.ReturnToExpedition();while(director.battle.IsEngaged)yield return null;}
-   Close();State=restored;State.escapeComplete|=escape;State.saviorComplete|=savior;State.region=0;State.underground=false;State.flags.Remove("escape-view");progress.Clear();RecoverForge();ReconcileExpansionState();director.worldCamera.transform.position=new Vector3(0,0,-20);director.underground=false;director.player.position=new Vector3(State.surfaceX,director.surfaceY,0);ApplyLayer();loading=false;saveBlocked=false;Changed();Notice("已恢复检查点，物资与任务进度已保留");
+   Close();State=restored;State.escapeComplete|=escape;State.saviorComplete|=savior;State.region=0;State.underground=false;State.flags.Remove("escape-view");progress.Clear();RecoverForge();ReconcileExpansionState();ReconcileFrontierState();director.worldCamera.transform.position=new Vector3(0,0,-20);director.underground=false;director.player.position=new Vector3(State.surfaceX,director.surfaceY,0);ApplyLayer();loading=false;saveBlocked=false;Changed();Notice("已恢复检查点，物资与任务进度已保留");
   }
-  public IEnumerator NewGame(){Close();if(director.battle.IsEngaged){director.battle.ReturnToExpedition();while(director.battle.IsEngaged)yield return null;}if(!saveBlocked)Save("previous-story");State=CampaignState.New();progress.Clear();saveBlocked=false;BombSeconds=-1;director.underground=false;director.worldCamera.transform.position=new Vector3(0,0,-20);director.player.position=new Vector3(-10,director.surfaceY,0);ApplyLayer();Changed();}
+  public IEnumerator NewGame(){Close();if(director.battle.IsEngaged){director.battle.ReturnToExpedition();while(director.battle.IsEngaged)yield return null;}if(!saveBlocked)Save("previous-story");State=CampaignState.New();ReconcileFrontierState();progress.Clear();saveBlocked=false;BombSeconds=-1;director.underground=false;director.worldCamera.transform.position=new Vector3(0,0,-20);director.player.position=new Vector3(-10,director.surfaceY,0);ApplyLayer();Changed();}
   void Update(){
    if(Current!=this||State==null)return;toastAge-=Time.unscaledDeltaTime;
    if(Input.GetKeyDown(KeyCode.Escape)&&Modal){Close();return;}
-   if(!Busy&&!director.forge.IsOpen&&!director.Transitioning&&!director.battle.IsTransitioning){if(Input.GetKeyDown(KeyCode.B))Toggle("bag");if(Input.GetKeyDown(KeyCode.J))Toggle("journal");if(Input.GetKeyDown(KeyCode.F5))Save();}
-   TickEmergency();TickEcology();TickPresentation();TickTreatment();TickCompanions();
+   if(!Busy&&!director.forge.IsOpen&&!director.Transitioning&&!director.battle.IsTransitioning){if(Input.GetKeyDown(KeyCode.B))Toggle("bag");if(Input.GetKeyDown(KeyCode.J))Toggle("journal");if(Input.GetKeyDown(KeyCode.F5))Save();if(AtCamp&&Input.GetKeyDown(KeyCode.C))Toggle("frontier");}
+   TickEmergency();TickEcology();TickPresentation();TickTreatment();TickCompanions();TickFrontierCamp();
    if(BombSeconds>=0&&!Modal&&Explorer&&!Explorer.Paused&&!director.battle.IsTransitioning){BombSeconds-=Time.deltaTime;if(BombSeconds<=0){BombSeconds=-1;StartCoroutine(Restore("before-core"));}}
    autosave+=Time.unscaledDeltaTime;if(autosave>12){autosave=0;Save();}
   }

@@ -76,6 +76,7 @@ namespace Starfall {
     if(Button(new Rect(630,525,340,44),InteractionFeel.ReducedMotion?"镜头反馈 · 减弱":"镜头反馈 · 标准"))InteractionFeel.ReducedMotion=!InteractionFeel.ReducedMotion;
     Label(new Rect(330,660,940,35),"WASD 移动   ·   Shift 奔跑   ·   空格 跳跃",14,new Color(.65f,.76f,.78f),TextAnchor.MiddleCenter);
     Label(new Rect(260,700,1080,35),"左键 射击   ·   右键 近战   ·   R 换弹   ·   1/2/3 切枪   ·   Q 扫描   ·   Ctrl 闪避   ·   F 脉冲   ·   E 交互",14,new Color(.65f,.76f,.78f),TextAnchor.MiddleCenter);
+    Label(new Rect(330,741,940,35),"G 爆裂芯   ·   T 声纹诱饵   ·   勘测站旁长按 E",14,new Color(.65f,.76f,.78f),TextAnchor.MiddleCenter);
    }
    GUI.matrix=prior;
   }

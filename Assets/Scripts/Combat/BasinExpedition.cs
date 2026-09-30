@@ -36,7 +36,7 @@ namespace Starfall {
   public void MiningProgressReset(){MiningProgress=0;mining=null;}
   public void Tell(string text){Notice=text;noticeTime=2.4f;}
   public void OnDefeated(CreatureVitality target,bool giant){
-   InteractionFeel.Play(FeelCue.Kill,.8f);Kills++;Tell("击败");var elite=target.GetComponent<EliteCreature>();if(elite&&CampaignRuntime.Current)CampaignRuntime.Current.EliteDefeated(elite.Id);var kind=BasinProgress.RollLoot(Random.value);if(CampaignRuntime.Current&&CampaignRuntime.Current.State.region==1&&kind==BasinLootKind.Ore)kind=BasinLootKind.Fuel;if(kind!=BasinLootKind.None){var p=target.transform.position;if(giant)p=player.transform.position+player.transform.forward*3;AddDrop(kind,p);}
+   InteractionFeel.Play(FeelCue.Kill,.8f);Kills++;if(CampaignRuntime.Current)CampaignRuntime.Current.RecordCreature(target,giant);Tell("击败");var elite=target.GetComponent<EliteCreature>();if(elite&&CampaignRuntime.Current)CampaignRuntime.Current.EliteDefeated(elite.Id);var kind=BasinProgress.RollLoot(Random.value);if(CampaignRuntime.Current&&CampaignRuntime.Current.State.region==1&&kind==BasinLootKind.Ore)kind=BasinLootKind.Fuel;if(kind!=BasinLootKind.None){var p=target.transform.position;if(giant)p=player.transform.position+player.transform.forward*3;AddDrop(kind,p);}
   }
   public BasinPickup AddDrop(BasinLootKind kind,Vector3 point){
    point=FieldSurface.ReachableDrop(point,player.returnBeacon?player.returnBeacon.position:player.transform.position);var d=new BasinDrop{id=Progress.drops.Count,kind=kind,position=point};Progress.drops.Add(d);if(CampaignRuntime.Current)CampaignRuntime.Current.Changed();return SpawnPickup(d);
@@ -81,7 +81,7 @@ namespace Starfall {
    chipTimer-=dt;if(chipTimer<=0){chipTimer=.38f;InteractionFeel.Play(FeelCue.Chip,.55f);player.arena.Impact(resource.transform.position+Vector3.up*.65f,Color.cyan);}
    MiningProgress+=dt/MiningSeconds;if(MiningProgress<1)return false;
    if(!Inventory.CanGather(resource.metal)){Tell("背包已满");MiningProgress=0;return false;}
-   if(!Progress.mined.Add(resource.id)){MiningProgress=0;return false;}InteractionFeel.Play(FeelCue.Pickup,.8f);Focus(null);resource.Exhaust();Inventory.AddGathered(resource.metal);MiningProgress=0;Tell(resource.DisplayName+" +1");return true;
+   if(!Progress.mined.Add(resource.id)){MiningProgress=0;return false;}InteractionFeel.Play(FeelCue.Pickup,.8f);Focus(null);resource.Exhaust();if(CampaignRuntime.Current)CampaignRuntime.Current.FrontierEvent("mining",CampaignRuntime.Current.State.region+":"+resource.id);Inventory.AddGathered(resource.metal);MiningProgress=0;Tell(resource.DisplayName+" +1");return true;
   }
   void OnDestroy(){Focus(null);Save();}
  }

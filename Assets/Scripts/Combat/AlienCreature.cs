@@ -22,6 +22,7 @@ namespace Starfall {
   public int Bites {get;private set;}
   public Vector3 Home {get;private set;}
   public bool IsWindingUp=>State==CreatureState.ChargeTell||State==CreatureState.BiteTell||State==CreatureState.VolleyTell;
+  public bool CanBeLured=>!GetComponent<EliteCreature>()&&!Staggered&&(State==CreatureState.Roam||State==CreatureState.Pursue||State==CreatureState.Orbit);
   public bool Staggered=>staggerTime>0;float staggerTime;
   float age,timer,repath,cooldown,roamTimer,animationClock,turnSign=1,shotTimer;
   Vector3 destination,chargeDirection,lockedAim,lastPosition;int volley;bool struck;
@@ -52,6 +53,7 @@ namespace Starfall {
    bool see=arena.CanTarget&&withinTerritory&&distance<detectionRange&&arena.ClearSight(mouth.position,target+Vector3.up, this);
    // Entering the beacon's safe radius cancels committed attacks as well as pursuit.
    if(!arena.CanTarget||!withinTerritory||distance>detectionRange+10){arena.Release(this);SetRoam(dt);Animate(dt);return;}
+   if((State==CreatureState.Roam||State==CreatureState.Pursue||State==CreatureState.Orbit)&&FrontierDecoy.Find(this,out var lure)&&arena.TryEngage(this)){Destination(lure,kind==CreatureKind.RiftMauler?5.2f:5.5f);Animate(dt);return;}
    if((State==CreatureState.Roam&&!see)||!arena.TryEngage(this)){arena.Release(this);SetRoam(dt);Animate(dt);return;}
    if(kind==CreatureKind.RiftMauler)GroundBrain(target,distance,see,dt);else FlyingBrain(target,distance,see,dt);
    Animate(dt);lastPosition=transform.position;

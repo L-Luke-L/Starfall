@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Starfall {
- public enum ItemId {PurpleOre,IronOre,CopperOre,CobaltOre,StarOre,PurpleIngot,IronIngot,CopperIngot,CobaltIngot,StarIngot,Fuel,Ammo,Medkit,AlienCrystal,MachineParts}
+ public enum ItemId {PurpleOre,IronOre,CopperOre,CobaltOre,StarOre,PurpleIngot,IronIngot,CopperIngot,CobaltIngot,StarIngot,Fuel,Ammo,Medkit,AlienCrystal,MachineParts,BlastCore,SoundDecoy}
+ [Serializable] public sealed class FrontierCounter {public string id;public int count;}
+ [Serializable] public sealed class RuinRecord {public int region;public int[] values=new int[3];public bool solved;}
  [Serializable] public sealed class ItemStack {public ItemId item;public int count;public ItemStack(ItemId id,int n){item=id;count=n;}public ItemStack Copy()=>new ItemStack(item,count);}
  [Serializable] public sealed class ItemContainer {
   public int capacity;public List<ItemStack> stacks=new List<ItemStack>();
@@ -29,6 +31,8 @@ namespace Starfall {
   public List<JournalRecord> journal=new List<JournalRecord>();public List<RegionState> regions=new List<RegionState>();public List<SavedCrate> crates=new List<SavedCrate>();
   public List<string> expansionProgress=new List<string>(),craftedModules=new List<string>(),equippedModules=new List<string>();
   public string trackedObjective="";public float pulseCooldown;
+  public List<FrontierCounter> frontierCounters=new List<FrontierCounter>();public List<string> frontierReceipts=new List<string>(),fieldRecords=new List<string>();public List<RuinRecord> ruins=new List<RuinRecord>();
+  public float blastCooldown,decoyCooldown;
   public int pendingForge=-1;public string lastSaved;
   public static CampaignState New(){var s=new CampaignState();s.bag.Add(ItemId.Ammo,24);s.bag.Add(ItemId.Fuel,2);return s;}
   public bool Has(string key)=>flags.Contains(key);
@@ -38,7 +42,7 @@ namespace Starfall {
   public RegionState Region(int id){var r=regions.Find(x=>x.id==id);if(r==null){r=new RegionState{id=id};regions.Add(r);}return r;}
  }
  public static class CampaignRules {
-  public static readonly string[] ItemNames={"紫铜原矿","陨铁原矿","赤辉铜原矿","霜蓝钴原矿","星髓原矿","紫铜锭","陨铁锭","赤辉铜锭","霜钴锭","星髓合金锭","燃料","备用弹药","急救剂","稳定异晶","机械组件"};
+  public static readonly string[] ItemNames={"紫铜原矿","陨铁原矿","赤辉铜原矿","霜蓝钴原矿","星髓原矿","紫铜锭","陨铁锭","赤辉铜锭","霜钴锭","星髓合金锭","燃料","备用弹药","急救剂","稳定异晶","机械组件","爆裂芯","声纹诱饵"};
   public static readonly string[] Regions={"营地","探险船遗骸","撤离战场","同盟医疗站","军用船坞","D4空间核心"};
   public static readonly string[] RepairNames={"船体与支撑","配电与能源","引擎冷却","导航与稳定器"};
   public static ItemId Raw(RepairResource r)=>r==RepairResource.PurpleCopper?ItemId.PurpleOre:(ItemId)((int)r+1);

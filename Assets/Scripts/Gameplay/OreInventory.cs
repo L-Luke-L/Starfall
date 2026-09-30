@@ -43,7 +43,7 @@ namespace Starfall {
   }
   public bool Resolve(UnknownOre ore,bool success){
    if(ore==null||!ReferenceEquals(ore,reserved))return false;
-   if(Campaign){if(success){if(!Campaign.State.bag.Add(CampaignRules.Ingot(ore.Metal),1))return false;Campaign.State.Flag("identified-"+(int)ore.Metal);}Campaign.State.pendingForge=-1;reserved=null;Campaign.Changed();return true;}
+   if(Campaign){if(success){if(!Campaign.State.bag.Add(CampaignRules.Ingot(ore.Metal),1))return false;Campaign.State.Flag("identified-"+(int)ore.Metal);Campaign.FrontierEvent("forging",System.Guid.NewGuid().ToString("N"));}Campaign.State.pendingForge=-1;reserved=null;Campaign.Changed();return true;}
    if(success)metals[(int)ore.Metal]++;
    reserved=null;Changed?.Invoke();return true;
   }

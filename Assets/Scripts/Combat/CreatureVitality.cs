@@ -6,7 +6,7 @@ namespace Starfall {
   string SaveKey=>CampaignRuntime.Current?persistentId:gameObject.name;
   public int Health {get;private set;}
   public bool Dead=>Health<=0;
-  public string DisplayName=>giant?"蚀穹古龙":elite?elite.DisplayName:actor.kind==CreatureKind.RiftMauler?"玄脊地龙":"苍翼飞龙";
+  public string DisplayName=>GetComponent<FrontierCreatureTrait>()?GetComponent<FrontierCreatureTrait>().DisplayName:giant?"蚀穹古龙":elite?elite.DisplayName:actor.kind==CreatureKind.RiftMauler?"玄脊地龙":"苍翼飞龙";
   AlienCreature actor;EliteCreature elite;MeshRenderer[] hideRenderers;SkyTitan giant;CreatureArena arena;BasinExpedition expedition;bool initialized;float flash,fall;
   Vector3 visualPosition;Quaternion visualRotation;MaterialPropertyBlock tint;
   public void Initialize(BasinExpedition owner){
@@ -30,7 +30,7 @@ namespace Starfall {
   }
   void Update(){
    if(!initialized||!arena.Active)return;
-   if(flash>0){flash-=Time.deltaTime;tint.SetColor("_EmissionColor",flash>0?new Color(.9f,.24f,.08f):Color.black);foreach(var r in hideRenderers)if(r)r.SetPropertyBlock(tint);}
+   if(flash>0){flash-=Time.deltaTime;foreach(var r in hideRenderers)if(r){r.GetPropertyBlock(tint);tint.SetColor("_EmissionColor",flash>0?new Color(.9f,.24f,.08f):Color.black);r.SetPropertyBlock(tint);}}
    if(Dead&&actor){fall+=Time.deltaTime;actor.visual.localRotation=Quaternion.Slerp(visualRotation,Quaternion.Euler(0,0,85),Mathf.Clamp01(fall*2));actor.visual.localPosition=visualPosition+Vector3.down*Mathf.Min(fall*.45f,.8f);if(fall>8)actor.visual.gameObject.SetActive(false);}
   }
  }

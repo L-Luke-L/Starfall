@@ -1,0 +1,37 @@
+using UnityEngine;
+using UnityEngine.AI;
+
+namespace Starfall {
+ public sealed class FrontierGadgets:MonoBehaviour {
+  FirstPersonExplorer player;CampaignRuntime campaign;float failureFlash;RaycastHit[] hits=new RaycastHit[64];
+  public float BlastCooldown=>campaign?campaign.State.blastCooldown:0;public float DecoyCooldown=>campaign?campaign.State.decoyCooldown:0;
+  public void Configure(FirstPersonExplorer owner){player=owner;campaign=CampaignRuntime.Current;}
+  void Update(){if(!player||!campaign||!player.Ready||player.Paused||!player.arena.Active||campaign.Modal)return;failureFlash=Mathf.Max(0,failureFlash-Time.deltaTime);campaign.State.blastCooldown=Mathf.Max(0,BlastCooldown-Time.deltaTime);campaign.State.decoyCooldown=Mathf.Max(0,DecoyCooldown-Time.deltaTime);if(player.Automated||Cursor.lockState!=CursorLockMode.Locked)return;if(Input.GetKeyDown(KeyCode.G)&&!Throw(false)){failureFlash=.3f;InteractionFeel.Play(FeelCue.Deny,.4f);}if(Input.GetKeyDown(KeyCode.T)&&!Throw(true)){failureFlash=.3f;InteractionFeel.Play(FeelCue.Deny,.4f);}}
+  public bool Throw(bool decoy){if(!player||!campaign)return false;var camera=player.viewCamera.transform;var direction=camera.forward;direction.y=0;if(direction.sqrMagnitude<.01f)direction=player.transform.forward;direction.Normalize();var end=player.transform.position+direction*8;int count=Physics.SphereCastNonAlloc(camera.position,.16f,direction,hits,8,~0,QueryTriggerInteraction.Ignore);if(count>=hits.Length)return false;float nearest=8;for(int i=0;i<count;i++){if(hits[i].collider.GetComponentInParent<FirstPersonExplorer>()==player)continue;nearest=Mathf.Min(nearest,Mathf.Max(.7f,hits[i].distance-.55f));}end=player.transform.position+direction*nearest;end.y=FieldSurface.Height(end.x,end.z,player.transform.position.y);if(!NavMesh.SamplePosition(end,out var nav,1.2f,NavMesh.AllAreas))return false;return Deploy(decoy,nav.position);}
+  public bool Deploy(bool decoy,Vector3 point){if(!player||!campaign||!player.arsenal.Ready||player.arsenal.IsBusy||!campaign.Exp("build-tactical")||(decoy?DecoyCooldown:BlastCooldown)>0||Vector3.Distance(player.transform.position,point)>10||!FrontierVisibility.Clear(player.viewCamera.transform.position,point+Vector3.up*.3f)||!NavMesh.SamplePosition(point,out var nav,.8f,NavMesh.AllAreas)||Vector3.Distance(nav.position,point)>.8f)return false;
+   var item=decoy?ItemId.SoundDecoy:ItemId.BlastCore;if(!campaign.State.bag.Remove(item,1))return false;if(decoy)campaign.State.decoyCooldown=12;else campaign.State.blastCooldown=8;
+   var g=GameObject.CreatePrimitive(PrimitiveType.Cube);g.name=decoy?"独立声纹诱饵":"独立爆裂芯";g.transform.SetParent(player.arena.transform);g.transform.position=player.viewCamera.transform.position+player.viewCamera.transform.forward*.4f;g.transform.localScale=new Vector3(.22f,.32f,.22f);Destroy(g.GetComponent<Collider>());g.GetComponent<Renderer>().sharedMaterial=player.arena.projectileMaterial;var block=new MaterialPropertyBlock();var color=decoy?new Color(.3f,.8f,1):new Color(1,.45f,.1f);block.SetColor("_Color",color);block.SetColor("_EmissionColor",color*.5f);g.GetComponent<Renderer>().SetPropertyBlock(block);
+   g.AddComponent<FrontierThrownDevice>().Configure(player.arena,nav.position,decoy);player.ImpactPulse(.18f);InteractionFeel.Play(FeelCue.Cast,.6f);campaign.Changed();return true;
+  }
+  void OnGUI(){if(!player||!campaign||!player.Ready||player.Paused||campaign.Modal||!campaign.Exp("build-tactical"))return;string text="G  "+campaign.State.bag.Count(ItemId.BlastCore)+(BlastCooldown>0?" · "+Mathf.CeilToInt(BlastCooldown)+"s":"")+"     T  "+campaign.State.bag.Count(ItemId.SoundDecoy)+(DecoyCooldown>0?" · "+Mathf.CeilToInt(DecoyCooldown)+"s":"");InteractionFeel.Text(new Rect(Screen.width-360,Screen.height-110,310,27),text,player.uiFont,14,failureFlash>0?new Color(.95f,.4f,.2f):new Color(.65f,.8f,.83f),TextAnchor.MiddleRight);}
+ }
+ public static class FrontierVisibility {
+  static readonly RaycastHit[] hits=new RaycastHit[64];
+  public static bool Clear(Vector3 from,Vector3 to){var delta=to-from;int count=Physics.RaycastNonAlloc(from,delta.normalized,hits,delta.magnitude,~0,QueryTriggerInteraction.Ignore);if(count>=hits.Length)return false;for(int i=0;i<count;i++){var c=hits[i].collider;if(c.GetComponentInParent<FirstPersonExplorer>()||c.GetComponentInParent<CreatureVitality>()||c.GetComponentInParent<BasinPickup>())continue;return false;}return true;}
+ }
+ public sealed class FrontierThrownDevice:MonoBehaviour {
+  CreatureArena arena;Vector3 start,goal,last;float flight;bool decoy;RaycastHit[] hits=new RaycastHit[32];
+  public void Configure(CreatureArena owner,Vector3 point,bool lure){arena=owner;start=last=transform.position;goal=point+Vector3.up*.16f;decoy=lure;}
+  void Update(){if(!arena||!arena.Active)return;flight+=Time.deltaTime;float t=Mathf.Clamp01(flight/.45f);var next=Vector3.Lerp(start,goal,t)+Vector3.up*(Mathf.Sin(t*Mathf.PI)*1.3f);var delta=next-last;int count=Physics.SphereCastNonAlloc(last,.14f,delta.normalized,hits,delta.magnitude,~0,QueryTriggerInteraction.Ignore);float closest=float.PositiveInfinity;Vector3 stopped=next;for(int i=0;i<count;i++){if(hits[i].collider.GetComponentInParent<FirstPersonExplorer>())continue;if(hits[i].distance<closest){closest=hits[i].distance;stopped=last+delta.normalized*Mathf.Max(0,closest-.16f);}}transform.position=stopped;last=stopped;transform.Rotate(Vector3.up,Time.deltaTime*220);if(t<1&&float.IsInfinity(closest))return;
+   var point=transform.position;point.y=FieldSurface.Height(point.x,point.z,goal.y)+.14f;if(decoy){var lure=gameObject.AddComponent<FrontierDecoy>();lure.Configure(arena,point);}else{var hazard=gameObject.AddComponent<FrontierHazard>();hazard.Configure(arena,null,point,4,1.25f,.35f,80,true,false);}Destroy(this);
+  }
+ }
+ public sealed class FrontierDecoy:MonoBehaviour {
+  static readonly System.Collections.Generic.List<FrontierDecoy> active=new System.Collections.Generic.List<FrontierDecoy>();CreatureArena arena;LineRenderer ring;float seconds=4,clock;
+  public float Remaining=>seconds;
+  public void Configure(CreatureArena owner,Vector3 point){arena=owner;transform.position=point;active.Add(this);ring=gameObject.AddComponent<LineRenderer>();ring.sharedMaterial=owner.projectileMaterial;ring.positionCount=33;ring.startWidth=ring.endWidth=.05f;ring.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;InteractionFeel.Play(FeelCue.Portal,.4f);}
+  public static bool Find(AlienCreature actor,out Vector3 point){point=Vector3.zero;if(!actor.CanBeLured||!actor.arena||!actor.arena.CanTarget||CreatureArena.FlatDistance(actor.transform.position,actor.arena.player.transform.position)<3)return false;float nearest=12;foreach(var lure in active){if(!lure||lure.arena!=actor.arena||lure.seconds<=0||CreatureArena.FlatDistance(lure.transform.position,actor.Home)>actor.leashRadius)continue;float d=CreatureArena.FlatDistance(lure.transform.position,actor.transform.position);if(d>=nearest||!FrontierVisibility.Clear(actor.mouth.position,lure.transform.position+Vector3.up*.4f))continue;nearest=d;point=lure.transform.position;}return nearest<12;}
+  void Update(){if(!arena||!arena.Active)return;seconds-=Time.deltaTime;clock+=Time.deltaTime;for(int i=0;i<33;i++){float angle=i*Mathf.PI*2/32;float radius=.6f+(clock%1)*1.6f;var p=transform.position+new Vector3(Mathf.Cos(angle)*radius,0,Mathf.Sin(angle)*radius);p.y=FieldSurface.Height(p.x,p.z,transform.position.y)+.09f;ring.SetPosition(i,p);}if(seconds<=0)Destroy(gameObject);}
+  void OnDestroy(){active.Remove(this);}
+ }
+}

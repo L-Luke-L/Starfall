@@ -2,6 +2,8 @@
 
 ## 玩法与操作
 
+- [余烬重建：营地建设、委托、遗迹与战术道具](Gameplay/FRONTIER.md)
+
 - [回声远征：中继挑战、伙伴交流与观测台](Gameplay/VOYAGES.md)
 
 - [剧情探索版本：库存、五层矿井与双结局](Gameplay/CAMPAIGN.md)
@@ -15,6 +17,8 @@
 - [巨兽](Gameplay/SKY_TITAN.md)
 
 ## 场景设计
+
+- [余烬重建：配置、保存与战斗一致性](Design/FRONTIER_IMPLEMENTATION.md)
 
 - [地下设计](Design/UNDERGROUND_DESIGN.md)
 - [地表视觉设计](Design/VISUAL_REVISION.md)

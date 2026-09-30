@@ -1,0 +1,215 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a51ccfc9419ebcf41b358c5e46ba4863, type: 3}
+  m_Name: FrontierCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Starfall.FrontierCatalog
+  projects:
+  - id: carrier
+    title: "\u8FDC\u884C\u8D27\u67B6"
+    requirement: engineer-rescued
+    effect: "\u80CC\u5305\u6269\u81F324\u683C\uFF1B\u6B7B\u4EA1\u540E\u5BB9\u91CF\u4FDD\u7559"
+    cost:
+    - item: 6
+      count: 2
+    - item: 7
+      count: 2
+    - item: 14
+      count: 6
+  - id: tactical
+    title: "\u6218\u672F\u6574\u5907\u53F0"
+    requirement: engineer-rescued
+    effect: "\u5236\u4F5C\u7206\u88C2\u82AF\u4E0E\u58F0\u7EB9\u8BF1\u9975"
+    cost:
+    - item: 7
+      count: 2
+    - item: 8
+      count: 1
+    - item: 14
+      count: 5
+  - id: culture
+    title: "\u836F\u7528\u57F9\u517B\u69FD"
+    requirement: greenhouse
+    effect: "\u628A\u57F9\u517B\u6750\u6599\u5236\u6210\u6025\u6551\u5242"
+    cost:
+    - item: 5
+      count: 2
+    - item: 14
+      count: 4
+    - item: 10
+      count: 1
+  - id: archive
+    title: "\u4F59\u70EC\u6863\u6848\u53F0"
+    requirement: drone-rescued
+    effect: "\u8425\u5730\u5B9E\u4F53\u7EC8\u7AEF\uFF1B\u6D4F\u89C8\u52D8\u6D4B\u4E0E\u59D4\u6258"
+    cost:
+    - item: 7
+      count: 1
+    - item: 14
+      count: 3
+  commissions:
+  - id: miner
+    title: "\u57CB\u85CF\u7684\u660E\u5929"
+    eventId: mining
+    goal: 6
+    reward:
+    - item: 14
+      count: 4
+    - item: 10
+      count: 2
+  - id: smith
+    title: "\u843D\u9524\u4E4B\u540E"
+    eventId: forging
+    goal: 5
+    reward:
+    - item: 14
+      count: 5
+    - item: 11
+      count: 18
+  - id: defender
+    title: "\u5B88\u4F4F\u56DE\u7A0B"
+    eventId: kill
+    goal: 4
+    reward:
+    - item: 14
+      count: 4
+    - item: 12
+      count: 1
+  - id: surveyor
+    title: "\u591C\u7A7A\u7684\u5750\u6807"
+    eventId: survey
+    goal: 3
+    reward:
+    - item: 14
+      count: 5
+    - item: 10
+      count: 2
+  - id: archaeologist
+    title: "\u9057\u8FF9\u4ECD\u5728\u56DE\u7B54"
+    eventId: ruin
+    goal: 2
+    reward:
+    - item: 14
+      count: 6
+    - item: 8
+      count: 1
+  - id: tracker
+    title: "\u53D8\u5F02\u7684\u8FB9\u754C"
+    eventId: variant
+    goal: 2
+    reward:
+    - item: 14
+      count: 6
+    - item: 12
+      count: 2
+  landmarks:
+  - region: 1
+    title: "\u6298\u7FFC\u822A\u6807"
+    story: "\u5CA9\u9053\u80CC\u540E\u7684\u661F\u5149\u4F9D\u7136\u6307\u5411\u5F52\u9014\u3002\u822A\u6807\u7684\u6700\u540E\u4E00\u6B21\u8F6C\u52A8\uFF0C\u66FF\u540E\u6765\u8005\u907F\u5F00\u4E86\u65AD\u5D16\u3002"
+    position: {x: -24, y: 0, z: 24}
+  - region: 2
+    title: "\u65E0\u58F0\u7684\u64A4\u79BB\u7EBF"
+    story: "\u6C99\u5C18\u63A9\u53BB\u4E86\u8F66\u8F99\uFF0C\u5374\u6CA1\u6709\u63A9\u53BB\u5E76\u6392\u7684\u811A\u5370\u3002\u6709\u4EBA\u66FE\u5728\u8FD9\u91CC\u7B49\u6700\u540E\u4E00\u73ED\u8F66\u3002"
+    position: {x: 22, y: 0, z: -27}
+  - region: 3
+    title: "\u84DD\u606F\u6E29\u5E8A"
+    story: "\u7ED3\u6676\u4E4B\u95F4\u7559\u6709\u7EC6\u5FAE\u547C\u5438\u3002\u51B7\u5149\u4FDD\u62A4\u7740\u6E29\u5BA4\u6700\u6DF1\u5904\u7684\u4E00\u679A\u5B62\u5B50\u3002"
+    position: {x: -16, y: 0, z: 33}
+  - region: 4
+    title: "\u505C\u6CCA\u7684\u5DE8\u5F71"
+    story: "\u8230\u8179\u6295\u4E0B\u7684\u9634\u5F71\u50CF\u4E00\u5EA7\u5C71\u3002\u7EF4\u4FEE\u4EBA\u5458\u628A\u5B69\u5B50\u753B\u7684\u592A\u9633\u7559\u5728\u4E86\u6700\u540E\u7684\u710A\u7F1D\u65C1\u3002"
+    position: {x: -25, y: 0, z: -29}
+  - region: 5
+    title: "\u9ED1\u77F3\u661F\u73AF"
+    story: "\u661F\u73AF\u5185\u7684\u788E\u7247\u4ECD\u6309\u65E7\u65E5\u8F68\u8FF9\u8FD0\u884C\u3002\u673A\u5668\u5FD8\u4E86\u6218\u4E89\u7ED3\u675F\uFF0C\u591C\u7A7A\u5374\u4ECE\u672A\u5FD8\u8BB0\u3002"
+    position: {x: 25, y: 0, z: 25}
+  ruins:
+  - region: 2
+    title: "\u65B9\u5411\u9501"
+    position: {x: -4, y: 0, z: 17}
+    solution: 010000000300000002000000
+    reward:
+    - item: 6
+      count: 2
+    - item: 14
+      count: 3
+  - region: 3
+    title: "\u7ED3\u6676\u8BB0\u5FC6"
+    position: {x: 18, y: 0, z: 14}
+    solution: 00000000020000000100000003000000
+    reward:
+    - item: 8
+      count: 2
+    - item: 14
+      count: 3
+  - region: 4
+    title: "\u4F59\u8F7D\u914D\u5E73"
+    position: {x: -20, y: 0, z: -17}
+    solution: 030000000100000002000000
+    reward:
+    - item: 9
+      count: 1
+    - item: 14
+      count: 3
+  recipes:
+  - id: blast
+    title: "\u7206\u88C2\u82AF \xD72"
+    requirement: build-tactical
+    cost:
+    - item: 10
+      count: 1
+    - item: 14
+      count: 3
+    result:
+      item: 15
+      count: 2
+  - id: decoy
+    title: "\u58F0\u7EB9\u8BF1\u9975 \xD72"
+    requirement: build-tactical
+    cost:
+    - item: 14
+      count: 2
+    result:
+      item: 16
+      count: 2
+  - id: medicine
+    title: "\u6025\u6551\u5242 \xD71"
+    requirement: build-culture
+    cost:
+    - item: 0
+      count: 2
+    - item: 10
+      count: 1
+    result:
+      item: 12
+      count: 1
+  species:
+  - id: mauler
+    title: "\u7384\u810A\u5730\u9F99"
+    detail: "\u51B2\u649E\u524D\u4F1A\u538B\u4F4E\u5934\u90E8\u3002\u6A2A\u5411\u95EA\u907F\uFF0C\u8D81\u6062\u590D\u671F\u9760\u8FD1\u4FA7\u8179\u3002"
+  - id: flyer
+    title: "\u82CD\u7FFC\u98DE\u9F99"
+    detail: "\u55B7\u5C04\u524D\u7FFC\u819C\u6536\u7D27\u3002\u5B9E\u4F53\u5CA9\u77F3\u80FD\u591F\u62E6\u4E0B\u5F39\u9053\u3002"
+  - id: titan
+    title: "\u8680\u7A79\u53E4\u9F99"
+    detail: "\u5DE8\u54CD\u4E4B\u540E\u89C2\u5BDF\u5730\u9762\u9884\u8B66\u3002\u653B\u51FB\u7ED3\u675F\u7684\u7A7A\u7A97\u624D\u9002\u5408\u53CD\u51FB\u3002"
+  - id: armored
+    title: "\u7384\u7532\u5730\u9F99"
+    detail: "\u6B63\u9762\u88C5\u7532\u539A\u91CD\u3002\u8BF1\u5BFC\u51B2\u649E\u5B9E\u4F53\u63A9\u4F53\uFF0C\u7B49\u5F85\u4FA7\u8179\u66B4\u9732\u3002"
+  - id: thunder
+    title: "\u96F7\u51A0\u7FFC\u9F99"
+    detail: "\u843D\u96F7\u6709\u4E09\u6BB5\u9501\u5B9A\u9884\u8B66\u3002\u4FDD\u6301\u79FB\u52A8\uFF0C\u505C\u6816\u65F6\u5BFB\u627E\u5F31\u70B9\u3002"
+  - id: magnetic
+    title: "\u78C1\u8680\u5730\u9F99"
+    detail: "\u51B2\u649E\u8DEF\u5F84\u7559\u4E0B\u7D2B\u8272\u78C1\u75D5\uFF0C\u4EAE\u8D77\u524D\u79BB\u5F00\uFF1B\u8BF1\u9975\u4E0D\u80FD\u6253\u65AD\u5DF2\u8D77\u624B\u7684\u51B2\u649E\u3002"
+  - id: frost
+    title: "\u971C\u73AF\u7FFC\u9F99"
+    detail: "\u55B7\u5C04\u540E\u9501\u5B9A\u4E00\u7247\u5730\u9762\u3002\u51B0\u73AF\u4EAE\u8D77\u524D\u64A4\u51FA\uFF0C\u53EF\u907F\u514D\u751F\u547D\u4E0E\u4F53\u529B\u540C\u65F6\u6D41\u5931\u3002"
