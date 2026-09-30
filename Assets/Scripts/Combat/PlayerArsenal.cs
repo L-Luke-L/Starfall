@@ -27,7 +27,9 @@ namespace Starfall {
   public bool MeleePending=>pendingMelee;
   public bool MinimalHud=>true;
   BasinProgress progress;bool initialized,exhausted,pendingMelee;
-  float cooldown,recoil,melee,flash,hitMarker,restDelay,meleeDelay,charge,weaponClock,toolVisual,reloadVisual;
+  float cooldown,recoil,melee,flash,hitMarker,restDelay,meleeDelay,charge,weaponClock,toolVisual,reloadVisual,reloadDuration;
+  public float PulseCooldown=>CampaignRuntime.Current?CampaignRuntime.Current.State.pulseCooldown:0;
+  public bool UsePulse(){var campaign=CampaignRuntime.Current;if(!Ready||IsBusy||!campaign||!campaign.PulseUnlocked||PulseCooldown>0||!SpendStamina(35))return false;campaign.State.pulseCooldown=18;foreach(var actor in player.arena.creatures)if(actor&&Vector3.Distance(player.transform.position,actor.transform.position)<6&&player.arena.ClearSight(player.viewCamera.transform.position,actor.mouth.position,actor))actor.PulseStagger(1.15f);var fx=new GameObject("震荡脉冲 · 独立地表波环");fx.transform.SetParent(player.arena.transform);fx.AddComponent<ExpeditionPulseVisual>().Configure(player.arena,player.transform.position,tracerMaterial);player.ImpactPulse(.28f);InteractionFeel.Play(FeelCue.Portal,.7f);campaign.Changed();return true;}
   CreatureVitality target;Vector3 rifleRest,toolRest;Transform shotgun,rail,shotgunMuzzle,railMuzzle;
   public void Initialize(BasinProgress state){if(initialized)return;initialized=true;progress=state;
    if(CampaignRuntime.Current){var save=CampaignRuntime.Current.State;Magazine=save.magazine;ShotgunMagazine=save.shotgunMagazine;RailMagazine=save.railMagazine;CurrentWeapon=CampaignRuntime.Current.WeaponUnlocked(save.selectedWeapon)?save.selectedWeapon:0;}
@@ -57,7 +59,7 @@ namespace Starfall {
   public void Sync(){if(progress==null)return;progress.magazine=Magazine;progress.reserve=Reserve;if(CampaignRuntime.Current){var state=CampaignRuntime.Current.State;state.magazine=Magazine;state.shotgunMagazine=ShotgunMagazine;state.railMagazine=RailMagazine;state.selectedWeapon=CurrentWeapon;}}
   public bool SpendStamina(float amount){if(!initialized)return true;if(Stamina<amount)return false;Stamina-=amount;restDelay=1.1f;return true;}
   public bool Sprint(float dt){if(!initialized)return true;if(exhausted){if(Stamina<28)return false;exhausted=false;}if(Stamina<26*dt){exhausted=true;return false;}return SpendStamina(26*dt);}
-  public bool Reload(){if(!Ready||ReloadRemaining>0||cooldown>0||charge>0||ActiveMagazine>=ActiveCapacity||Reserve<ActiveCost)return false;float baseDuration=WeaponConfig!=null?WeaponConfig.reload:CurrentWeapon==0?2.35f:CurrentWeapon==1?2.7f:1.8f;ReloadRemaining=baseDuration*(CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("reload")?.8f:1);InteractionFeel.Play(FeelCue.Reload,.7f);return true;}
+  public bool Reload(){if(!Ready||ReloadRemaining>0||cooldown>0||charge>0||ActiveMagazine>=ActiveCapacity||Reserve<ActiveCost)return false;float baseDuration=WeaponConfig!=null?WeaponConfig.reload:CurrentWeapon==0?2.35f:CurrentWeapon==1?2.7f:1.8f;reloadDuration=baseDuration*(CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("reload")?.8f:1);ReloadRemaining=reloadDuration;InteractionFeel.Play(FeelCue.Reload,.7f);return true;}
   public bool Attack(bool close=false){if(!Ready||ReloadRemaining>0||cooldown>0||expedition.MiningProgress>0)return false;
    if(close){charge=0;if(!SpendStamina(22)){InteractionFeel.Play(FeelCue.Deny,.4f);return false;}cooldown=.82f;melee=.45f;pendingMelee=true;meleeDelay=.13f;InteractionFeel.Play(FeelCue.Slash,.7f);return true;}
    if(CurrentWeapon==2){if(RailMagazine<3){Reload();return false;}if(charge<=0){charge=.001f;InteractionFeel.Play(FeelCue.Alert,.35f);}return true;}
@@ -72,7 +74,7 @@ namespace Starfall {
    return true;
   }
   void ResolveShot(Vector3 direction,float range,int baseDamage,bool piercing){var origin=player.viewCamera.transform.position;bool found=Aim(origin,direction,range,out var hit);Vector3 endpoint=found?hit.point:origin+direction*range;
-   if(found){var bossPart=hit.collider.GetComponent<CampaignBossPart>();if(bossPart){int value=piercing?baseDamage:CurrentWeapon==0?CampaignRules.GunDamage(1):baseDamage;if(bossPart.boss.Hit(bossPart.node,value)){ConfirmedHits++;hitMarker=.18f;player.arena.Impact(hit.point,Color.cyan);}}
+   if(found){var bossPart=hit.collider.GetComponent<CampaignBossPart>();if(bossPart){bool weak=bossPart.node==-1&&bossPart.boss.WeakOpen;int value=weak&&WeaponConfig!=null?WeaponConfig.weakDamage:CurrentWeapon==0?CampaignRules.GunDamage(1):baseDamage;if(weak&&CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("weakness"))value=Mathf.RoundToInt(value*1.2f);if(bossPart.boss.Hit(bossPart.node,value)){ConfirmedHits++;hitMarker=.18f;player.arena.Impact(hit.point,Color.cyan);}}
     else{var vitality=hit.collider.GetComponentInParent<CreatureVitality>();if(vitality&&!vitality.Dead){float multiplier=vitality.DamageMultiplier(hit.point);int value=CurrentWeapon==0?CampaignRules.GunDamage(multiplier):piercing?(multiplier>1?(WeaponConfig!=null?WeaponConfig.weakDamage:120):baseDamage):Mathf.RoundToInt(baseDamage*multiplier);if(CurrentWeapon==1)value=Mathf.RoundToInt(value*Mathf.Lerp(.55f,1,Mathf.Clamp01((range-hit.distance)/(range*.67f))));if(multiplier>1&&CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("weakness"))value=Mathf.RoundToInt(value*1.2f);if(vitality.TakeDamage(value,hit.point)){ConfirmedHits++;hitMarker=.18f;target=vitality;player.arena.Impact(hit.point,Color.cyan);}}else player.arena.Impact(hit.point,Color.gray);}}
    var g=new GameObject("Weapon shot tracer");g.transform.SetParent(player.arena.transform);var line=g.AddComponent<LineRenderer>();line.sharedMaterial=tracerMaterial;line.positionCount=2;line.SetPosition(0,CurrentWeapon==1?shotgunMuzzle.position:CurrentWeapon==2?railMuzzle.position:muzzle.position);line.SetPosition(1,endpoint);line.startWidth=CurrentWeapon==2?.065f:.022f;line.endWidth=.006f;line.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;var fx=g.AddComponent<PlayerShotTrace>();fx.arena=player.arena;
   }
@@ -80,6 +82,7 @@ namespace Starfall {
   public bool Aim(Vector3 origin,Vector3 direction,float distance,out RaycastHit first){var hits=Physics.RaycastAll(origin,direction,distance,~(1<<30),QueryTriggerInteraction.Ignore);Array.Sort(hits,(a,b)=>a.distance.CompareTo(b.distance));foreach(var h in hits){if(h.collider.GetComponentInParent<FirstPersonExplorer>())continue;first=h;return true;}first=default;return false;}
   void Update(){if(!initialized||!player.Ready||player.Paused||!player.arena.Active)return;float dt=Time.deltaTime;
    cooldown=Mathf.Max(0,cooldown-dt);recoil=Mathf.Max(0,recoil-dt);melee=Mathf.Max(0,melee-dt);flash=Mathf.Max(0,flash-dt);hitMarker=Mathf.Max(0,hitMarker-dt);restDelay-=dt;if(restDelay<=0)Stamina=Mathf.Min(MaxStamina,Stamina+19*dt);
+   if(CampaignRuntime.Current)CampaignRuntime.Current.State.pulseCooldown=Mathf.Max(0,PulseCooldown-dt);
    if(player.arena.Downed){ReloadRemaining=0;melee=0;flash=0;charge=0;pendingMelee=false;expedition.MiningProgressReset();}
    else if(ReloadRemaining>0){ReloadRemaining-=dt;if(ReloadRemaining<=0){int load=Mathf.Min(ActiveCapacity-ActiveMagazine,Reserve);if(CurrentWeapon==1)load-=load%2;if(CurrentWeapon==2)load-=load%3;if(CurrentWeapon==0)Magazine+=load;else if(CurrentWeapon==1)ShotgunMagazine+=load;else RailMagazine+=load;Reserve-=load;ReloadRemaining=0;Sync();InteractionFeel.Play(FeelCue.Reload,.65f);}}
    if(pendingMelee){meleeDelay-=dt;if(meleeDelay<=0){pendingMelee=false;if(Ready)ResolveMelee();}}
@@ -87,6 +90,7 @@ namespace Starfall {
    if(player.Automated&&CurrentWeapon==2&&charge>0){charge+=dt;if(charge>=chargeDuration)Fire();}
    if(!player.Automated&&Cursor.lockState==CursorLockMode.Locked&&!player.arena.Downed){
     if(Input.GetKeyDown(KeyCode.Alpha1))SelectWeapon(0);if(Input.GetKeyDown(KeyCode.Alpha2))SelectWeapon(1);if(Input.GetKeyDown(KeyCode.Alpha3))SelectWeapon(2);
+    if(Input.GetKeyDown(KeyCode.F))UsePulse();
     if(CurrentWeapon==2){if(Input.GetMouseButton(0)&&charge<=0)Attack();if(charge>0){if(Input.GetMouseButton(0)){charge+=dt;if(charge>=chargeDuration)Fire();}else charge=0;}}
     else if(Input.GetMouseButton(0))Attack();if(Input.GetMouseButtonDown(1))Attack(true);if(Input.GetKeyDown(KeyCode.R))Reload();
    }
@@ -99,8 +103,9 @@ namespace Starfall {
   void OnGUI(){if(!initialized||!player.Ready||player.Paused)return;var matrix=GUI.matrix;float scale=Screen.height/900f;GUI.matrix=Matrix4x4.Scale(Vector3.one*scale);float w=Screen.width/scale;GUI.depth=-24;var light=new Color(.82f,.91f,.93f,.85f);var center=new Vector2(w*.5f,450);
    InteractionFeel.Text(new Rect(w-250,771,205,28),CurrentWeapon==0?"P12":CurrentWeapon==1?"破障霰射器":"磁轨穿刺枪",player.uiFont,13,light,TextAnchor.MiddleRight);
    InteractionFeel.Text(new Rect(w-195,800,150,40),ActiveMagazine+" / "+Reserve,player.uiFont,20,ActiveMagazine<ActiveCost?new Color(1,.47f,.22f):light,TextAnchor.MiddleRight);
-   if(ReloadRemaining>0)InteractionFeel.Ring(center,22,1-ReloadRemaining/2.7f,new Color(.65f,.85f,.88f,.8f),2);
-   if(charge>0)InteractionFeel.Ring(center,24,Mathf.Clamp01(charge/.9f),new Color(.40f,.81f,1,.9f),2);
+   if(ReloadRemaining>0)InteractionFeel.Ring(center,22,1-ReloadRemaining/Mathf.Max(.01f,reloadDuration),new Color(.65f,.85f,.88f,.8f),2);
+   if(charge>0)InteractionFeel.Ring(center,24,Mathf.Clamp01(charge/(WeaponConfig!=null?WeaponConfig.charge:.9f)),new Color(.40f,.81f,1,.9f),2);
+   if(CampaignRuntime.Current&&CampaignRuntime.Current.PulseUnlocked){InteractionFeel.Text(new Rect(44,734,120,27),PulseCooldown>0?"F  "+Mathf.CeilToInt(PulseCooldown)+"s":"F  震荡脉冲",player.uiFont,12,new Color(.52f,.78f,.86f));}
    if(Stamina<MaxStamina-2){GUI.color=new Color(.03f,.06f,.08f,.6f);GUI.DrawTexture(new Rect(44,831,132,3),Texture2D.whiteTexture);GUI.color=Stamina<25?new Color(.96f,.4f,.18f):new Color(.37f,.7f,.8f);GUI.DrawTexture(new Rect(44,831,132*Stamina/MaxStamina,3),Texture2D.whiteTexture);GUI.color=Color.white;}
    if(target&&!target.Dead){Vector3 point=target.transform.position+Vector3.up*(target.GetComponent<SkyTitan>()?20:4);var titan=target.GetComponent<SkyTitan>();if(titan)point=titan.head.position+Vector3.up*10;var viewport=player.viewCamera.WorldToViewportPoint(point);float x=Mathf.Clamp(viewport.x*w,160,w-160),y=Mathf.Clamp((1-viewport.y)*900,100,670);InteractionFeel.Text(new Rect(x-140,y-30,280,24),target.DisplayName,player.uiFont,12,light,TextAnchor.MiddleCenter);GUI.color=new Color(.07f,.08f,.09f,.65f);GUI.DrawTexture(new Rect(x-52,y,104,3),Texture2D.whiteTexture);GUI.color=new Color(.91f,.38f,.17f);GUI.DrawTexture(new Rect(x-52,y,104*target.Health/(float)target.maxHealth,3),Texture2D.whiteTexture);GUI.color=Color.white;}
    if(hitMarker>0)InteractionFeel.Text(new Rect(center.x-20,430,40,40),"×",player.uiFont,26,new Color(1,.85f,.55f,Mathf.Clamp01(hitMarker*10)),TextAnchor.MiddleCenter);

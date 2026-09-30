@@ -23,7 +23,7 @@ namespace Starfall {
   }
   Material Mat(string name,Color color,float glow=0){var m=new Material(Shader.Find("Standard")){name=name,color=color};m.SetFloat("_Metallic",.6f);m.SetFloat("_Glossiness",.25f);if(glow>0){m.EnableKeyword("_EMISSION");m.SetColor("_EmissionColor",color*glow);}materials.Add(m);return m;}
   public Transform Box(string name,Transform parent,Vector3 local,Vector3 size,Material material,bool collide){var g=GameObject.CreatePrimitive(PrimitiveType.Cube);g.name=name;g.transform.SetParent(parent,false);g.transform.localPosition=local;g.transform.localScale=size;g.GetComponent<Renderer>().sharedMaterial=material;g.GetComponent<MeshFilter>().sharedMesh=armorMesh;if(!collide)Destroy(g.GetComponent<Collider>());else if(name=="Medical habitat"||name=="Stored D4 cells"||name.StartsWith("Core blast shelter")||name.StartsWith("Power barrier")){var obstacle=g.AddComponent<NavMeshObstacle>();obstacle.shape=NavMeshObstacleShape.Box;obstacle.size=Vector3.one;obstacle.carving=true;}return g.transform;}
-  Transform MakeSite(string key,Vector3 position,string label){var g=new GameObject(label).transform;g.SetParent(root.transform);position.y=AlienSurfaceLandmarks.Height(position.x,position.z);if(NavMesh.SamplePosition(position,out var nav,5,NavMesh.AllAreas))position=nav.position;g.position=position;sites[key]=g;return g;}
+  Transform MakeSite(string key,Vector3 position,string label){var g=new GameObject(label).transform;g.SetParent(root.transform);if(Mathf.Abs(position.y)<.001f)position.y=AlienSurfaceLandmarks.Height(position.x,position.z);if(NavMesh.SamplePosition(position,out var nav,5,NavMesh.AllAreas))position=nav.position;g.position=position;sites[key]=g;return g;}
   void Wreck(){
    var wreck=MakeSite("wreck",new Vector3(0,0,-4),"Half buried explorer ship");wreck.rotation=Quaternion.Euler(0,-14,-7);
    Box("Buried keel",wreck,new Vector3(0,.55f,0),new Vector3(4.4f,1.3f,8.8f),dark,true);Box("Hull crown",wreck,new Vector3(0,1.25f,-.8f),new Vector3(3.5f,1.3f,5.2f),steel,true);Box("Cockpit",wreck,new Vector3(0,1.85f,-2),new Vector3(2.1f,.42f,1.9f),accent,false);
@@ -46,16 +46,17 @@ namespace Starfall {
    if(!player.Ready||player.Paused||!player.arena.Active)return;
    focus=null;float closest=4;
    foreach(var s in sites){if(s.Key=="wreck")continue;float distance=Vector3.Distance(player.transform.position,s.Value.position);if(distance<closest&&Near(s.Key)){focus=s.Key;closest=distance;}}
-   TickRegionalEvent();foreach(var id in new List<string>(crates.Keys))if(!campaign.State.crates.Exists(x=>x.id==id&&x.region==this.id)){sites.Remove("crate:"+id);Destroy(crates[id]);crates.Remove(id);}
+   TickRegionalEvent();TickRelays();foreach(var id in new List<string>(crates.Keys))if(!campaign.State.crates.Exists(x=>x.id==id&&x.region==this.id)){sites.Remove("crate:"+id);Destroy(crates[id]);crates.Remove(id);}
   }
   public bool Interact(){
    if(campaign.Modal||player.Paused)return false;
    if(Vector3.Distance(player.transform.position,player.returnBeacon.position)<4){if(campaign.BombSeconds>=0){campaign.Evacuate();return true;}if(campaign.State.device&&!campaign.State.calibrated)campaign.CalibrateDevice();player.Return();return true;}
    if(focus==null)return false;if(focus.StartsWith("crate:")){if(!campaign.RecoverCrate(focus.Substring(6)))campaign.Notice("背包空间不足");return true;}
+   if(IsRelaySite(focus)){ActivateRelay(int.Parse(focus.Substring(6)));return true;}
    if(IsExpansionSite(focus)){campaign.ExpansionInteract(focus);RefreshExpansionSite(focus);return true;}
    campaign.Open(focus=="chest"?"chest":focus=="core"?"core":"terminal");return true;
   }
-  void OnGUI(){if(!player.Ready||player.Paused||campaign.Modal)return;DrawScanMarkers();if(focus==null)return;var title=focus.StartsWith("crate:")?"回收物资":IsExpansionSite(focus)?ExpansionSiteName(focus):focus=="chest"?"打开遗骸货舱":focus=="core"?"核心控制台":"查看区域终端";InteractionFeel.Text(new Rect(Screen.width/2-230,Screen.height*.69f,460,35),"E  "+title,player.uiFont,18,new Color(.92f,.77f,.49f),TextAnchor.MiddleCenter);}
+  void OnGUI(){if(!player.Ready||player.Paused||campaign.Modal)return;DrawScanMarkers();DrawRelayHud();if(focus==null)return;var title=focus.StartsWith("crate:")?"回收物资":IsRelaySite(focus)?"同步中继":IsExpansionSite(focus)?ExpansionSiteName(focus):focus=="chest"?"打开遗骸货舱":focus=="core"?"核心控制台":"查看区域终端";InteractionFeel.Text(new Rect(Screen.width/2-230,Screen.height*.69f,460,35),"E  "+title,player.uiFont,18,new Color(.92f,.77f,.49f),TextAnchor.MiddleCenter);}
   public void DrawTerminalView(){
    campaign.StoryText(new Rect(240,215,1110,165),id==2?"撤离记录仍在循环。\n军需官（救援站频道）：先修好中继，我们就能一起回家。":id==3?"医疗报告、裂隙实验与中继日志保存在这里。\n诊断上传只需要局部数据；完整请求包含现实端出口权限。":id==4?"军用船坞内的军令、原型维护记录与舰队清单相互吻合。\n指挥官：把装置交出来，我们可以一起离开。你也能分享下一次远征。":"同盟最后的隔离方案与种源库记录已找到。\n共用核心连接全部星界，切断现实耦合才能限制坍缩。",22);
    if(campaign.StoryAction(new Rect(260,429,1040,55),"读取档案与领取补给")){ReadArchive();}

@@ -28,6 +28,7 @@ namespace Starfall {
   public List<string> minedNodes=new List<string>(),flags=new List<string>(),repairs=new List<string>();
   public List<JournalRecord> journal=new List<JournalRecord>();public List<RegionState> regions=new List<RegionState>();public List<SavedCrate> crates=new List<SavedCrate>();
   public List<string> expansionProgress=new List<string>(),craftedModules=new List<string>(),equippedModules=new List<string>();
+  public string trackedObjective="";public float pulseCooldown;
   public int pendingForge=-1;public string lastSaved;
   public static CampaignState New(){var s=new CampaignState();s.bag.Add(ItemId.Ammo,24);s.bag.Add(ItemId.Fuel,2);return s;}
   public bool Has(string key)=>flags.Contains(key);

@@ -13,10 +13,12 @@ namespace Starfall {
    if(Modal||Busy)return true;
    if(State.Has("ecology-chosen")&&!director.underground&&TryEcology())return true;
    if(director.underground){if(State.coordinates.Contains(State.layer)){Open("coordinates");return true;}return false;}
+   if(TryCampCompanion())return true;
    if(AtCamp){Open("camp");return true;}if(AtShip){Open("ship");return true;}return false;
   }
   string Objective {
    get {if(State.saviorComplete)return "生态站运行中";if(State.Has("ecology-chosen"))return "关闭污染 · 修复净水 · 播下种子";if(State.Has("rift-destroyed"))return "回到营地，决定留下";if(State.escapeComplete&&State.Has("escape-view"))return "航程继续";
+    if(!string.IsNullOrEmpty(TrackedHint))return TrackedHint;
     if(!State.coordinates.Contains(1))return "矿井 · 回收紫铜与裂纹矿物";if(!State.device)return "星界遗骸 · 调查中央货舱";if(!State.calibrated)return "返回信标 · 校准跃迁装置";
     if(State.repairs.Count<4)return "探索矿层 "+State.unlockedLayer+" · 收集修船材料";if(!State.Knows("J07"))return "飞船可修复 · 调查同盟档案";if(!State.Has("bomb-crafted"))return "修船离开 / 制作异晶炸弹";if(!State.Has("boss-defeated"))return "核心 · 击破三处供能节点";return "切断耦合 · 校准撤离锚点";}
   }
@@ -26,6 +28,7 @@ namespace Starfall {
   void OnGUI(){
    if(Current!=this||State==null||!director.uiFont)return;var previous=GUI.matrix;GUI.depth=-160;float scale=Mathf.Min(Screen.width/1600f,Screen.height/900f);GUI.matrix=Matrix4x4.TRS(new Vector3((Screen.width-1600*scale)/2,(Screen.height-900*scale)/2,0),Quaternion.identity,Vector3.one*scale);
    if(!director.forge.IsOpen&&!Modal){
+    if(!director.battle.IsEngaged&&!director.underground)DrawCampPrompt();
     Caption(new Rect(44,88,780,26),Objective,14,new Color(.72f,.83f,.85f,.9f));Caption(new Rect(1130,director.underground&&!director.battle.IsEngaged?802:849,430,25),"B 背包   J 手账   F5 保存",12,null,TextAnchor.MiddleRight);
     if(director.underground&&!director.battle.IsEngaged){Caption(new Rect(525,45,550,32),"矿层 "+State.layer+"  ·  "+Collected(State.layer)+" / "+CampaignRules.NodeCount(State.layer),18,null,TextAnchor.MiddleCenter);if(Action(new Rect(650,93,300,35),Busy?"钻进中…":LayerComplete(State.layer)&&State.layer==State.unlockedLayer&&State.layer<5?"启动钻机 ↓":"切换已解锁矿层",!Busy)){if(LayerComplete(State.layer)&&State.layer==State.unlockedLayer&&State.layer<5)StartDrill();else Open("layers");}}
     if(BombSeconds>=0)Caption(new Rect(550,136,500,50),"核心崩解  "+Mathf.CeilToInt(BombSeconds)+"s · 返回信标",26,new Color(1,.45f,.23f),TextAnchor.MiddleCenter);
@@ -34,12 +37,12 @@ namespace Starfall {
    if(Modal){
     GUI.color=new Color(.015f,.026f,.037f,.90f);GUI.DrawTexture(new Rect(120,90,1360,720),Texture2D.whiteTexture);GUI.color=Color.white;
     Caption(new Rect(175,122,950,42),Title(panel),30);if(Action(new Rect(1335,124,90,35),"Esc"))Close();
-    if(panel=="bag"||panel=="camp"||panel=="warehouse")DrawInventory();else if(panel=="workshop")DrawWorkshop();else if(panel=="forge")DrawForgeSelect();else if(panel=="craft")DrawCraft();else if(panel=="ship")DrawShip();else if(panel=="takeoff")DrawTakeoff();else if(panel=="coordinates")DrawCoordinates();else if(panel=="journal")DrawJournal();else if(panel=="system")DrawSystem();else if(panel=="new-game")DrawNewGame();else if(panel=="layers")DrawLayers();else if(panel=="chest")DrawChest();else if(panel=="terminal")DrawTerminal();else if(panel=="permission")DrawPermission();else if(panel=="core")DrawCore();else if(panel=="detonate")DrawDetonate();else if(panel=="remain")DrawRemain();else if(panel=="escaped"||panel=="saved")DrawEnding();
+    if(panel=="companion")DrawCompanion();else if(panel=="bag"||panel=="camp"||panel=="warehouse")DrawInventory();else if(panel=="workshop")DrawWorkshop();else if(panel=="forge")DrawForgeSelect();else if(panel=="craft")DrawCraft();else if(panel=="ship")DrawShip();else if(panel=="takeoff")DrawTakeoff();else if(panel=="coordinates")DrawCoordinates();else if(panel=="journal")DrawJournal();else if(panel=="system")DrawSystem();else if(panel=="new-game")DrawNewGame();else if(panel=="layers")DrawLayers();else if(panel=="chest")DrawChest();else if(panel=="terminal")DrawTerminal();else if(panel=="permission")DrawPermission();else if(panel=="core")DrawCore();else if(panel=="detonate")DrawDetonate();else if(panel=="remain")DrawRemain();else if(panel=="escaped"||panel=="saved")DrawEnding();
     if(toastAge>0)Caption(new Rect(180,755,1240,32),toast,15,new Color(1,.79f,.42f));
    }
    DrawPresentation();GUI.matrix=previous;GUI.color=Color.white;
   }
-  static string Title(string page){switch(page){case "workshop":return "营地工坊";case "camp":case "warehouse":return "营地 · 物资整备";case "bag":return "随身背包";case "forge":return "选择原矿";case "craft":return "制作与应急回收";case "ship":return "飞船维修终端";case "coordinates":return "已记录坐标";case "journal":return "探险者手账";case "system":return "故事与存档";case "new-game":return "开始新的故事？";case "layers":return "矿井升降控制";case "chest":return "同盟探险船 · 密封货舱";case "permission":return "现实端出口 · 权限确认";case "terminal":return "区域档案终端";case "core":return "D4核心控制台";case "detonate":return "确认引爆？";case "takeoff":return "确认起飞？";case "remain":return "裂隙已经熄灭";case "escaped":return "结局 · 下一段航程";case "saved":return "结局 · 星球的守望者";default:return page;}}
+  static string Title(string page){switch(page){case "companion":return "营地伙伴";case "workshop":return "营地工坊";case "camp":case "warehouse":return "营地 · 物资整备";case "bag":return "随身背包";case "forge":return "选择原矿";case "craft":return "制作与应急回收";case "ship":return "飞船维修终端";case "coordinates":return "已记录坐标";case "journal":return "探险者手账";case "system":return "故事与存档";case "new-game":return "开始新的故事？";case "layers":return "矿井升降控制";case "chest":return "同盟探险船 · 密封货舱";case "permission":return "现实端出口 · 权限确认";case "terminal":return "区域档案终端";case "core":return "D4核心控制台";case "detonate":return "确认引爆？";case "takeoff":return "确认起飞？";case "remain":return "裂隙已经熄灭";case "escaped":return "结局 · 下一段航程";case "saved":return "结局 · 星球的守望者";default:return page;}}
   void DrawInventory(){
    bool camp=AtCamp;Caption(new Rect(180,183,1100,32),"绑定装备：手枪  ·  冲击镐  ·  抓钩"+(State.device?"  ·  同盟跃迁装置":"")+"   ｜   装备与已记录知识死亡不掉落",15);
    if(camp){if(Action(new Rect(180,225,180,38),"锻造"))panel="forge";if(Action(new Rect(370,225,220,38),"制作 / 回收"))panel="craft";if(Action(new Rect(600,225,180,38),"手账"))panel="journal";if(Action(new Rect(790,225,180,38),"存档"))panel="system";if(Action(new Rect(980,225,180,38),Exp("engineer-rescued")?"工坊 / 医疗":"医疗",Exp("engineer-rescued")||Exp("doctor-rescued")))panel="workshop";if(Action(new Rect(1170,225,195,38),"转运回收箱")){TransportCrates();Notice("回收箱已转运到营地");}}

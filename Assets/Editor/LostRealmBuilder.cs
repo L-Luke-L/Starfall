@@ -22,9 +22,16 @@ public static class LostRealmBuilder {
  static Transform Group(string name,Transform parent=null){var g=new GameObject(name).transform;if(parent)g.SetParent(parent);return g;}
  static Transform Part(string name,Transform parent,Vector3 pos,Vector3 scale,Material mat,bool collide=true,bool walkable=false){var g=GameObject.CreatePrimitive(PrimitiveType.Cube);g.name=name;g.transform.SetParent(parent);g.transform.position=pos;g.transform.localScale=scale;var renderer=g.GetComponent<Renderer>();renderer.sharedMaterial=mat;if(!collide||scale.y<2.5f)renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;if(!collide)Object.DestroyImmediate(g.GetComponent<Collider>());else if(!walkable){var nav=g.AddComponent<NavMeshObstacle>();nav.shape=NavMeshObstacleShape.Box;nav.size=Vector3.one;nav.carving=true;}return g.transform;}
  static float Y(float x,float z)=>AlienSurfaceLandmarks.Height(x,z);
+ static void Ramp(string name,Transform root,Vector3 start,Vector3 end,Material metal){
+  // One walkable surface avoids overlapping solid boxes being baked as low ceilings.
+  var direction=end-start;var right=Vector3.Cross(Vector3.up,direction).normalized*2.4f;start+=Vector3.up*.125f;end+=Vector3.up*.125f;
+  var mesh=new Mesh{name=name};mesh.vertices=new[]{start-right,start+right,end-right,end+right};mesh.triangles=new[]{0,2,1,2,3,1};mesh.uv=new[]{Vector2.zero,Vector2.right,Vector2.up,Vector2.one};mesh.RecalculateNormals();mesh.RecalculateBounds();
+  string path=RegionFolder+(name.Contains("internal")?"ShipyardInternalRamp":"ShipyardEntranceRamp")+".asset";var old=AssetDatabase.LoadAssetAtPath<Mesh>(path);if(old){EditorUtility.CopySerialized(mesh,old);Object.DestroyImmediate(mesh);mesh=old;}else AssetDatabase.CreateAsset(mesh,path);
+  var g=new GameObject(name);g.transform.SetParent(root,false);g.AddComponent<MeshFilter>().sharedMesh=mesh;g.AddComponent<MeshRenderer>().sharedMaterial=metal;g.AddComponent<MeshCollider>().sharedMesh=mesh;
+ }
  static void StripResources(FirstPersonExplorer player,int region){if(region!=5)return;foreach(var actor in player.arena.creatures)Object.DestroyImmediate(actor.gameObject);player.arena.creatures=new AlienCreature[0];foreach(var r in player.expedition.resources)Object.DestroyImmediate(r.gameObject);player.expedition.resources=new BasinResource[0];var titan=Object.FindFirstObjectByType<SkyTitan>();if(titan)Object.DestroyImmediate(titan.gameObject);}
  static void ImportCompanions(){string[] names={"ShiguangDrone","LanEngineer","SuheDoctor"};foreach(var name in names){var path="Assets/Resources/Companions/"+name+".png";if(!File.Exists(path))continue;AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);var importer=AssetImporter.GetAtPath(path) as TextureImporter;if(!importer)continue;importer.textureType=TextureImporterType.Sprite;importer.spriteImportMode=SpriteImportMode.Single;importer.alphaIsTransparency=true;importer.mipmapEnabled=false;importer.filterMode=FilterMode.Bilinear;importer.textureCompression=TextureImporterCompression.Uncompressed;importer.maxTextureSize=2048;importer.SaveAndReimport();}}
- public static void Generate(){Directory.CreateDirectory(RegionFolder);Directory.CreateDirectory("Assets/Resources");ImportCompanions();Catalog();for(int region=2;region<=5;region++){
+ public static void Generate(){Directory.CreateDirectory(RegionFolder);Directory.CreateDirectory("Assets/Resources");ImportCompanions();Catalog();VoyageCatalogBuilder.Generate();for(int region=2;region<=5;region++){
    var scene=EditorSceneManager.OpenScene("Assets/Scenes/Scene02_Encounter.unity");var player=Object.FindFirstObjectByType<FirstPersonExplorer>();StripResources(player,region);ThemeExisting(region);
    var structure=SaveMaterial("Region "+region+" metal",Metal[region]);var dark=SaveMaterial("Region "+region+" dark",Metal[region]*.42f);var light=SaveMaterial("Region "+region+" signal",Glow[region],true);
    var root=Group("Region "+region+" · independent landmarks");
@@ -56,12 +63,18 @@ public static class LostRealmBuilder {
   for(int i=0;i<9;i++){float x=-40+i*10,z=-7+i%3*10;Part("Greenhouse bed "+i,root,new Vector3(x,Y(x,z)+.35f,z),new Vector3(2,.7f,4),dark,true);Part("Dormant plant tube "+i,root,new Vector3(x,Y(x,z)+1.0f,z),new Vector3(.35f,1,.35f),glow,false);}
  }
  static void Shipyard(Transform root,Material metal,Material dark,Material glow){
+  var footprint=new Bounds(new Vector3(18,5,12),new Vector3(24,30,56));foreach(var renderer in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))if((renderer.name.StartsWith("Cliff column")||renderer.name.StartsWith("Loose rock")||renderer.name.StartsWith("Field boulder")||renderer.name.StartsWith("Slanted spire"))&&renderer.bounds.Intersects(footprint))Object.DestroyImmediate(renderer.gameObject);
   var hull=Group("Broken capital vessel · walkable shell",root);
   Part("Broken vessel prow on horizon",hull,new Vector3(1,Y(1,31)+5,31),new Vector3(15,10,8),dark,true);
-  Part("Vessel lower keel",hull,new Vector3(17,Y(17,19)+1,19),new Vector3(17,2,35),dark,true);
+  Part("Vessel lower keel entrance",hull,new Vector3(17,Y(17,19)+1,6),new Vector3(17,2,9),dark,true,true);
+  // The ramp occupies an actual opening, not a second surface over a solid floor.
+  for(int side=-1;side<=1;side+=2)Part("Vessel lower side corridor "+side,hull,new Vector3(17+side*5.55f,Y(17,19)+1,19),new Vector3(5.9f,2,35),dark,true,true);
+  Part("Vessel lower aft passage",hull,new Vector3(17,Y(17,19)+1,30.25f),new Vector3(5.2f,2,12.5f),dark,true,true);
   Part("Vessel port armor",hull,new Vector3(7,Y(7,19)+4,19),new Vector3(1.4f,8,28),metal,true);
   Part("Vessel starboard armor",hull,new Vector3(27,Y(27,19)+4,19),new Vector3(1.4f,8,28),metal,true);
-  Part("Broken foredeck",hull,new Vector3(17,Y(17,30)+3,29),new Vector3(17,.5f,13),metal,true,true);
+  Part("Broken foredeck",hull,new Vector3(17,Y(17,30)+5,29),new Vector3(17,.5f,13),metal,true,true);
+  Ramp("Accessible repair ramp · ground to lower vessel",hull,new Vector3(17,Y(17,-12)-.12f,-12),new Vector3(17,Y(17,19)+1.88f,2.8f),metal);
+  Ramp("Accessible internal ramp · lower vessel to foredeck",hull,new Vector3(17,Y(17,19)+1.70f,10),new Vector3(17,Y(17,30)+5.13f,23.7f),metal);
   for(int i=0;i<5;i++){float z=-20+i*12;Part("Gantry foot "+i,root,new Vector3(-28,Y(-28,z)+3,z),new Vector3(1.2f,6,1.2f),metal,true);Part("Suspended gantry "+i,root,new Vector3(-19,Y(-19,z)+6,z),new Vector3(19,.7f,1.7f),dark,true);Part("Hazard light "+i,root,new Vector3(-28,Y(-28,z)+6.4f,z),new Vector3(.6f,.2f,.6f),glow,false);}
   for(int i=0;i<9;i++){float x=-37+i%3*7,z=9+i/3*9;Part("Independent cargo container "+i,root,new Vector3(x,Y(x,z)+.9f,z),new Vector3(3.5f,1.8f,3.5f),i%2==0?metal:dark,true);}
  }
@@ -73,7 +86,8 @@ public static class LostRealmBuilder {
  static void BakeNavigation(FirstPersonExplorer player,int region){var sources=new List<NavMeshBuildSource>();foreach(var col in Object.FindObjectsByType<Collider>(FindObjectsSortMode.None)){if(col.GetComponentInParent<FirstPersonExplorer>()||col.GetComponentInParent<AlienCreature>()||col.GetComponentInParent<SkyTitan>())continue;
    if(col is MeshCollider mesh&&mesh.sharedMesh)sources.Add(new NavMeshBuildSource{shape=NavMeshBuildSourceShape.Mesh,sourceObject=mesh.sharedMesh,transform=mesh.transform.localToWorldMatrix,area=0});
    else if(col is BoxCollider box)sources.Add(new NavMeshBuildSource{shape=NavMeshBuildSourceShape.Box,transform=Matrix4x4.TRS(box.transform.TransformPoint(box.center),box.transform.rotation,box.transform.lossyScale),size=box.size,area=box.GetComponent<NavMeshObstacle>()?1:0});}
-   var settings=NavMesh.GetSettingsByID(0);settings.agentRadius=.95f;settings.agentHeight=2;settings.agentClimb=.45f;settings.agentSlope=42;settings.overrideVoxelSize=true;settings.voxelSize=.22f;var data=NavMeshBuilder.BuildNavMeshData(settings,sources,new Bounds(Vector3.zero,new Vector3(238,90,238)),Vector3.zero,Quaternion.identity);if(!data)throw new System.Exception("Lost realm navigation failed "+region);
+   var settings=NavMesh.GetSettingsByID(0);settings.agentRadius=.95f;settings.agentHeight=2;settings.agentClimb=.25f;settings.agentSlope=42;settings.overrideVoxelSize=true;settings.voxelSize=.22f;var data=NavMeshBuilder.BuildNavMeshData(settings,sources,new Bounds(Vector3.zero,new Vector3(238,90,238)),Vector3.zero,Quaternion.identity);if(!data)throw new System.Exception("Lost realm navigation failed "+region);
+   if(region==4){var instance=NavMesh.AddNavMeshData(data);Vector3[] checks={player.returnBeacon.position,new Vector3(17,Y(17,-12),-12),new Vector3(17,Y(17,19)+2,8),new Vector3(17,Y(17,19)+3,18),new Vector3(17,Y(17,30)+5.25f,27)};for(int i=1;i<checks.Length;i++){var route=new NavMeshPath();bool start=NavMesh.SamplePosition(checks[i-1],out var from,4,NavMesh.AllAreas),end=NavMesh.SamplePosition(checks[i],out var to,4,NavMesh.AllAreas);bool connected=start&&end&&NavMesh.CalculatePath(from.position,to.position,NavMesh.AllAreas,route)&&route.status==NavMeshPathStatus.PathComplete;Debug.Log("SHIPYARD_NAV "+i+" "+connected+" from="+from.position+" to="+to.position+" status="+route.status);}instance.Remove();}
    string path=RegionFolder+"Region"+region+"Navigation.asset";var old=AssetDatabase.LoadAssetAtPath<NavMeshData>(path);if(old){EditorUtility.CopySerialized(data,old);Object.DestroyImmediate(data);data=old;}else AssetDatabase.CreateAsset(data,path);player.arena.navigation=data;
  }
  static void Catalog(){var path="Assets/Resources/LostRealmCatalog.asset";var catalog=AssetDatabase.LoadAssetAtPath<LostRealmCatalog>(path);if(!catalog){catalog=ScriptableObject.CreateInstance<LostRealmCatalog>();AssetDatabase.CreateAsset(catalog,path);}

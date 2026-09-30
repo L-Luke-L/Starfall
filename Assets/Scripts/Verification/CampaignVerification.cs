@@ -16,7 +16,12 @@ namespace Starfall {
    File.WriteAllLines(Path.Combine(folder,"campaign-report.txt"),results);Debug.Log(failures==0?"CAMPAIGN_QA_PASS":"CAMPAIGN_QA_FAIL "+failures);Application.Quit(failures==0?0:2);
   }
   IEnumerator Until(Func<bool> ready,float seconds=12){float end=Time.realtimeSinceStartup+seconds;while(!ready()&&Time.realtimeSinceStartup<end)yield return null;Check("Wait completed",ready());}
-  IEnumerator Shot(string name){yield return new WaitForEndOfFrame();var t=ScreenCapture.CaptureScreenshotAsTexture();File.WriteAllBytes(Path.Combine(folder,name+".png"),t.EncodeToPNG());Destroy(t);}
+  IEnumerator Shot(string name){
+   yield return new WaitForEndOfFrame();var camera=c.Explorer?c.Explorer.viewCamera:d.worldCamera;var target=RenderTexture.GetTemporary(1600,900,24);var old=camera.targetTexture;var active=RenderTexture.active;Texture2D image=null;
+   try{camera.targetTexture=target;camera.Render();RenderTexture.active=target;image=new Texture2D(1600,900,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,1600,900),0,0);image.Apply();File.WriteAllBytes(Path.Combine(folder,name+".png"),image.EncodeToPNG());}
+   catch(Exception e){Check("Screenshot "+name+": "+e.Message,false);}
+   finally{camera.targetTexture=old;RenderTexture.active=active;RenderTexture.ReleaseTemporary(target);if(image)Destroy(image);}
+  }
   void Warp(Vector3 p){var f=c.Explorer;f.Motor.enabled=false;f.transform.position=p;f.Motor.enabled=true;f.ResetMotion();Physics.SyncTransforms();}
   void Face(Vector3 point){var f=c.Explorer;var v=point-f.viewCamera.transform.position;f.transform.rotation=Quaternion.Euler(0,Mathf.Atan2(v.x,v.z)*Mathf.Rad2Deg,0);f.Look(0,f.Pitch+Mathf.Atan2(v.y,new Vector2(v.x,v.z).magnitude)*Mathf.Rad2Deg);}
   IEnumerator Run(){

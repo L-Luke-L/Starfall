@@ -12,7 +12,7 @@ namespace Starfall {
   public SceneDirector director;public CampaignState State {get;private set;}public CampaignStore Store {get;private set;}
   public CampaignRegion RegionView {get;private set;}public bool Busy {get;private set;}public float BombSeconds {get;private set;}=-1;
   public bool Modal=>panel!="";public bool IsQA=>Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-campaignQA"||x=="-lostRealmQA");
-  public bool AtCamp=>!director.battle.IsEngaged&&!director.underground&&!director.Transitioning&&Mathf.Abs(director.player.position.x-director.camp.transform.position.x)<=director.camp.radius;
+  public bool AtCamp=>!director.battle.IsEngaged&&!director.underground&&!director.Transitioning&&Mathf.Abs(director.player.position.x-director.camp.transform.position.x)<=Mathf.Max(director.camp.radius,5.4f);
   public bool AtShip=>!director.battle.IsEngaged&&!director.underground&&Mathf.Abs(director.player.position.x-director.wreck.transform.position.x)<=director.wreck.radius;
   public FirstPersonExplorer Explorer=>director.battle.Explorer;
   bool loading,saveBlocked;float autosave,toastAge;string toast;Vector3[] oreOrigins;List<SubsurfaceDefinition> generated=new List<SubsurfaceDefinition>();
@@ -20,7 +20,7 @@ namespace Starfall {
   void Awake(){
    if(Array.Exists(Environment.GetCommandLineArgs(),x=>(x.EndsWith("QA",StringComparison.OrdinalIgnoreCase)&&x!="-campaignQA"&&x!="-lostRealmQA")||x=="-battlePreview"||x=="-titanPreview")){enabled=false;return;}
    Current=this;if(!director)director=GetComponent<SceneDirector>();Store=new CampaignStore(Path.Combine(Application.persistentDataPath,IsQA?"CampaignVerification":"CampaignV1"));
-   State=IsQA?CampaignState.New():Store.Load()??CampaignState.New();saveBlocked=!IsQA&&Store.Error!=null;RecoverForge();
+   State=IsQA?CampaignState.New():Store.Load()??CampaignState.New();saveBlocked=!IsQA&&Store.Error!=null;RecoverForge();ReconcileExpansionState();
   }
   IEnumerator Start(){
    if(Current!=this)yield break;yield return null;CreateBonusNodes();oreOrigins=new Vector3[director.ores.Count];for(int i=0;i<oreOrigins.Length;i++)oreOrigins[i]=director.ores[i].transform.position;
@@ -37,7 +37,7 @@ namespace Starfall {
   public void Changed(){director.inventory.NotifyChanged();Save();}
   public bool Save(string slot="campaign"){
    if(loading||saveBlocked||State==null)return false;
-   if(Explorer&&Explorer.expedition){Explorer.expedition.Save();State.magazine=Explorer.arsenal.Magazine;State.health=Explorer.arena.Downed?100:Explorer.arena.Health;}
+   if(Explorer&&Explorer.expedition&&Explorer.expedition.Initialized){Explorer.expedition.Save();Explorer.arsenal.Sync();State.health=Explorer.arena.Downed?100:Explorer.arena.Health;}
    State.surfaceX=director.player.position.x;State.underground=director.underground;
    foreach(var pair in progress){var target=State.Region(pair.Key);target.enemies.Clear();foreach(var e in pair.Value.enemyHealth)target.enemies.Add(new SavedEnemy{id=e.Key,health=e.Value});target.mined=new List<int>(pair.Value.mined);target.drops=pair.Value.drops;}
    try{Store.Save(State,slot);return true;}catch(Exception e){Debug.LogError("Campaign save failed: "+e.Message);toast="保存失败，请检查磁盘空间";toastAge=5;return false;}
@@ -121,7 +121,7 @@ namespace Starfall {
   public IEnumerator Restore(string slot){
    var restored=Store.Load(slot);if(restored==null){Notice("没有可用的检查点");yield break;}loading=true;bool escape=State.escapeComplete,savior=State.saviorComplete;Close();BombSeconds=-1;
    if(director.battle.IsEngaged){director.battle.ReturnToExpedition();while(director.battle.IsEngaged)yield return null;}
-   Close();State=restored;State.escapeComplete|=escape;State.saviorComplete|=savior;State.region=0;State.underground=false;State.flags.Remove("escape-view");progress.Clear();RecoverForge();director.worldCamera.transform.position=new Vector3(0,0,-20);director.underground=false;director.player.position=new Vector3(State.surfaceX,director.surfaceY,0);ApplyLayer();loading=false;saveBlocked=false;Changed();Notice("已恢复检查点，物资与任务进度已保留");
+   Close();State=restored;State.escapeComplete|=escape;State.saviorComplete|=savior;State.region=0;State.underground=false;State.flags.Remove("escape-view");progress.Clear();RecoverForge();ReconcileExpansionState();director.worldCamera.transform.position=new Vector3(0,0,-20);director.underground=false;director.player.position=new Vector3(State.surfaceX,director.surfaceY,0);ApplyLayer();loading=false;saveBlocked=false;Changed();Notice("已恢复检查点，物资与任务进度已保留");
   }
   public IEnumerator NewGame(){Close();if(director.battle.IsEngaged){director.battle.ReturnToExpedition();while(director.battle.IsEngaged)yield return null;}if(!saveBlocked)Save("previous-story");State=CampaignState.New();progress.Clear();saveBlocked=false;BombSeconds=-1;director.underground=false;director.worldCamera.transform.position=new Vector3(0,0,-20);director.player.position=new Vector3(-10,director.surfaceY,0);ApplyLayer();Changed();}
   void Update(){
@@ -134,6 +134,6 @@ namespace Starfall {
   }
   void OnApplicationQuit(){Save();}
   void OnApplicationPause(bool paused){if(paused)Save();}
-  void OnDestroy(){if(coreMaterial)Destroy(coreMaterial);foreach(var d in generated)if(d)Destroy(d);if(Current==this)Current=null;}
+  void OnDestroy(){if(campPanel)Destroy(campPanel);if(campPanelTexture)Destroy(campPanelTexture);if(coreMaterial)Destroy(coreMaterial);foreach(var d in generated)if(d)Destroy(d);if(Current==this)Current=null;}
  }
 }

@@ -5,6 +5,7 @@ namespace Starfall {
   public FirstPersonExplorer player;public PlayerArsenal arsenal;public BasinResource[] resources;
   public Material fuelMaterial,oreMaterial,ammoMaterial,medicalMaterial;
   public BasinProgress Progress {get;private set;}
+  public bool Initialized=>initialized;
   public float MiningProgress {get;private set;}
   public string Prompt {get;private set;}
   public string Notice {get;private set;}
@@ -13,6 +14,8 @@ namespace Starfall {
   Renderer[] focusRenderers;MaterialPropertyBlock focusBlock;float chipTimer;
   public int Kills {get;private set;}
   public const float MiningSeconds=3.4f;
+  readonly System.Collections.Generic.List<BasinPickup> pickups=new System.Collections.Generic.List<BasinPickup>();
+  readonly RaycastHit[] visibilityHits=new RaycastHit[48];
   BasinResource mining;int damageStamp;float noticeTime,magnetTick;bool initialized;OreInventory localInventory;
   public OreInventory Inventory=>player.session?player.session.director.inventory:localInventory;
   public void Initialize(){
@@ -26,7 +29,7 @@ namespace Starfall {
    if(!initialized){if(player.Ready&&(!player.session||!player.session.IsTransitioning))Initialize();return;}
    if(noticeTime>0&&player.arena.Active){noticeTime-=Time.deltaTime;if(noticeTime<=0)Notice=null;}
    if(!player.Ready||player.Paused||player.arena.Downed){MiningProgress=0;return;}
-   if(CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("magnet")){magnetTick-=Time.deltaTime;if(magnetTick<=0){magnetTick=.25f;foreach(var pickup in GetComponentsInChildren<BasinPickup>())if(pickup&&Vector3.Distance(player.transform.position,pickup.transform.position)<4)Collect(pickup);}}
+   if(CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("magnet")){magnetTick-=Time.deltaTime;if(magnetTick<=0){magnetTick=.25f;for(int i=pickups.Count-1;i>=0;i--){var pickup=pickups[i];if(!pickup||pickup.data.collected){pickups.RemoveAt(i);continue;}if((player.transform.position-pickup.transform.position).sqrMagnitude<16)Collect(pickup);}}}
    if(!player.Automated)Interact(Input.GetKey(KeyCode.E),Time.deltaTime);
   }
   public void Save(){if(!initialized||!player||!player.arena||!arsenal)return;Progress.health=player.arena.Health;Progress.magazine=arsenal.Magazine;Progress.reserve=arsenal.Reserve;}
@@ -36,12 +39,12 @@ namespace Starfall {
    InteractionFeel.Play(FeelCue.Kill,.8f);Kills++;Tell("击败");var elite=target.GetComponent<EliteCreature>();if(elite&&CampaignRuntime.Current)CampaignRuntime.Current.EliteDefeated(elite.Id);var kind=BasinProgress.RollLoot(Random.value);if(CampaignRuntime.Current&&CampaignRuntime.Current.State.region==1&&kind==BasinLootKind.Ore)kind=BasinLootKind.Fuel;if(kind!=BasinLootKind.None){var p=target.transform.position;if(giant)p=player.transform.position+player.transform.forward*3;AddDrop(kind,p);}
   }
   public BasinPickup AddDrop(BasinLootKind kind,Vector3 point){
-   point.y=AlienSurfaceLandmarks.Height(point.x,point.z)+.6f;var d=new BasinDrop{id=Progress.drops.Count,kind=kind,position=point};Progress.drops.Add(d);if(CampaignRuntime.Current)CampaignRuntime.Current.Changed();return SpawnPickup(d);
+   point=FieldSurface.ReachableDrop(point,player.returnBeacon?player.returnBeacon.position:player.transform.position);var d=new BasinDrop{id=Progress.drops.Count,kind=kind,position=point};Progress.drops.Add(d);if(CampaignRuntime.Current)CampaignRuntime.Current.Changed();return SpawnPickup(d);
   }
   BasinPickup SpawnPickup(BasinDrop data){
    bool canister=data.kind==BasinLootKind.Fuel||data.kind==BasinLootKind.Medkit;var g=GameObject.CreatePrimitive(canister?PrimitiveType.Cylinder:PrimitiveType.Cube);g.name="Dropped supply · "+data.kind;g.transform.SetParent(transform);g.transform.position=data.position;g.transform.localScale=canister?new Vector3(.34f,.24f,.34f):new Vector3(.42f,.32f,.30f);var material=data.kind==BasinLootKind.Fuel?fuelMaterial:data.kind==BasinLootKind.Ore?oreMaterial:data.kind==BasinLootKind.Ammo?ammoMaterial:medicalMaterial;g.GetComponent<Renderer>().sharedMaterial=material;
    var cap=GameObject.CreatePrimitive(PrimitiveType.Cube);Destroy(cap.GetComponent<Collider>());cap.name="Supply retaining band";cap.transform.SetParent(g.transform,false);cap.transform.localPosition=Vector3.up*(canister?.85f:.20f);cap.transform.localScale=new Vector3(1.06f,.17f,1.06f);cap.GetComponent<Renderer>().sharedMaterial=ammoMaterial;
-   var p=g.AddComponent<BasinPickup>();p.data=data;p.expedition=this;return p;
+   var p=g.AddComponent<BasinPickup>();p.data=data;p.expedition=this;pickups.Add(p);return p;
   }
   public bool Collect(BasinPickup p){
    if(!p||p.expedition!=this||p.data.collected||!player.arena.CanTarget||Vector3.Distance(player.viewCamera.transform.position,p.transform.position)>(CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("magnet")?4.3f:3.3f)||!Visible(p.transform.position,p.transform))return false;
@@ -53,8 +56,10 @@ namespace Starfall {
    InteractionFeel.Play(FeelCue.Pickup,.75f);p.data.collected=true;Tell(p.DisplayName);Destroy(p.gameObject);return true;
   }
   public bool Visible(Vector3 point,Transform target){
-   var origin=player.viewCamera.transform.position;var delta=point-origin;var hits=Physics.RaycastAll(origin,delta.normalized,delta.magnitude+.1f,~(1<<30),QueryTriggerInteraction.Ignore);System.Array.Sort(hits,(a,b)=>a.distance.CompareTo(b.distance));
-   foreach(var h in hits){if(h.collider.GetComponentInParent<FirstPersonExplorer>())continue;return h.transform==target||h.transform.IsChildOf(target);}return true;
+   var origin=player.viewCamera.transform.position;var delta=point-origin;int count=Physics.RaycastNonAlloc(origin,delta.normalized,visibilityHits,delta.magnitude+.1f,~(1<<30),QueryTriggerInteraction.Ignore);
+   if(count==visibilityHits.Length)return false;float nearest=float.MaxValue;Transform obstruction=null;
+   for(int i=0;i<count;i++){var h=visibilityHits[i];if(h.collider.GetComponentInParent<FirstPersonExplorer>()||h.distance>=nearest)continue;nearest=h.distance;obstruction=h.transform;}
+   return !obstruction||obstruction==target||obstruction.IsChildOf(target);
   }
   void Focus(Transform next){
    if(Focused==next)return;

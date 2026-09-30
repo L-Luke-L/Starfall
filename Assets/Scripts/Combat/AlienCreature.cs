@@ -22,6 +22,7 @@ namespace Starfall {
   public int Bites {get;private set;}
   public Vector3 Home {get;private set;}
   public bool IsWindingUp=>State==CreatureState.ChargeTell||State==CreatureState.BiteTell||State==CreatureState.VolleyTell;
+  public bool Staggered=>staggerTime>0;float staggerTime;
   float age,timer,repath,cooldown,roamTimer,animationClock,turnSign=1,shotTimer;
   Vector3 destination,chargeDirection,lockedAim,lastPosition;int volley;bool struck;
   Quaternion[] limbRest,finRest;Vector3 visualRest,coreRest;
@@ -29,6 +30,7 @@ namespace Starfall {
   void Start(){ResetToHome();}
   public void SetHome(Vector3 position){Home=position;lastPosition=position;}
   public void ResumeFromElite(){SetState(kind==CreatureKind.RiftMauler?CreatureState.Pursue:CreatureState.Orbit);cooldown=2;}
+  public bool PulseStagger(float seconds){var life=GetComponent<CreatureVitality>();if(GetComponent<EliteCreature>()||!life||life.Dead||!Agent||!Agent.isOnNavMesh||!arena.CanTarget)return false;SetState(CreatureState.Recover);staggerTime=Mathf.Max(staggerTime,seconds);cooldown=Mathf.Max(cooldown,seconds+1);return true;}
   void OnDisable(){if(arena)arena.Release(this);}
   public void ResetToHome(){
    if(!Agent)Agent=GetComponent<NavMeshAgent>();
@@ -43,6 +45,7 @@ namespace Starfall {
   void Update(){
    if(!Agent||!Agent.isOnNavMesh)return;
    if(!arena||!arena.Active||arena.Downed){Agent.isStopped=true;warning.enabled=false;return;}
+   if(staggerTime>0){staggerTime=Mathf.Max(0,staggerTime-Time.deltaTime);Agent.isStopped=true;warning.enabled=false;Animate(Time.deltaTime);return;}
    Agent.isStopped=false;float dt=Time.deltaTime;age+=dt;timer+=dt;cooldown-=dt;repath-=dt;animationClock+=dt;
    Vector3 target=arena.player.transform.position;float distance=CreatureArena.FlatDistance(transform.position,target);
    bool withinTerritory=CreatureArena.FlatDistance(target,Home)<leashRadius;
@@ -77,7 +80,7 @@ namespace Starfall {
    switch(State){
     case CreatureState.ChargeTell:
      Agent.isStopped=true;Face(transform.position+chargeDirection,dt);warning.enabled=true;
-     for(int i=0;i<warning.positionCount;i++){var point=transform.position+chargeDirection*(14*i/(warning.positionCount-1f));point.y=AlienSurfaceLandmarks.Height(point.x,point.z)+.13f;warning.SetPosition(i,point);}
+     for(int i=0;i<warning.positionCount;i++){var point=transform.position+chargeDirection*(14*i/(warning.positionCount-1f));point.y=FieldSurface.Height(point.x,point.z,transform.position.y)+.13f;warning.SetPosition(i,point);}
      if(timer>=.65f){SetState(CreatureState.Charge);Attacks++;Charges++;}break;
     case CreatureState.Charge:
      Agent.isStopped=true;Vector3 from=transform.position;Vector3 step=chargeDirection*(CampaignRuntime.Current?CampaignRules.EnemySpeed(17.5f):17.5f)*dt;

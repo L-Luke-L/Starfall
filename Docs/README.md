@@ -2,6 +2,8 @@
 
 ## 玩法与操作
 
+- [回声远征：中继挑战、伙伴交流与观测台](Gameplay/VOYAGES.md)
+
 - [剧情探索版本：库存、五层矿井与双结局](Gameplay/CAMPAIGN.md)
 
 - [沉浸交互与操作](Gameplay/IMMERSION.md)
