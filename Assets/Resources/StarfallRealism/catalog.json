@@ -1,0 +1,1086 @@
+{
+  "models": [
+    {
+      "id": "Dinosaur",
+      "source": "https://sketchfab.com/3d-models/animated-t-rex-dinosaur-biting-attack-loop-5bbcadb7d9274843abb5ada35767dba1",
+      "selected": "",
+      "materials": [
+        {
+          "name": "Dinosaur__M0",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Dinosaur_M0_Color",
+          "normal": "Textures/Dinosaur_M0_Normal",
+          "metalSmooth": "Textures/Dinosaur_M0_MetalSmooth",
+          "ao": "Textures/Dinosaur_M0_AO",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        }
+      ]
+    },
+    {
+      "id": "Wyvern",
+      "source": "https://sketchfab.com/3d-models/animated-dragon-three-motion-loops-eca98cf6cd084c1596cecf716e110c29",
+      "selected": "",
+      "materials": [
+        {
+          "name": "Wyvern__M0",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Wyvern_M0_Color",
+          "normal": "Textures/Wyvern_M0_Normal",
+          "metalSmooth": "Textures/Wyvern_M0_MetalSmooth",
+          "ao": "Textures/Wyvern_M0_AO",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": true,
+          "alphaCutoff": 0.5
+        }
+      ]
+    },
+    {
+      "id": "AncientDragon",
+      "source": "https://sketchfab.com/3d-models/animated-dragon-three-motion-loops-eca98cf6cd084c1596cecf716e110c29",
+      "selected": "",
+      "materials": [
+        {
+          "name": "AncientDragon__M0",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/AncientDragon_M0_Color",
+          "normal": "Textures/AncientDragon_M0_Normal",
+          "metalSmooth": "Textures/AncientDragon_M0_MetalSmooth",
+          "ao": "Textures/AncientDragon_M0_AO",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": true,
+          "alphaCutoff": 0.5
+        }
+      ]
+    },
+    {
+      "id": "Explorer",
+      "source": "https://sketchfab.com/3d-models/animated-floating-astronaut-in-space-suit-loop-e2c4b146e58141e4b87917456a9970b1",
+      "selected": "",
+      "materials": [
+        {
+          "name": "Explorer__M0",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Explorer_M0_Color",
+          "normal": "Textures/Explorer_M0_Normal",
+          "metalSmooth": "Textures/Explorer_M0_MetalSmooth",
+          "ao": "Textures/Explorer_M0_AO",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Explorer__M1",
+          "color": [
+            0.1332090049982071,
+            0.1332090049982071,
+            0.1332090049982071,
+            1
+          ],
+          "albedo": "",
+          "normal": "",
+          "metalSmooth": "",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Explorer__M2",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Explorer_M2_Color",
+          "normal": "Textures/Explorer_M2_Normal",
+          "metalSmooth": "Textures/Explorer_M2_MetalSmooth",
+          "ao": "Textures/Explorer_M2_AO",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        }
+      ]
+    },
+    {
+      "id": "Crate",
+      "source": "https://opengameart.org/content/sci-fi-container",
+      "selected": "container",
+      "materials": [
+        {
+          "name": "Crate__M0",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Crate_M0_Color",
+          "normal": "Textures/Crate_M0_Normal",
+          "metalSmooth": "Textures/Crate_M0_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0.19999992847442627,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Crate__M1",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Crate_M1_Color",
+          "normal": "Textures/Crate_M1_Normal",
+          "metalSmooth": "Textures/Crate_M1_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0.19999992847442627,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        }
+      ]
+    },
+    {
+      "id": "Ship",
+      "source": "https://opengameart.org/content/shipyard",
+      "selected": "",
+      "materials": [
+        {
+          "name": "Ship__M0",
+          "color": [
+            0.2199999988079071,
+            0.27000001072883606,
+            0.28999999165534973,
+            1
+          ],
+          "albedo": "",
+          "normal": "",
+          "metalSmooth": "",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0.699999988079071,
+          "smoothness": 0.4300000071525574,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        }
+      ]
+    },
+    {
+      "id": "Rock1",
+      "source": "https://polyhaven.com/",
+      "selected": "",
+      "materials": [
+        {
+          "name": "Rock1__M0",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Rock1_M0_Color",
+          "normal": "Textures/Rock1_M0_Normal",
+          "metalSmooth": "Textures/Rock1_M0_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        }
+      ]
+    },
+    {
+      "id": "Rock2",
+      "source": "https://polyhaven.com/",
+      "selected": "",
+      "materials": [
+        {
+          "name": "Rock2__M0",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Rock2_M0_Color",
+          "normal": "Textures/Rock2_M0_Normal",
+          "metalSmooth": "Textures/Rock2_M0_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        }
+      ]
+    },
+    {
+      "id": "Rock3",
+      "source": "https://polyhaven.com/",
+      "selected": "",
+      "materials": [
+        {
+          "name": "Rock3__M0",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Rock3_M0_Color",
+          "normal": "Textures/Rock3_M0_Normal",
+          "metalSmooth": "Textures/Rock3_M0_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        }
+      ]
+    },
+    {
+      "id": "Control",
+      "source": "https://opengameart.org/content/pbr-industrial-asset-pack",
+      "selected": "tank_control_panel_mat",
+      "materials": [
+        {
+          "name": "Control__M1",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Control_M1_Color",
+          "normal": "Textures/Control_M1_Normal",
+          "metalSmooth": "Textures/Control_M1_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Control__M2",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Control_M2_Color",
+          "normal": "Textures/Control_M2_Normal",
+          "metalSmooth": "Textures/Control_M2_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Control__M5",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Control_M5_Color",
+          "normal": "Textures/Control_M5_Normal",
+          "metalSmooth": "Textures/Control_M5_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Control__M6",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Control_M6_Color",
+          "normal": "Textures/Control_M6_Normal",
+          "metalSmooth": "Textures/Control_M6_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Control__M7",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Control_M7_Color",
+          "normal": "Textures/Control_M7_Normal",
+          "metalSmooth": "",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Control__M8",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Control_M8_Color",
+          "normal": "Textures/Control_M8_Normal",
+          "metalSmooth": "Textures/Control_M8_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        }
+      ]
+    },
+    {
+      "id": "Terminal",
+      "source": "https://opengameart.org/content/pbr-industrial-asset-pack",
+      "selected": "control_terminal_mat",
+      "materials": [
+        {
+          "name": "Terminal__M9",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Terminal_M9_Color",
+          "normal": "Textures/Terminal_M9_Normal",
+          "metalSmooth": "Textures/Terminal_M9_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Terminal__M25",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Terminal_M25_Color",
+          "normal": "Textures/Terminal_M25_Normal",
+          "metalSmooth": "Textures/Terminal_M25_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Terminal__M26",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Terminal_M26_Color",
+          "normal": "Textures/Terminal_M26_Normal",
+          "metalSmooth": "",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Terminal__M27",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Terminal_M27_Color",
+          "normal": "Textures/Terminal_M27_Normal",
+          "metalSmooth": "Textures/Terminal_M27_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        }
+      ]
+    },
+    {
+      "id": "Tank",
+      "source": "https://opengameart.org/content/pbr-industrial-asset-pack",
+      "selected": "tank_capsule_mat",
+      "materials": [
+        {
+          "name": "Tank__M0",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tank_M0_Color",
+          "normal": "Textures/Tank_M0_Normal",
+          "metalSmooth": "Textures/Tank_M0_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tank__M1",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tank_M1_Color",
+          "normal": "Textures/Tank_M1_Normal",
+          "metalSmooth": "Textures/Tank_M1_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tank__M2",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tank_M2_Color",
+          "normal": "Textures/Tank_M2_Normal",
+          "metalSmooth": "Textures/Tank_M2_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tank__M3",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tank_M3_Color",
+          "normal": "Textures/Tank_M3_Normal",
+          "metalSmooth": "Textures/Tank_M3_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tank__M4",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tank_M4_Color",
+          "normal": "",
+          "metalSmooth": "",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        }
+      ]
+    },
+    {
+      "id": "Pipe",
+      "source": "https://opengameart.org/content/pbr-industrial-asset-pack",
+      "selected": "pipe_05",
+      "materials": [
+        {
+          "name": "Pipe__M9",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Pipe_M9_Color",
+          "normal": "Textures/Pipe_M9_Normal",
+          "metalSmooth": "Textures/Pipe_M9_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Pipe__M19",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Pipe_M19_Color",
+          "normal": "Textures/Pipe_M19_Normal",
+          "metalSmooth": "Textures/Pipe_M19_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        }
+      ]
+    },
+    {
+      "id": "Tower",
+      "source": "https://opengameart.org/content/pbr-industrial-asset-pack",
+      "selected": "tower_mat",
+      "materials": [
+        {
+          "name": "Tower__M2",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tower_M2_Color",
+          "normal": "Textures/Tower_M2_Normal",
+          "metalSmooth": "Textures/Tower_M2_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tower__M5",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tower_M5_Color",
+          "normal": "Textures/Tower_M5_Normal",
+          "metalSmooth": "Textures/Tower_M5_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tower__M6",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tower_M6_Color",
+          "normal": "Textures/Tower_M6_Normal",
+          "metalSmooth": "Textures/Tower_M6_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tower__M10",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tower_M10_Color",
+          "normal": "Textures/Tower_M10_Normal",
+          "metalSmooth": "Textures/Tower_M10_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tower__M12",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tower_M12_Color",
+          "normal": "Textures/Tower_M12_Normal",
+          "metalSmooth": "Textures/Tower_M12_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tower__M13",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tower_M13_Color",
+          "normal": "Textures/Tower_M13_Normal",
+          "metalSmooth": "Textures/Tower_M13_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tower__M14",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tower_M14_Color",
+          "normal": "Textures/Tower_M14_Normal",
+          "metalSmooth": "Textures/Tower_M14_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tower__M16",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tower_M16_Color",
+          "normal": "Textures/Tower_M16_Normal",
+          "metalSmooth": "Textures/Tower_M16_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tower__M17",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tower_M17_Color",
+          "normal": "Textures/Tower_M17_Normal",
+          "metalSmooth": "Textures/Tower_M17_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tower__M18",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tower_M18_Color",
+          "normal": "Textures/Tower_M18_Normal",
+          "metalSmooth": "Textures/Tower_M18_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tower__M19",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tower_M19_Color",
+          "normal": "Textures/Tower_M19_Normal",
+          "metalSmooth": "Textures/Tower_M19_MetalSmooth",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 1,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        },
+        {
+          "name": "Tower__M24",
+          "color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "albedo": "Textures/Tower_M24_Color",
+          "normal": "Textures/Tower_M24_Normal",
+          "metalSmooth": "",
+          "ao": "",
+          "emission": "",
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "metallic": 0,
+          "smoothness": 0,
+          "doubleSided": true,
+          "alphaClip": false,
+          "alphaCutoff": 0.5
+        }
+      ]
+    }
+  ]
+}

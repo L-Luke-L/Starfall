@@ -40,7 +40,21 @@ namespace Starfall {
    Warp(fps,spawn);for(int i=0;i<8;i++){fps.Drive(Vector2.zero,false,false,1/60f);yield return null;}float top=fps.transform.position.y;
    for(int i=0;i<90;i++){fps.Drive(Vector2.zero,false,i==0,1/60f);top=Mathf.Max(top,fps.transform.position.y);yield return null;}
    checks["jumpAndLand"]=top>spawn.y+.6f&&fps.IsGrounded&&Mathf.Abs(fps.transform.position.y-spawn.y)<.15f;
-   fps.Look(135,200);checks["mouseLookClampedPitch"]=fps.Pitch==-85&&Mathf.Abs(Mathf.DeltaAngle(fps.transform.eulerAngles.y,135))<1;
+   // Jump momentum must remain in world space even when the player turns and reverses input.
+   Warp(fps,spawn);fps.ResetMotion();
+   for(int i=0;i<30;i++){fps.Drive(Vector2.up,false,false,1/60f);yield return null;}
+   var takeoff=fps.transform.position;fps.Drive(Vector2.up,false,true,1/60f);yield return null;
+   fps.Look(90,0);bool airborne=!fps.IsGrounded;float sideways=0;
+   for(int i=0;i<90&&!fps.IsGrounded;i++){
+    fps.Drive(Vector2.left,true,false,1/60f);sideways=Mathf.Max(sideways,Mathf.Abs(fps.transform.position.x-takeoff.x));yield return null;
+   }
+   checks["jumpKeepsWorldMomentumDespiteTurnAndInput"]=airborne&&fps.IsGrounded&&sideways<.15f&&fps.transform.position.z>takeoff.z+1;
+   Warp(fps,spawn);fps.ResetMotion();
+   for(int i=0;i<15;i++){fps.Drive(Vector2.zero,false,false,1/60f);yield return null;}
+   var stationary=fps.transform.position;fps.Drive(Vector2.zero,false,true,1/60f);yield return null;
+   for(int i=0;i<90&&!fps.IsGrounded;i++){fps.Drive(Vector2.one,true,false,1/60f);yield return null;}
+   checks["stationaryJumpCannotAccelerateInAir"]=fps.IsGrounded&&HorizontalDistance(stationary,fps.transform.position)<.1f;
+   Warp(fps,spawn);fps.Look(135,200);checks["mouseLookClampedPitch"]=fps.Pitch==-85&&Mathf.Abs(Mathf.DeltaAngle(fps.transform.eulerAngles.y,135))<1;
    fps.SetPaused(true);var held=fps.transform.position;float pitch=fps.Pitch;fps.Drive(Vector2.one,true,true,1);fps.Look(20,30);checks["pauseStopsMovementAndLook"]=held==fps.transform.position&&pitch==fps.Pitch;fps.SetPaused(false);Cursor.lockState=CursorLockMode.None;Cursor.visible=true;
    Warp(fps,new Vector3(7,AlienSurfaceLandmarks.Height(7,-36)+.1f,-36));for(int i=0;i<150;i++){fps.Drive(Vector2.up,false,false,1/60f);yield return null;}
    checks["solidBoulderBlocksPlayer"]=fps.transform.position.z<-31.2f&&fps.transform.position.z>-35.5f;

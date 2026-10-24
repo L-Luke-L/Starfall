@@ -1,0 +1,7 @@
+{
+  "baselineFiles": 853,
+  "changedOriginalFiles": [],
+  "restoredUnityGeneratedEdits": [],
+  "passed": true,
+  "method": "SHA-256 byte comparison; all original scenes, scripts, collider/navmesh assets and settings preserved. New art is installed by additive scene-load visual adapters."
+}

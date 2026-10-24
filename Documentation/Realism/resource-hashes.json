@@ -1,0 +1,742 @@
+[
+  {
+    "path": "Assets/Resources/StarfallRealism/catalog.json",
+    "bytes": 26949,
+    "sha256": "1ff5d8616613f8a45c6e3b1389690cda6cb1f188e93310554703c3b5732554a7"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/RealismPBR.shader",
+    "bytes": 2244,
+    "sha256": "18c387c697f101d27810036f8cd1ec177426cb63e356d22eb6cba77a385032f5"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/RealismPlanet.shader",
+    "bytes": 1667,
+    "sha256": "546a6f44763a39014ecf14ba09a3f4ba9bfaea6527d680db4608c247add8b564"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/RealismRing.shader",
+    "bytes": 1495,
+    "sha256": "ba53fc85e45c8f5d407dae55fe1e49f2ee476edb749f9daa11cf8bc843e0f556"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/RealismStarSky.shader",
+    "bytes": 1069,
+    "sha256": "fd8f84a8dd501d33f50c988e8ec04e1a7683e83dbac74c4c03d99a0b329157a4"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/RealismTerrain.shader",
+    "bytes": 1373,
+    "sha256": "632f5b073940eb8acbb64cb9f7ac66cb946195b5ef477cbbe869e9e77fce48b9"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Models/AncientDragon.fbx",
+    "bytes": 7795308,
+    "sha256": "3c5d40ce61cd0765197b7f09fe942c051db5ad66418fc0442c15955e85823296"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Models/Control.fbx",
+    "bytes": 48876,
+    "sha256": "f21d4b26fcc50dd21dd3e7ab87efcaba41597183618516c297e9c8ff8736583a"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Models/Crate.fbx",
+    "bytes": 70748,
+    "sha256": "27f0519c552605600be39ffe2892d43e6b2caab64fd1abd92a0cda940cbb37c2"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Models/Dinosaur.fbx",
+    "bytes": 2637100,
+    "sha256": "faf1eff22840cd65cd04570d99d9b8a1e1e6175a485c73dd982a180c2eb9cc4b"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Models/Explorer.fbx",
+    "bytes": 8401740,
+    "sha256": "42ed6b28d8373528aef7f9496635f4c982ac7711b3471fb43ccb5bec285bbb63"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Models/Pipe.fbx",
+    "bytes": 69500,
+    "sha256": "9d6a4b0f9ebcbe95d8212ac799789fafb01f1182782ffa8a801f70b7a601a593"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Models/Rock1.fbx",
+    "bytes": 679484,
+    "sha256": "04881cd64cf84e464db8bbeff8c4967570a95481c2b70cc150cde15bd80435f9"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Models/Rock2.fbx",
+    "bytes": 135484,
+    "sha256": "6885a2d46c8a85c766d12a30d7c4fc5adc3b2a660c8c2823e44576e0c0a53c65"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Models/Rock3.fbx",
+    "bytes": 211996,
+    "sha256": "c49ffe56bcbd5ccca181bd2003369cac2ba498a433d2c6b3d9b7ad556550c83b"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Models/Ship.fbx",
+    "bytes": 1204828,
+    "sha256": "55275f00321371ce00e1f88958eb6ce4ada435c15f65747fef58260feff01988"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Models/Tank.fbx",
+    "bytes": 65260,
+    "sha256": "ff1c8aa2d24e3eeb330cacc2d8d5bd65c9f35733f3eeccddffc6df21f62bc28d"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Models/Terminal.fbx",
+    "bytes": 33548,
+    "sha256": "5528f27740403b7f803964b45a6047159004231b61b3ed72f830764d54c02e30"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Models/Tower.fbx",
+    "bytes": 105516,
+    "sha256": "90a9e807a4369c7cce889a0b0951621122d1ad19bf2a5e333d986f5f2eb146b8"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Models/Wyvern.fbx",
+    "bytes": 6665148,
+    "sha256": "bfef4adfe7f5c3eba9b1f7813c1022517e73a584195e2b44c47b191549b0ec16"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/AncientDragon_M0_AO.png",
+    "bytes": 675956,
+    "sha256": "2c2671431ebff4a9f5afbaa178bc4327d90c2b2d2ea6731cebbe82ff13991e55"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/AncientDragon_M0_Color.png",
+    "bytes": 1715820,
+    "sha256": "57306ade6e8712e26fbcaaae4e9662d5b533dece69adf67e6d3ed996497c896e"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/AncientDragon_M0_MetalSmooth.png",
+    "bytes": 917665,
+    "sha256": "355fe99b834b09ba10e1d7e5aaa2bfca49d439a820545922659cab36e617c00f"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/AncientDragon_M0_Normal.png",
+    "bytes": 1425189,
+    "sha256": "577858a47e02315f9386a2227ee1c17730347d2f86dddc4961998ec808e86612"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M1_Color.png",
+    "bytes": 1570964,
+    "sha256": "e1407f4d6b2d57e6dd80e7c94eca5a857f0cbe28c18835919daa0f942b90a9f2"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M1_MetalSmooth.png",
+    "bytes": 885803,
+    "sha256": "ec56708dddbfb7032d87b1c84670db3868574f3b1890218515e7424e25487ccc"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M1_Normal.png",
+    "bytes": 1999113,
+    "sha256": "02c0238e5adcc91770cadf37278cc600a0337c1b0ababb666abd11f586357ec3"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M2_Color.png",
+    "bytes": 276703,
+    "sha256": "1d5f162675aa5693b725d035666147c55a2b9265f404d4245809e199dced748b"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M2_MetalSmooth.png",
+    "bytes": 312068,
+    "sha256": "0c80012bbe0d60e7ef46eec1e80d6329f265821a2e92b8bc0ca3edbe0ff7732a"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M2_Normal.png",
+    "bytes": 6491,
+    "sha256": "d5c8f02ea914194ef4160f522efe42573e1940a48db98ce97d3cc4709d7ea1c9"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M5_Color.png",
+    "bytes": 224783,
+    "sha256": "157a3e8591b130baa6e77211e1f1de0cf38184a06fcb8e3739d850a767de384d"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M5_MetalSmooth.png",
+    "bytes": 312068,
+    "sha256": "0c80012bbe0d60e7ef46eec1e80d6329f265821a2e92b8bc0ca3edbe0ff7732a"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M5_Normal.png",
+    "bytes": 6491,
+    "sha256": "d5c8f02ea914194ef4160f522efe42573e1940a48db98ce97d3cc4709d7ea1c9"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M6_Color.png",
+    "bytes": 777266,
+    "sha256": "cb3a0a851adfd7ede8656584f5f2f9846ad2484f3f3ebf4a11a81c7d0a87d78f"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M6_MetalSmooth.png",
+    "bytes": 416625,
+    "sha256": "6eba9a11dac87f3607e6c618826d9c943440f7fb4d15d5ac5af6139f441da756"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M6_Normal.png",
+    "bytes": 1610229,
+    "sha256": "3c16ee627e7c4419c41270aa54877b85cafcaae413734a6eb91237227615a7fd"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M7_Color.png",
+    "bytes": 1897751,
+    "sha256": "e91cc2bb61f53c3a1ec58ff178b2aaeee3d42aae15fc5b507305b344cf5bad79"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M7_Normal.png",
+    "bytes": 2612947,
+    "sha256": "fd2247318d66289f00940507b35fb6a16f7a737f6875becf3d625df8413a0625"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M8_Color.png",
+    "bytes": 1222816,
+    "sha256": "3bc582362c07032cc8a5dcde4918dc9a1941b769f3b3c96096931bf13f7e0f1c"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M8_MetalSmooth.png",
+    "bytes": 219924,
+    "sha256": "9d27d4bd8a8a46e26ebb88002677b0dbaa1f94317c95afee1cf58dd1cd31ded8"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Control_M8_Normal.png",
+    "bytes": 1275383,
+    "sha256": "0da54b1405ed4d919ebae2197c40fb9092c6da6bf305e36325ede7f096ab0e3e"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Crate_M0_Color.png",
+    "bytes": 5412845,
+    "sha256": "f714ff3bb52251d3ff040a67421235a8a07bf90d1b91aec89660f1ef277bcbc5"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Crate_M0_MetalSmooth.png",
+    "bytes": 1764325,
+    "sha256": "af9ad133ab762f13cd4ef5d501530593d35bd26402e2e1025783efcdd48729b9"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Crate_M0_Normal.png",
+    "bytes": 5042461,
+    "sha256": "d4fdaf65cd9a519b199f848466b497a19dd8151431daa3815361c525f28365b9"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Crate_M1_Color.png",
+    "bytes": 1153016,
+    "sha256": "82f16bed4faae1aff7e7330e197250b2bc9024dcf4f764085a5beb8557ca5c3e"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Crate_M1_MetalSmooth.png",
+    "bytes": 438547,
+    "sha256": "487a307076951d089a0b6e59e3f41b8a1244c141983bdfadfcb68a232085af7b"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Crate_M1_Normal.png",
+    "bytes": 1100172,
+    "sha256": "2eab5324cdb73d0ed8931ea2a77c13175bccba2541a0128c389bca4f2ea71dd1"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Dinosaur_M0_AO.png",
+    "bytes": 792911,
+    "sha256": "1dc5139904a8d6fe556d98e236019366f29d6e8d0ce2caa5379b6bb2727428d7"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Dinosaur_M0_Color.png",
+    "bytes": 1883753,
+    "sha256": "df8427587d4495e862bd7cbbe9ed4375cac76e809de76974d06a5797c7a376a6"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Dinosaur_M0_MetalSmooth.png",
+    "bytes": 1053843,
+    "sha256": "2b9790f9bfa06c66a09b00afa51d5c2dfba03bed363b6986c2e3e7cdd4cf9ca6"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Dinosaur_M0_Normal.png",
+    "bytes": 2423159,
+    "sha256": "33a226761b73ccdc061bce37abdf417cc9a5a44c63451a76e37f528181ebf450"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Explorer_M0_AO.png",
+    "bytes": 543632,
+    "sha256": "6133d9aa647f77ee6b78f4da6d8d922435e8fa3089ddae647f11e4c3b956dabc"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Explorer_M0_Color.png",
+    "bytes": 1154785,
+    "sha256": "4d9574c4602e8ac4471349e9e90314e0576d7c5e38841f8bcf7494954e890802"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Explorer_M0_MetalSmooth.png",
+    "bytes": 586496,
+    "sha256": "e7c52fa634f065864d114dab07d7ff4db78962bd060e5c9f78f8e0c017be066a"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Explorer_M0_Normal.png",
+    "bytes": 571422,
+    "sha256": "f20e3d21c746179c7f441c5b7d0889ccdec5aeb27b560f9416824810d6875a8b"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Explorer_M2_AO.png",
+    "bytes": 499377,
+    "sha256": "db5a9c106d41e9fd6876b04034454aeeb882d33bc8b7cd60bfa19d3a35374d7b"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Explorer_M2_Color.png",
+    "bytes": 1371780,
+    "sha256": "3104f14ad0a60d0b9e960752c57b71aa6bd134a525be59e4a3ee8d8675b935fa"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Explorer_M2_MetalSmooth.png",
+    "bytes": 588174,
+    "sha256": "162f6a686a795220dd468341d263d9d849cdc6d1925b9fad38de4c2445f3c750"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Explorer_M2_Normal.png",
+    "bytes": 1180160,
+    "sha256": "e0bb1c619c99ffd9ad335902bf57a789710830baea80315b7a4e21d4673bfba9"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/GasGiantClouds.jpg",
+    "bytes": 3080980,
+    "sha256": "0bd844bf20822c4e3e80882b077859833c0dac44c7e4e1e0cd63d1b1b6d43085"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/GroundAO.jpg",
+    "bytes": 3015106,
+    "sha256": "009191fd048f1394ad1f00b456465987684455af402ddd92823959d21b7beeb1"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/GroundColor.jpg",
+    "bytes": 1486173,
+    "sha256": "9527d2c2abba5751c84df872514227e49f64e5041b7ee48178e5cb5da0a6b374"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/GroundNormal.jpg",
+    "bytes": 5019429,
+    "sha256": "073f01d6540b346f338dd41eaf04f2d5594fb5e90ec0fec34d6c690e0b9b219f"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/GroundRoughness.jpg",
+    "bytes": 616428,
+    "sha256": "0c9bb9389555cd39ee4a2940989fd3639d224070165d2f1880c9e8b3c60bff5c"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/MetalColor.jpg",
+    "bytes": 884918,
+    "sha256": "f1137f5b80564670faad3611658819325c001eceb65c52b2a3392c6e80f72998"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/MetalNormal.jpg",
+    "bytes": 820647,
+    "sha256": "634d074fe971056ce800e8c982cb29a9bec3f377d08b2c30f7e5efd837f751e6"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Pipe_M19_Color.png",
+    "bytes": 700600,
+    "sha256": "163539dc2a6980b5d5888d4f4635d20821fcb585be6b5c75ef7777213a4a393c"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Pipe_M19_MetalSmooth.png",
+    "bytes": 1284555,
+    "sha256": "6fdf481b1eb2851b2ad71a5ad8e6eccd510eadd00c5cf959eae0d3d76625c4ee"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Pipe_M19_Normal.png",
+    "bytes": 6771,
+    "sha256": "f4f63e5acb3584ec376457b6995594d38cd964d2eda1142bfa0653877fbd3b34"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Pipe_M9_Color.png",
+    "bytes": 817690,
+    "sha256": "5f0aab066eeec18d94607e0e2b1d4d034545afa38831136c68d237915dcf86b2"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Pipe_M9_MetalSmooth.png",
+    "bytes": 685619,
+    "sha256": "b189a706c7fc5a9a85db42cc897cf41816b69a7e9353ed26ab745c2646363a8c"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Pipe_M9_Normal.png",
+    "bytes": 856172,
+    "sha256": "9dbb30396a6804cdc327576c2f6cbe3095c1d16467b70a83ed00ce56f4154d88"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Rock1_M0_Color.png",
+    "bytes": 2162800,
+    "sha256": "5413efe3ef2998292ef05d47cb3273532eb0d025e6f357382fa0555a2ea89313"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Rock1_M0_MetalSmooth.png",
+    "bytes": 1433199,
+    "sha256": "fba392a25483454a1362398ac8c5308d972a29542dfe435afe61ddabaad99d8b"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Rock1_M0_Normal.png",
+    "bytes": 5662660,
+    "sha256": "cd363a4f887b266302a3150ba649222b67871d8eaa5eb661babe52ed21dc9638"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Rock2_M0_Color.png",
+    "bytes": 3391792,
+    "sha256": "c1399fa8a761f1cda119b6a741dbc1833b875a8d6521029b69474f37e566170f"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Rock2_M0_MetalSmooth.png",
+    "bytes": 1790338,
+    "sha256": "4f263d6f65b9f42a6acffee973ec8dc6343a88c0eb415e60fb54e85c3326c0d1"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Rock2_M0_Normal.png",
+    "bytes": 6045026,
+    "sha256": "f6d144f9b3b5df5303fced2b46402ca2c4581d7fb293eff1110d86958cdad263"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Rock3_M0_Color.png",
+    "bytes": 2578793,
+    "sha256": "87cf41eb39aa2fa8666fcedae77e1f93d13df591f59769eaa0e20024cd921756"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Rock3_M0_MetalSmooth.png",
+    "bytes": 1507196,
+    "sha256": "454158aa0a4dc3e65fe4287831dd2f459e180b59350ab80261bfb77c32cb64ad"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Rock3_M0_Normal.png",
+    "bytes": 6145626,
+    "sha256": "c567a21acc228e9472f980ca92430577bfebe814de4af67b3096ec12a0abac48"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/ScaleDetail_Albedo.png",
+    "bytes": 41414,
+    "sha256": "d8c0ccca4bb09eac6b34e998ba3ea56d27588034b0ad64ab250c87bc02131e68"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/ScaleDetail_Height.png",
+    "bytes": 12041,
+    "sha256": "512518a0d9279268c6b6296cd9b1c130c87f7c4daa3fd8971788d103a3554d10"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/ScaleDetail_Normal.png",
+    "bytes": 57763,
+    "sha256": "4306a74b313f54f5e3700211f9c72672601791563f93ba2545bac063e220ca97"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/StarMap.exr",
+    "bytes": 35997085,
+    "sha256": "69b841cd048c2ef35543eb1c5819b322530e78aa4b0cab97ec1de3ef56a4ddcd"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tank_M0_Color.png",
+    "bytes": 1716622,
+    "sha256": "d33a712fdf7293e9d7f354cf1f3fa0d60682adb2d98e67e553835f02ee9c838a"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tank_M0_MetalSmooth.png",
+    "bytes": 562998,
+    "sha256": "6a2e5f30c55b6b5c9183ddda62903768629eabb2e55cc4ff9392fb320cdc9c9f"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tank_M0_Normal.png",
+    "bytes": 1968903,
+    "sha256": "34ea8b08fb3d731a6641b6b6bfb412e8f164beeec3d417873574f533882732f7"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tank_M1_Color.png",
+    "bytes": 1570964,
+    "sha256": "e1407f4d6b2d57e6dd80e7c94eca5a857f0cbe28c18835919daa0f942b90a9f2"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tank_M1_MetalSmooth.png",
+    "bytes": 885803,
+    "sha256": "ec56708dddbfb7032d87b1c84670db3868574f3b1890218515e7424e25487ccc"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tank_M1_Normal.png",
+    "bytes": 1999113,
+    "sha256": "02c0238e5adcc91770cadf37278cc600a0337c1b0ababb666abd11f586357ec3"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tank_M2_Color.png",
+    "bytes": 276703,
+    "sha256": "1d5f162675aa5693b725d035666147c55a2b9265f404d4245809e199dced748b"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tank_M2_MetalSmooth.png",
+    "bytes": 312068,
+    "sha256": "0c80012bbe0d60e7ef46eec1e80d6329f265821a2e92b8bc0ca3edbe0ff7732a"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tank_M2_Normal.png",
+    "bytes": 6491,
+    "sha256": "d5c8f02ea914194ef4160f522efe42573e1940a48db98ce97d3cc4709d7ea1c9"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tank_M3_Color.png",
+    "bytes": 754861,
+    "sha256": "b10d7b40e54d2aeec45c1d2a3114cee4b16595d7d560ad931a01660346ca9332"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tank_M3_MetalSmooth.png",
+    "bytes": 1284555,
+    "sha256": "6fdf481b1eb2851b2ad71a5ad8e6eccd510eadd00c5cf959eae0d3d76625c4ee"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tank_M3_Normal.png",
+    "bytes": 6771,
+    "sha256": "f4f63e5acb3584ec376457b6995594d38cd964d2eda1142bfa0653877fbd3b34"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tank_M4_Color.png",
+    "bytes": 365341,
+    "sha256": "4ee6dbf154d53b8771d9ded6a75b7f3821351b194f9562a1199034229a6941cc"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Terminal_M25_Color.png",
+    "bytes": 2187704,
+    "sha256": "2eb606beba871333669f85f9ff542acf974578db659dad42e9b81e3244cefebe"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Terminal_M25_MetalSmooth.png",
+    "bytes": 1016446,
+    "sha256": "2102819aa7c422dbe5a91aa6e2b85506df3fa0d809daab15a0adcd6cbe349a5e"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Terminal_M25_Normal.png",
+    "bytes": 1395803,
+    "sha256": "e2fcd833d1b7f9a9580b0250c6dd71ded6f70fbe44a09b435493b79cd2d49f05"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Terminal_M26_Color.png",
+    "bytes": 4110669,
+    "sha256": "3097e275bc1458a4fe3f9cc4dd85694448280bf0fedbf064f28f3fbc68a8546a"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Terminal_M26_Normal.png",
+    "bytes": 4460715,
+    "sha256": "f94bd8de1f49f60e0d295d6ac42c92c329d05825207cc6fad34c1cca54d4aa8c"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Terminal_M27_Color.png",
+    "bytes": 1804370,
+    "sha256": "9ce16e109d12b6281f9a37b7b5b2f879a484659d168f4a9cc658edbc510c1782"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Terminal_M27_MetalSmooth.png",
+    "bytes": 105085,
+    "sha256": "8a8854510bc8ee50a7f4feea44a3ae250da0e5911fa894913e6c1979e1b9fbcf"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Terminal_M27_Normal.png",
+    "bytes": 2163123,
+    "sha256": "2eb8300f74ffccd413fa9f1175940aa72b0501f7eeba4dd6770cbab6ef11ed6b"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Terminal_M9_Color.png",
+    "bytes": 817690,
+    "sha256": "5f0aab066eeec18d94607e0e2b1d4d034545afa38831136c68d237915dcf86b2"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Terminal_M9_MetalSmooth.png",
+    "bytes": 685619,
+    "sha256": "b189a706c7fc5a9a85db42cc897cf41816b69a7e9353ed26ab745c2646363a8c"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Terminal_M9_Normal.png",
+    "bytes": 856172,
+    "sha256": "9dbb30396a6804cdc327576c2f6cbe3095c1d16467b70a83ed00ce56f4154d88"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M10_Color.png",
+    "bytes": 1194890,
+    "sha256": "586ef16b0082a64108f1a497fa3cf92f9a65740ba39ce15ef7e12ffb7d8fe213"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M10_MetalSmooth.png",
+    "bytes": 606629,
+    "sha256": "9948f7f248fa701fe2d47e3a871fd1f1d300cd735a3bf874e870a7568cf62410"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M10_Normal.png",
+    "bytes": 1150037,
+    "sha256": "91badcdf5ad8d0e912e12f1c7708fb603f2690d0ba703f0d08e85cf4eecbb1b4"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M12_Color.png",
+    "bytes": 4189199,
+    "sha256": "da8c72f8ea7306d1adedf8574bb1f3ceb9ab5a1ec2bdc7172e68ecf557285abc"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M12_MetalSmooth.png",
+    "bytes": 426463,
+    "sha256": "bb094bbee24884f1868fd91c5930544c51688a3755fd804ccf313d65b7170bff"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M12_Normal.png",
+    "bytes": 5293195,
+    "sha256": "e8947891cbb5533fbb86cbc17cae145f62342d3479874161a07c34a800eeeeb0"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M13_Color.png",
+    "bytes": 2026894,
+    "sha256": "c13ce01dd6a92d029e36c8f3f66365d1703f3fea079496db8c0d9563eaed8f5d"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M13_MetalSmooth.png",
+    "bytes": 562998,
+    "sha256": "6a2e5f30c55b6b5c9183ddda62903768629eabb2e55cc4ff9392fb320cdc9c9f"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M13_Normal.png",
+    "bytes": 1968903,
+    "sha256": "34ea8b08fb3d731a6641b6b6bfb412e8f164beeec3d417873574f533882732f7"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M14_Color.png",
+    "bytes": 2221055,
+    "sha256": "adecbcf7ca221ceaf65f02b1c0903d9e512dd0d91ee27832cf64b0070e6c49d6"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M14_MetalSmooth.png",
+    "bytes": 612760,
+    "sha256": "20fce53bc9e8826aee171bc8081df8c81ce1504a02d0abdc1db592942035958b"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M14_Normal.png",
+    "bytes": 1150037,
+    "sha256": "91badcdf5ad8d0e912e12f1c7708fb603f2690d0ba703f0d08e85cf4eecbb1b4"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M16_Color.png",
+    "bytes": 1987796,
+    "sha256": "163b91520761c5a9371ad72f92c3104afc5c34268d8f7b82a12622cb285b189e"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M16_MetalSmooth.png",
+    "bytes": 847584,
+    "sha256": "0f867d123984e3c7c8535766a7203f5df2752270b2e181f63d8d5b12f07db9b4"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M16_Normal.png",
+    "bytes": 2206705,
+    "sha256": "6a7e24933de7ccd4cc192dee38d65c0af64bb94a86739a961338eaf50917c7ae"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M17_Color.png",
+    "bytes": 2538710,
+    "sha256": "6e4cc6ff199d2c2693ceaf0cb1620cdc0e8cc64e43725f3f3215cac369bc1b2a"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M17_MetalSmooth.png",
+    "bytes": 4144,
+    "sha256": "265149d454822c2c808720c61f5a4317c0bfda56fc96598ea7b19b6ea52c5dd1"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M17_Normal.png",
+    "bytes": 2758527,
+    "sha256": "29896e87a1e70a4f6503089b776b83812c88c5eb5be97d30f257f14723899472"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M18_Color.png",
+    "bytes": 1036858,
+    "sha256": "806ab97f02adbcec470689102dfa1c8a577ec5d339b811d6c8f4a1136aabf04f"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M18_MetalSmooth.png",
+    "bytes": 683034,
+    "sha256": "758536c883fcecc56ca8355b017048d1e008741dc981ff2558d12d750dcc73d3"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M18_Normal.png",
+    "bytes": 10093,
+    "sha256": "58df6e7ae679bcdd6e7a2d51f3a4effb347c7e53347b9f0f9b776cee675e36c7"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M19_Color.png",
+    "bytes": 700600,
+    "sha256": "163539dc2a6980b5d5888d4f4635d20821fcb585be6b5c75ef7777213a4a393c"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M19_MetalSmooth.png",
+    "bytes": 1284555,
+    "sha256": "6fdf481b1eb2851b2ad71a5ad8e6eccd510eadd00c5cf959eae0d3d76625c4ee"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M19_Normal.png",
+    "bytes": 6771,
+    "sha256": "f4f63e5acb3584ec376457b6995594d38cd964d2eda1142bfa0653877fbd3b34"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M24_Color.png",
+    "bytes": 6562976,
+    "sha256": "ab78eaa9813ffe35320500322f5d56bad04a92c90be8df4ee48d2c4210e5e72a"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M24_Normal.png",
+    "bytes": 6919472,
+    "sha256": "76a7b38c0bd27e5d248b34175d34b60f2bc4f03e58701fbd6c6ee976dcccf106"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M2_Color.png",
+    "bytes": 276703,
+    "sha256": "1d5f162675aa5693b725d035666147c55a2b9265f404d4245809e199dced748b"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M2_MetalSmooth.png",
+    "bytes": 312068,
+    "sha256": "0c80012bbe0d60e7ef46eec1e80d6329f265821a2e92b8bc0ca3edbe0ff7732a"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M2_Normal.png",
+    "bytes": 6491,
+    "sha256": "d5c8f02ea914194ef4160f522efe42573e1940a48db98ce97d3cc4709d7ea1c9"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M5_Color.png",
+    "bytes": 224783,
+    "sha256": "157a3e8591b130baa6e77211e1f1de0cf38184a06fcb8e3739d850a767de384d"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M5_MetalSmooth.png",
+    "bytes": 312068,
+    "sha256": "0c80012bbe0d60e7ef46eec1e80d6329f265821a2e92b8bc0ca3edbe0ff7732a"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M5_Normal.png",
+    "bytes": 6491,
+    "sha256": "d5c8f02ea914194ef4160f522efe42573e1940a48db98ce97d3cc4709d7ea1c9"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M6_Color.png",
+    "bytes": 777266,
+    "sha256": "cb3a0a851adfd7ede8656584f5f2f9846ad2484f3f3ebf4a11a81c7d0a87d78f"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M6_MetalSmooth.png",
+    "bytes": 416625,
+    "sha256": "6eba9a11dac87f3607e6c618826d9c943440f7fb4d15d5ac5af6139f441da756"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Tower_M6_Normal.png",
+    "bytes": 1610229,
+    "sha256": "3c16ee627e7c4419c41270aa54877b85cafcaae413734a6eb91237227615a7fd"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Wyvern_M0_AO.png",
+    "bytes": 675956,
+    "sha256": "2c2671431ebff4a9f5afbaa178bc4327d90c2b2d2ea6731cebbe82ff13991e55"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Wyvern_M0_Color.png",
+    "bytes": 1715820,
+    "sha256": "57306ade6e8712e26fbcaaae4e9662d5b533dece69adf67e6d3ed996497c896e"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Wyvern_M0_MetalSmooth.png",
+    "bytes": 917665,
+    "sha256": "355fe99b834b09ba10e1d7e5aaa2bfca49d439a820545922659cab36e617c00f"
+  },
+  {
+    "path": "Assets/Resources/StarfallRealism/Textures/Wyvern_M0_Normal.png",
+    "bytes": 1425189,
+    "sha256": "577858a47e02315f9386a2227ee1c17730347d2f86dddc4961998ec808e86612"
+  }
+]

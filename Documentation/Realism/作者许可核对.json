@@ -1,0 +1,66 @@
+[
+  {
+    "uid": "e2c4b146e58141e4b87917456a9970b1",
+    "name": "Animated Floating Astronaut in Space Suit Loop",
+    "viewerUrl": "https://sketchfab.com/3d-models/animated-floating-astronaut-in-space-suit-loop-e2c4b146e58141e4b87917456a9970b1",
+    "isDownloadable": true,
+    "license": {
+      "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+      "label": "CC Attribution",
+      "fullName": "Creative Commons Attribution",
+      "requirements": "Author must be credited. Commercial use is allowed.",
+      "url": "http://creativecommons.org/licenses/by/4.0/",
+      "slug": "by"
+    },
+    "vertexCount": 31076,
+    "faceCount": 58312
+  },
+  {
+    "uid": "eca98cf6cd084c1596cecf716e110c29",
+    "name": "Animated Dragon Three Motion Loops",
+    "viewerUrl": "https://sketchfab.com/3d-models/animated-dragon-three-motion-loops-eca98cf6cd084c1596cecf716e110c29",
+    "isDownloadable": true,
+    "license": {
+      "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+      "label": "CC Attribution",
+      "fullName": "Creative Commons Attribution",
+      "requirements": "Author must be credited. Commercial use is allowed.",
+      "url": "http://creativecommons.org/licenses/by/4.0/",
+      "slug": "by"
+    },
+    "vertexCount": 10208,
+    "faceCount": 19544
+  },
+  {
+    "uid": "5bbcadb7d9274843abb5ada35767dba1",
+    "name": "Animated T-Rex Dinosaur Biting Attack Loop",
+    "viewerUrl": "https://sketchfab.com/3d-models/animated-t-rex-dinosaur-biting-attack-loop-5bbcadb7d9274843abb5ada35767dba1",
+    "isDownloadable": true,
+    "license": {
+      "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+      "label": "CC Attribution",
+      "fullName": "Creative Commons Attribution",
+      "requirements": "Author must be credited. Commercial use is allowed.",
+      "url": "http://creativecommons.org/licenses/by/4.0/",
+      "slug": "by"
+    },
+    "vertexCount": 6243,
+    "faceCount": 11938
+  },
+  {
+    "uid": "fb0053a2e59b43868e934c239bf4eb36",
+    "name": "Black Dragon with Idle Animation",
+    "viewerUrl": "https://sketchfab.com/3d-models/black-dragon-with-idle-animation-fb0053a2e59b43868e934c239bf4eb36",
+    "isDownloadable": true,
+    "license": {
+      "uri": "https://api.sketchfab.com/v3/licenses/bbfe3f7dbcdd4122b966b85b9786a989",
+      "label": "CC Attribution-NonCommercial",
+      "fullName": "Creative Commons Attribution-NonCommercial",
+      "requirements": "Author must be credited. No commercial use.",
+      "url": "http://creativecommons.org/licenses/by-nc/4.0/",
+      "slug": "by-nc"
+    },
+    "vertexCount": 19389,
+    "faceCount": 37992
+  }
+]

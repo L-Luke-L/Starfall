@@ -1,0 +1,13 @@
+﻿资源,接入范围,作者,许可,来源
+Dinosaur,玄脊地龙及地面精英,LasquetiSpice,CC BY 4.0,https://sketchfab.com/3d-models/animated-t-rex-dinosaur-biting-attack-loop-5bbcadb7d9274843abb5ada35767dba1
+Wyvern,苍翼飞龙及飞行精英,LasquetiSpice,CC BY 4.0,https://sketchfab.com/3d-models/animated-dragon-three-motion-loops-eca98cf6cd084c1596cecf716e110c29
+AncientDragon,蚀穹古龙，基于Wyvern的几何和材质衍生,LasquetiSpice + 本轮新增结构,CC BY 4.0,https://sketchfab.com/3d-models/animated-dragon-three-motion-loops-eca98cf6cd084c1596cecf716e110c29
+Explorer,保留资源；已移除运行时展示，不作为第一人称替换,LasquetiSpice,CC BY 4.0,https://sketchfab.com/3d-models/animated-floating-astronaut-in-space-suit-loop-e2c4b146e58141e4b87917456a9970b1
+"Rock1/2/3, Ground",原碰撞体上的扫描岩石外观和月壤材质,Poly Haven 扫描团队,CC0,https://polyhaven.com/a/moon_01
+Crate,回收箱、货箱和补给设备外观,rubberduck,CC0,https://opengameart.org/content/sci-fi-container
+Control/Terminal/Tank/Pipe/Tower,设备和终端；天线已改为程序化结构，Tank/Pipe/Tower作为可用资源保留,a52 / rubberduck,CC0,https://opengameart.org/content/pbr-industrial-asset-pack
+Ship,半埋探索船外观,greyoxide,CC0,https://opengameart.org/content/shipyard
+Metal,原船坞、舱体、金属构件材质,Lennart Demes / ambientCG,CC0,https://ambientcg.com/view?id=Metal010
+GasGiantClouds,8K类木行星云图；程序环为新增制作,Solar System Scope / INOVE,CC BY 4.0,https://play.solarsystemscope.com/textures/
+StarMap,恒星背景，与环境照明分开,NASA/GSFC/SVS Ernie Wright；ESA/Gaia/DPAC,NASA媒体使用指引,https://svs.gsfc.nasa.gov/4851/
+程序化天线/舱壁/窗框/货箱结构,本轮结构细化；仅视觉几何,项目内自建；材质 Lennart Demes / ambientCG,新增代码随工程；复用材质 CC0,https://ambientcg.com/view?id=Metal010
