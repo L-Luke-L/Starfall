@@ -1,0 +1,58 @@
+EDITOR_SEARCH_WARNING ArgumentOutOfRangeException: Index was out of range. Must be non-negative and less than the size of the collection.
+Parameter name: index
+Loaded scene: Scene03_WreckRift
+Titan count=0
+ACTOR RiftMauler · Territory 1 kind=RiftMauler active=True art=1
+ACTOR RiftMauler · Territory 3 kind=RiftMauler active=True art=1
+Antenna completion signal toggled; original component retained
+dinosaur state=Pursue visualActive=True clock=6.719954 dt=0.0827191
+dinosaur head=bn_Head.10_10 active=True hp=190 time=10.49886
+dinosaur head motion degrees=32.82858
+dinosaur bounds=(3.42, 3.30, 7.39) rootScale=(2.23, 2.23, 2.23)
+Region 1 reachable=True
+Loaded scene: Scene04_Battlefield
+Titan count=0
+TITAN EclipseLeviathan active=False hp=0 ready=True
+ACTOR RiftMauler · Territory 1 kind=RiftMauler active=True art=1
+ACTOR SpineFloater · Territory 2 kind=SpineFloater active=True art=1
+ACTOR RiftMauler · Territory 3 kind=RiftMauler active=True art=1
+ACTOR SpineFloater · Territory 4 kind=SpineFloater active=True art=1
+ACTOR RiftMauler · Territory 5 kind=RiftMauler active=True art=1
+ACTOR SpineFloater · Territory 6 kind=SpineFloater active=True art=1
+ACTOR 玄甲地龙 · 战场精英 kind=RiftMauler active=True art=1
+ACTOR 磁蚀地龙 · 支路变体 kind=RiftMauler active=True art=1
+Region 2 reachable=True
+Loaded scene: Scene05_Medical
+Titan count=0
+TITAN EclipseLeviathan active=False hp=0 ready=True
+ACTOR RiftMauler · Territory 1 kind=RiftMauler active=True art=1
+ACTOR SpineFloater · Territory 2 kind=SpineFloater active=True art=1
+ACTOR RiftMauler · Territory 3 kind=RiftMauler active=True art=1
+ACTOR SpineFloater · Territory 4 kind=SpineFloater active=True art=1
+ACTOR RiftMauler · Territory 5 kind=RiftMauler active=True art=1
+ACTOR SpineFloater · Territory 6 kind=SpineFloater active=True art=1
+ACTOR 霜环翼龙 · 支路变体 kind=SpineFloater active=True art=1
+Region 3 reachable=True
+Loaded scene: Scene06_Shipyard
+Titan count=1
+TITAN EclipseLeviathan active=True hp=1800 ready=True
+ACTOR RiftMauler · Territory 1 kind=RiftMauler active=True art=1
+ACTOR SpineFloater · Territory 2 kind=SpineFloater active=True art=1
+ACTOR RiftMauler · Territory 3 kind=RiftMauler active=True art=1
+ACTOR SpineFloater · Territory 4 kind=SpineFloater active=True art=1
+ACTOR RiftMauler · Territory 5 kind=RiftMauler active=True art=1
+ACTOR SpineFloater · Territory 6 kind=SpineFloater active=True art=1
+ACTOR 雷冠翼龙 · 船坞精英 kind=SpineFloater active=True art=1
+dinosaur state=Pursue visualActive=True clock=6.257265 dt=0.0877476
+dinosaur head=bn_Head.10_10 active=True hp=190 time=30.0702
+dinosaur head motion degrees=31.71031
+dinosaur bounds=(3.42, 3.30, 7.41) rootScale=(2.23, 2.23, 2.23)
+wyvern state=Pursue visualActive=True clock=8.645752 dt=0.0842097
+wyvern head=head.25_25 active=True hp=145 time=32.45515
+wyvern head motion degrees=36.93332
+wyvern bounds=(6.96, 1.47, 4.90) rootScale=(1.19, 1.19, 1.19)
+Region 4 reachable=True
+Loaded scene: Scene07_Core
+Titan count=0
+Region 5 reachable=True
+Completed errors=0

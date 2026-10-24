@@ -1,0 +1,295 @@
+[
+  {
+    "id": "Dinosaur",
+    "meshes": 1,
+    "boneCount": 72,
+    "materials": [
+      "Dinosaur__M0"
+    ],
+    "unmappedMaterials": [],
+    "actions": [
+      "GLTF_created_0|Scene",
+      "GLTF_SceneRootNode|Scene",
+      "RootNode.0_0|Scene",
+      "root|Scene",
+      "skeletal.3_3|Scene",
+      "Sketchfab_model|Scene",
+      "TRex.2_2_correction|Scene",
+      "TRex.2_2|Scene"
+    ],
+    "boundsXYZ": [
+      1.4769814312458038,
+      3.13799250125885,
+      1.182972970418632
+    ],
+    "passed": true
+  },
+  {
+    "id": "Wyvern",
+    "meshes": 1,
+    "boneCount": 220,
+    "materials": [
+      "Wyvern__M0"
+    ],
+    "unmappedMaterials": [],
+    "actions": [
+      "dragon_wings2.2_2_correction|Scene",
+      "dragon_wings2.2_2|Scene",
+      "GLTF_created_0|Scene",
+      "GLTF_SceneRootNode|Scene",
+      "RootNode.0_0|Scene",
+      "root|Scene",
+      "skeletal.3_3|Scene",
+      "Sketchfab_model|Scene"
+    ],
+    "boundsXYZ": [
+      5.67957067489624,
+      3.999008893966675,
+      1.8106176853179932
+    ],
+    "passed": true
+  },
+  {
+    "id": "AncientDragon",
+    "meshes": 1,
+    "boneCount": 220,
+    "materials": [
+      "AncientDragon__Armour",
+      "AncientDragon__Horn",
+      "AncientDragon__M0"
+    ],
+    "unmappedMaterials": [],
+    "actions": [
+      "dragon_wings2.2_2_correction|Scene",
+      "dragon_wings2.2_2|Scene",
+      "GLTF_created_0|Scene",
+      "GLTF_SceneRootNode|Scene",
+      "RootNode.0_0|Scene",
+      "root|Scene",
+      "skeletal.3_3|Scene",
+      "Sketchfab_model|Scene"
+    ],
+    "boundsXYZ": [
+      5.67957067489624,
+      3.999008893966675,
+      1.8106176853179932
+    ],
+    "passed": true
+  },
+  {
+    "id": "Explorer",
+    "meshes": 4,
+    "boneCount": 91,
+    "materials": [
+      "Explorer__M0",
+      "Explorer__M1",
+      "Explorer__M2"
+    ],
+    "unmappedMaterials": [],
+    "actions": [
+      "_3_correction|Scene",
+      "_3|Scene",
+      "_4_correction|Scene",
+      "_4|Scene",
+      "_5_correction|Scene",
+      "_5|Scene",
+      "GLTF_created_0|Scene",
+      "GLTF_SceneRootNode|Scene",
+      "RootNode.0_0|Scene",
+      "root|Scene",
+      "skeletal.3_6|Scene",
+      "Sketchfab_model|Scene"
+    ],
+    "boundsXYZ": [
+      1.4373644590377808,
+      1.358957976102829,
+      3.1866648197174072
+    ],
+    "passed": true
+  },
+  {
+    "id": "Crate",
+    "meshes": 1,
+    "boneCount": 0,
+    "materials": [
+      "Crate__M0",
+      "Crate__M1"
+    ],
+    "unmappedMaterials": [],
+    "actions": [],
+    "boundsXYZ": [
+      2.0755680799484253,
+      3.506974935531616,
+      1.5671102281155527
+    ],
+    "passed": true
+  },
+  {
+    "id": "Ship",
+    "meshes": 1,
+    "boneCount": 0,
+    "materials": [
+      "Ship__M0"
+    ],
+    "unmappedMaterials": [],
+    "actions": [],
+    "boundsXYZ": [
+      15.57632064819336,
+      37.463562965393066,
+      11.663940906524658
+    ],
+    "passed": true
+  },
+  {
+    "id": "Rock1",
+    "meshes": 4,
+    "boneCount": 0,
+    "materials": [
+      "Rock1__M0"
+    ],
+    "unmappedMaterials": [],
+    "actions": [],
+    "boundsXYZ": [
+      0.21227321028709412,
+      0.11170051991939545,
+      0.07525127264671028
+    ],
+    "passed": true
+  },
+  {
+    "id": "Rock2",
+    "meshes": 1,
+    "boneCount": 0,
+    "materials": [
+      "Rock2__M0"
+    ],
+    "unmappedMaterials": [],
+    "actions": [],
+    "boundsXYZ": [
+      0.24649975448846817,
+      0.25128984451293945,
+      0.20191325386986136
+    ],
+    "passed": true
+  },
+  {
+    "id": "Rock3",
+    "meshes": 1,
+    "boneCount": 0,
+    "materials": [
+      "Rock3__M0"
+    ],
+    "unmappedMaterials": [],
+    "actions": [],
+    "boundsXYZ": [
+      0.11202367022633553,
+      0.08606580644845963,
+      0.058164389338344336
+    ],
+    "passed": true
+  },
+  {
+    "id": "Control",
+    "meshes": 1,
+    "boneCount": 0,
+    "materials": [
+      "Control__M1",
+      "Control__M2",
+      "Control__M5",
+      "Control__M6",
+      "Control__M7",
+      "Control__M8"
+    ],
+    "unmappedMaterials": [],
+    "actions": [],
+    "boundsXYZ": [
+      2.7562808990478516,
+      1.1106186509132385,
+      3.4796293675899506
+    ],
+    "passed": true
+  },
+  {
+    "id": "Terminal",
+    "meshes": 1,
+    "boneCount": 0,
+    "materials": [
+      "Terminal__M25",
+      "Terminal__M26",
+      "Terminal__M27",
+      "Terminal__M9"
+    ],
+    "unmappedMaterials": [],
+    "actions": [],
+    "boundsXYZ": [
+      3.0034332275390625,
+      3.2587661743164062,
+      6.295231252908707
+    ],
+    "passed": true
+  },
+  {
+    "id": "Tank",
+    "meshes": 1,
+    "boneCount": 0,
+    "materials": [
+      "Tank__M0",
+      "Tank__M1",
+      "Tank__M2",
+      "Tank__M3",
+      "Tank__M4"
+    ],
+    "unmappedMaterials": [],
+    "actions": [],
+    "boundsXYZ": [
+      4.722218036651611,
+      4.6006269454956055,
+      8.775064945220947
+    ],
+    "passed": true
+  },
+  {
+    "id": "Pipe",
+    "meshes": 1,
+    "boneCount": 0,
+    "materials": [
+      "Pipe__M19",
+      "Pipe__M9"
+    ],
+    "unmappedMaterials": [],
+    "actions": [],
+    "boundsXYZ": [
+      3.6049203872680664,
+      3.7735719829797745,
+      0.644467182457447
+    ],
+    "passed": true
+  },
+  {
+    "id": "Tower",
+    "meshes": 1,
+    "boneCount": 0,
+    "materials": [
+      "Tower__M10",
+      "Tower__M12",
+      "Tower__M13",
+      "Tower__M14",
+      "Tower__M16",
+      "Tower__M17",
+      "Tower__M18",
+      "Tower__M19",
+      "Tower__M2",
+      "Tower__M24",
+      "Tower__M5",
+      "Tower__M6"
+    ],
+    "unmappedMaterials": [],
+    "actions": [],
+    "boundsXYZ": [
+      17.971899032592773,
+      17.971904754638672,
+      39.8669448196888
+    ],
+    "passed": true
+  }
+]
