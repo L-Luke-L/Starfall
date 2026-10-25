@@ -6,6 +6,10 @@
 
 ## 打开与试玩
 
+本轮接入七种 Quaternius CC0 动画怪物，并使用 Kenney CC0 科幻素材重做背包、仓库与任务手账。首次正常打开 Unity 会自动准备怪物资源；也可使用菜单 `Starfall / Monsters / Rebuild CC0 Monster Library`。素材来源、替换范围与验证方式见 [开放素材替换说明](Docs/Design/OPEN_ASSET_REPLACEMENT.md)。
+
+物资与手账现采用煤灰蓝、铜金色的前哨终端风格，支持分类筛选、Shift 快速存取、容量不足时的部分转移与委托进度卡片。界面和本轮缺陷修复见 [前哨终端修订](Docs/Design/INTERFACE_REFINEMENT.md)。
+
 - 克隆仓库，或下载并完整解压源码 ZIP。
 - 在 Unity Hub 中使用 **Unity 6000.3.24f1** 打开仓库根目录（包含 `Assets`、`Packages`、`ProjectSettings`）。首次打开需等待资源导入。
 - 进入 `Assets/Scenes/Scene01_Starfall.unity` 后点击 Play。

@@ -1,0 +1,65 @@
+{
+  "author": "Quaternius",
+  "pack": "Ultimate Monsters",
+  "source": "https://quaternius.com/packs/ultimatemonsters.html",
+  "official_download_folder": "https://drive.google.com/drive/folders/18m4KpzpEzhC9wl7jzr6dUc0N8Jozr79C",
+  "license": "CC0-1.0",
+  "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "retrieved": "2026-10-23",
+  "files": [
+    {
+      "file": "Alien.fbx",
+      "download_url": "https://drive.usercontent.google.com/download?id=1PIXeadDsQtWAEJOYdR02cBqZCButiX6M&export=download",
+      "bytes": 3455452,
+      "sha256": "060c6e503092fc48e0d552ecfeead953442b7e154181bc12e5da03ac6cf716d5"
+    },
+    {
+      "file": "BlueDemon.fbx",
+      "download_url": "https://drive.usercontent.google.com/download?id=1rOmRJtqgkahKqSZrwiuKbgC_O46AnAaf&export=download",
+      "bytes": 3387292,
+      "sha256": "2e84978f3455192a4c56e979acd4339ee1d209e0d866d1dee732666089c15f7b"
+    },
+    {
+      "file": "Dino.fbx",
+      "download_url": "https://drive.usercontent.google.com/download?id=1_3EXV9JDiIZmIN3rK7FZNj1xuk2eHUbe&export=download",
+      "bytes": 3377324,
+      "sha256": "6824daddece50a5b89ce685c2b80a085bb6d59f10920463199a7b342da500fd8"
+    },
+    {
+      "file": "Yeti.fbx",
+      "download_url": "https://drive.usercontent.google.com/download?id=1mxDJESd4TqxjXJ-d9Zj83c7tZRWKen_4&export=download",
+      "bytes": 3390716,
+      "sha256": "4a8cac621c9595f4ccb19c16e4bb590014c01b4b2994674122b0caf2b74de58d"
+    },
+    {
+      "file": "Dragon.fbx",
+      "download_url": "https://drive.usercontent.google.com/download?id=1hqFRv9ysgKJBt_gSocm2gj3hiN_HtLW6&export=download",
+      "bytes": 791740,
+      "sha256": "16048b56c9444a702dd0d6acb3f05acc010e28030758130a8208a9c2c2591a1f"
+    },
+    {
+      "file": "Dragon_Evolved.fbx",
+      "download_url": "https://drive.usercontent.google.com/download?id=1_ColYvoIS7vj1N4qWrLuTmZmVK_lsu7j&export=download",
+      "bytes": 2302156,
+      "sha256": "b00942bdcaf4193e5079ce930387191f24c9ec519b3cc57896f1cde19bca8a31"
+    },
+    {
+      "file": "Glub_Evolved.fbx",
+      "download_url": "https://drive.usercontent.google.com/download?id=1II8C8OgbCzwBWea7kRRFtH7odeo-xmme&export=download",
+      "bytes": 769020,
+      "sha256": "1997b0e62fc9792ad1149af4777832d44e69795ed6a3c5f8a44c37770037e7b6"
+    },
+    {
+      "file": "Atlas_Monsters.png",
+      "download_url": "https://drive.usercontent.google.com/download?id=1CtLGgAKj-6a6GGNVNQT7GRPM7uyo9Fj8&export=download",
+      "bytes": 9007,
+      "sha256": "b970ed1359ce749fd81a8395d58ff5f3044d843213e17fb94b97892d417c0af9"
+    },
+    {
+      "file": "License.txt",
+      "download_url": "https://drive.usercontent.google.com/download?id=16GqsDGESyEOfRbc4dS7EqAwkIUSIW4_y&export=download",
+      "bytes": 374,
+      "sha256": "de990ef6fc68cffd7fd1ae342c4d0c823b541b8848d8f76bca5d3339f4de6f6e"
+    }
+  ]
+}

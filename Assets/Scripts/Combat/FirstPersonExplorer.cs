@@ -56,7 +56,7 @@ namespace Starfall {
   void Scan(){if(scanCooldown>0||!CampaignRuntime.Current||!CampaignRuntime.Current.ScanUnlocked)return;scanCooldown=12;scanUntil=Time.time+4;ImpactPulse(.08f);InteractionFeel.Play(FeelCue.Alert,.45f);if(CampaignRuntime.Current.RegionView)CampaignRuntime.Current.RegionView.Scan();}
   void LateUpdate(){if(!Ready||Paused)return;impact=Mathf.MoveTowards(impact,0,Time.deltaTime*4);float movement=InteractionFeel.ReducedMotion?0:Mathf.Clamp01(motor.velocity.magnitude/runSpeed)*1.4f+impact*.6f;viewCamera.fieldOfView=Mathf.Lerp(viewCamera.fieldOfView,baseFov+movement,1-Mathf.Exp(-Time.deltaTime*12));}
   void FixedUpdate(){if(!Ready||Paused)return;dashCooldown=Mathf.Max(0,dashCooldown-Time.fixedDeltaTime);scanCooldown=Mathf.Max(0,scanCooldown-Time.fixedDeltaTime);}
-  public void ResetMotion(){smoothInput=Vector2.zero;vertical=0;steps=0;}
+  public void ResetMotion(){smoothInput=Vector2.zero;vertical=0;steps=0;dashDistance=0;dashDirection=Vector3.zero;}
   public void Respawn(){ResetMotion();motor.enabled=false;transform.position=spawn;vertical=0;motor.enabled=true;}
   public void Return(){if(CampaignRuntime.Current&&CampaignRuntime.Current.BombSeconds>=0){CampaignRuntime.Current.Notice("请前往入口信标撤离");return;}if(session)session.ReturnToExpedition();}
   void Label(Rect r,string s,int size,Color c,TextAnchor align=TextAnchor.MiddleLeft){GUI.Label(r,s,new GUIStyle(GUI.skin.label){font=uiFont,fontSize=size,normal={textColor=c},alignment=align});}

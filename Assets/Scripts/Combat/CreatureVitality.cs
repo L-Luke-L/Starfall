@@ -7,14 +7,15 @@ namespace Starfall {
   public int Health {get;private set;}
   public bool Dead=>Health<=0;
   public string DisplayName=>GetComponent<FrontierCreatureTrait>()?GetComponent<FrontierCreatureTrait>().DisplayName:giant?"蚀穹古龙":elite?elite.DisplayName:actor.kind==CreatureKind.RiftMauler?"玄脊地龙":"苍翼飞龙";
-  AlienCreature actor;EliteCreature elite;MeshRenderer[] hideRenderers;SkyTitan giant;CreatureArena arena;BasinExpedition expedition;bool initialized;float flash,fall;
+  AlienCreature actor;EliteCreature elite;Renderer[] hideRenderers;SkyTitan giant;CreatureArena arena;BasinExpedition expedition;bool initialized;float flash,fall;
   Vector3 visualPosition;Quaternion visualRotation;MaterialPropertyBlock tint;
   public void Initialize(BasinExpedition owner){
-   if(initialized)return;initialized=true;expedition=owner;arena=owner.player.arena;actor=GetComponent<AlienCreature>();giant=GetComponent<SkyTitan>();elite=GetComponent<EliteCreature>();hideRenderers=System.Array.FindAll(GetComponentsInChildren<MeshRenderer>(),r=>r.sharedMaterial&&r.sharedMaterial.name.Contains("hide"));
+   if(initialized)return;initialized=true;expedition=owner;arena=owner.player.arena;actor=GetComponent<AlienCreature>();giant=GetComponent<SkyTitan>();elite=GetComponent<EliteCreature>();if(actor)ImportedCreatureAnimation.EnsureFor(actor);RefreshVisualRenderers();
    Health=owner.Progress.enemyHealth.TryGetValue(SaveKey,out var saved)?saved:maxHealth;tint=new MaterialPropertyBlock();
    if(actor){visualPosition=actor.visual.localPosition;visualRotation=actor.visual.localRotation;}
    if(Dead)ApplyDeath(false);
   }
+  public void RefreshVisualRenderers(){hideRenderers=System.Array.FindAll(GetComponentsInChildren<Renderer>(),r=>System.Array.Exists(r.sharedMaterials,m=>m&&m.name.Contains("hide")));}
   public bool TakeDamage(int damage,Vector3 point){
    if(!initialized||Dead||!arena.CanTarget||damage<=0)return false;
    if(elite)damage=elite.ModifyDamage(damage);InteractionFeel.Play(FeelCue.Hit,.55f);Health=Mathf.Max(0,Health-damage);expedition.Progress.enemyHealth[SaveKey]=Health;flash=.12f;
@@ -30,7 +31,7 @@ namespace Starfall {
   }
   void Update(){
    if(!initialized||!arena.Active)return;
-   if(flash>0){flash-=Time.deltaTime;foreach(var r in hideRenderers)if(r){r.GetPropertyBlock(tint);tint.SetColor("_EmissionColor",flash>0?new Color(.9f,.24f,.08f):Color.black);r.SetPropertyBlock(tint);}}
+   if(flash>0){flash-=Time.deltaTime;foreach(var r in hideRenderers)if(r){var materials=r.sharedMaterials;for(int i=0;i<materials.Length;i++)if(materials[i]&&materials[i].name.Contains("hide")){r.GetPropertyBlock(tint,i);tint.SetColor("_EmissionColor",flash>0?new Color(.9f,.24f,.08f):Color.black);r.SetPropertyBlock(tint,i);}}}
    if(Dead&&actor){fall+=Time.deltaTime;actor.visual.localRotation=Quaternion.Slerp(visualRotation,Quaternion.Euler(0,0,85),Mathf.Clamp01(fall*2));actor.visual.localPosition=visualPosition+Vector3.down*Mathf.Min(fall*.45f,.8f);if(fall>8)actor.visual.gameObject.SetActive(false);}
   }
  }
