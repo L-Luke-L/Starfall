@@ -1,0 +1,52 @@
+STARFALL UNITY REALISM INTEGRATION — ATTRIBUTION
+Unity 6 Built-in appearance integration. Earlier previews use independent Three.js. The new Starfall-Art-Fixes-Unity images are actual Unity camera renders. Original mechanics/data are retained in the derived project.
+
+Animated T-Rex Dinosaur Biting Attack Loop; Animated Dragon Three Motion Loops;
+Animated Floating Astronaut in Space Suit Loop — LasquetiSpice, CC BY 4.0.
+Original model URLs, current API license checks and changes are in 本轮资源与原对象对应表.csv and 作者许可核对.json.
+Copies obtained from SceneView's openly distributed sample model catalogue:
+https://sceneview.github.io/credits.html
+https://sceneview.github.io/models/platforms/AnimatedTrex.glb
+https://sceneview.github.io/models/platforms/AnimatedAstronaut.glb
+https://github.com/sceneview/sceneview/blob/main/samples/web-demo/site/models/animated_dragon.glb
+All three converted in Blender 4.2.9 from legacy specular/glossiness to modern glTF PBR.
+T-Rex: scene palette, scale and source pose sampling. Dragon: scene pose and scale.
+Ancient dragon: derivative of that dragon, broadened head, added 108 shields and six curved horns; not a separately authored whole creature.
+Astronaut: new static standing pose and cropped/reposed FPS arms; source float clip retained separately. New FPS preview group motions do not constitute production fire/reload animations.
+License: https://creativecommons.org/licenses/by/4.0/
+
+Jupiter cloud texture: Solar System Scope / INOVE, CC BY 4.0.
+https://play.solarsystemscope.com/textures/
+https://play.solarsystemscope.com/textures/download/8k_jupiter.jpg
+Adapted through exposure, sphere rotation, lighting, terminator and approximate atmospheric shader.
+No prominent planetary ring in V2. No claim of a physically exact Jupiter observation.
+
+Low-res pistol: arcade_b / arcadeb.com. Source: https://opengameart.org/content/low-res-pistol . CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Modified: scale, placement and lighting.
+
+Star map: NASA/Goddard Space Flight Center Scientific Visualization Studio. Ernie Wright. Gaia DR2: ESA/Gaia/DPAC. Source: https://svs.gsfc.nasa.gov/4851/ . Public-domain visualization usage guidance: https://svs.gsfc.nasa.gov/help/ . Display exposure and orientation changed. No NASA endorsement implied.
+
+CC0 asset authors: Poly Haven scanning team; Greg Zaal (Rocky Ridge); Lennart Demes / ambientCG (Metal010); rubberduck and a52 (industrial models); rubberduck (Sci-Fi container); greyoxide (Shipyard); Michael Pavlovic and Norbert Nopper (SciFiHelmet); Gar5546x (Survival tools); para / MakeHuman (FPS arms). Individual links and modifications are listed in the accompanying Chinese resource report.
+
+
+Inherited CC0 source links:
+https://polyhaven.com/a/moon_01
+https://polyhaven.com/a/moon_rock_01
+https://polyhaven.com/a/moon_rock_02
+https://polyhaven.com/a/moon_rock_03
+https://polyhaven.com/a/rocky_ridge
+https://ambientcg.com/view?id=Metal010
+https://opengameart.org/content/pbr-industrial-asset-pack
+https://opengameart.org/content/sci-fi-container
+https://opengameart.org/content/shipyard
+https://opengameart.org/content/survival-tools
+https://opengameart.org/content/fps-arms-rigged-only (legacy diagnostic asset, hidden in V2)
+https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/SciFiHelmet
+CC0: https://creativecommons.org/publicdomain/zero/1.0/
+
+V2 compositions may be shared under CC BY 4.0 with the above credits. Underlying assets keep their original licenses; NASA media guidance still applies. Newly authored preview-only JavaScript (v2-details.js and custom planet shaders) may be used and modified under CC0, excluding embedded/dependent third-party assets. No license is asserted over the user's original Starfall game.
+Three.js and its loaders: MIT license; see THREE-LICENSE.txt. No endorsement by NASA, ESA or the original model authors is implied.
+
+Integration changes: converted selected assets to FBX and Unity PBR textures; RGBA metal/smoothness packing, AO channel conversion, runtime visual bindings. Ancient dragon now has 114 thick overlapping armour shields, six curved horns, 24 wing tendons, authored procedural scale maps and one combined skinned mesh with three material slots. Rig helpers removed; original rock LODs retained. No commercial paid assets were purchased.
+The exploration suit resource remains credited, but its maintenance display has been removed from gameplay.
+
+Art-fix revision: removed 24 malformed added wing tendons; retained original wing skeleton/membranes, 114 armour shields and six horns. Added calibrated head/neck motion and visual ground adjustment. Procedural antenna and fabricated structure meshes authored in the project, reusing existing ambientCG CC0 Metal010. NASA antenna photographs used only as structural reference, no NASA antenna mesh or photograph embedded.

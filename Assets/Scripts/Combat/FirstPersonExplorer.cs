@@ -10,6 +10,11 @@ namespace Starfall {
   public CreatureArena arena;
   public PlayerArsenal arsenal;public BasinExpedition expedition;
   public float walkSpeed=4.6f,runSpeed=7.2f,mouseSensitivity=2f,jumpHeight=1.1f;
+  [Header("Walking camera motion")]
+  [Range(0,.08f)] public float walkBobHeight=.032f;
+  [Range(0,.05f)] public float walkBobSide=.014f;
+  [Range(1,2)] public float runBobMultiplier=1.35f;
+  Vector3 cameraRest,bobOffset,bobTarget,horizontalVelocity;
   public bool Paused {get;private set;}
   public bool Ready {get;set;}
   public bool Automated {get;set;}
@@ -18,7 +23,7 @@ namespace Starfall {
   public CharacterController Motor=>motor;
   CharacterController motor;Vector3 spawn;float vertical,bob,tipUntil,steps,impact,baseFov,dashCooldown,dashDistance,scanCooldown,scanUntil;Vector3 dashDirection;Vector2 smoothInput;
   public void ImpactPulse(float strength){impact=Mathf.Max(impact,strength);}
-  void Awake(){motor=GetComponent<CharacterController>();spawn=transform.position;baseFov=viewCamera.fieldOfView;if(!uiFont)uiFont=Font.CreateDynamicFontFromOSFont(new[]{"Microsoft YaHei","Arial"},20);}
+  void Awake(){motor=GetComponent<CharacterController>();spawn=transform.position;baseFov=viewCamera.fieldOfView;cameraRest=viewCamera.transform.localPosition;if(!uiFont)uiFont=Font.CreateDynamicFontFromOSFont(new[]{"Microsoft YaHei","Arial"},20);}
   void Start(){tipUntil=Time.unscaledTime+4;if(session==null)Ready=true;}
   public void Begin(BattleTravel owner){session=owner;Ready=true;Paused=false;tipUntil=Time.unscaledTime+4;if(!Automated)CaptureMouse();}
   void CaptureMouse(){Cursor.lockState=CursorLockMode.Locked;Cursor.visible=false;Input.ResetInputAxes();}
@@ -41,22 +46,45 @@ namespace Starfall {
   public void Drive(Vector2 input,bool running,bool jump,float dt){
    if(!Ready||Paused||(arena&&arena.Downed)||dt<=0)return;input=Vector2.ClampMagnitude(input,1);
    bool grounded=motor.isGrounded;if(grounded&&vertical<0)vertical=-2;
-   running=running&&input.sqrMagnitude>.01f&&(!arsenal||arsenal.Sprint(dt));
+   running=grounded&&running&&input.sqrMagnitude>.01f&&(!arsenal||arsenal.Sprint(dt));
    if(grounded&&jump&&(!arsenal||arsenal.SpendStamina(14))){InteractionFeel.Play(FeelCue.Step,.55f);vertical=Mathf.Sqrt(2*18*jumpHeight);}vertical-=18*dt;
-   smoothInput=Vector2.MoveTowards(smoothInput,input,dt*(input.sqrMagnitude<.01f?20:14));var before=transform.position;
-   Vector3 direction=transform.right*smoothInput.x+transform.forward*smoothInput.y;float speed=running?runSpeed:walkSpeed;if(arsenal&&arsenal.IsCharging)speed*=.55f;motor.Move((direction*speed+Vector3.up*vertical)*dt);
+   // World-space momentum is chosen on the ground, then preserved throughout flight.
+   // Looking around, releasing Shift and changing WASD cannot steer the airborne body.
+   if(grounded){
+    smoothInput=Vector2.MoveTowards(smoothInput,input,dt*(input.sqrMagnitude<.01f?20:14));
+    float speed=running?runSpeed:walkSpeed;if(arsenal&&arsenal.IsCharging)speed*=.55f;
+    horizontalVelocity=(transform.right*smoothInput.x+transform.forward*smoothInput.y)*speed;
+   }
+   var before=transform.position;
+   var collision=motor.Move((horizontalVelocity+Vector3.up*vertical)*dt);
+   // A wall can absorb momentum; it must not launch the player again when cleared.
+   if(!grounded&&(collision&CollisionFlags.Sides)!=0){
+    var actual=transform.position-before;actual.y=0;
+    horizontalVelocity=Vector3.ClampMagnitude(actual/dt,horizontalVelocity.magnitude);
+   }
+   bool dashing=dashDistance>0;
    if(dashDistance>0){var beforeDash=transform.position;motor.Move(dashDirection*Mathf.Min(dashDistance,18*dt));dashDistance-=CreatureArena.FlatDistance(beforeDash,transform.position);if(CreatureArena.FlatDistance(beforeDash,transform.position)<.02f)dashDistance=0;}
    float moved=CreatureArena.FlatDistance(before,transform.position);steps+=moved;if(motor.isGrounded&&steps>(running?1.9f:1.5f)){steps=0;InteractionFeel.Play(FeelCue.Step,running?.65f:.38f);}
    if(!grounded&&motor.isGrounded&&vertical<-5){ImpactPulse(.3f);InteractionFeel.Play(FeelCue.Step,.8f);}
    if(transform.position.y<-25)Respawn();
-   float walking=grounded?input.magnitude:0;bob+=dt*(running?11:8)*walking;float offset=Mathf.Sin(bob)*.018f*walking;
-   viewCamera.transform.localPosition=new Vector3(0,1.64f+(InteractionFeel.ReducedMotion?0:offset),0);
+   // Advance with distance actually travelled, so walls and airborne motion do not produce steps.
+   float walking=motor.isGrounded&&!jump&&!dashing?Mathf.Clamp01(moved/(walkSpeed*dt)):0;
+   if(walking>0)bob=Mathf.Repeat(bob+moved*Mathf.PI/(running?1.9f:1.5f),Mathf.PI*2);
+   float amplitude=walking*(running?runBobMultiplier:1);
+   bobTarget=new Vector3(Mathf.Sin(bob)*walkBobSide,Mathf.Cos(bob*2)*walkBobHeight,0)*amplitude;
   }
   void Dash(Vector2 input){if(dashCooldown>0||!motor.isGrounded||!arsenal||!arsenal.SpendStamina(30))return;var desired=transform.right*input.x+transform.forward*input.y;desired.y=0;if(desired.sqrMagnitude<.01f)desired=transform.forward;dashDirection=desired.normalized;dashDistance=3;dashCooldown=2.5f;ImpactPulse(.26f);InteractionFeel.Play(FeelCue.Slash,.4f);}
   void Scan(){if(scanCooldown>0||!CampaignRuntime.Current||!CampaignRuntime.Current.ScanUnlocked)return;scanCooldown=12;scanUntil=Time.time+4;ImpactPulse(.08f);InteractionFeel.Play(FeelCue.Alert,.45f);if(CampaignRuntime.Current.RegionView)CampaignRuntime.Current.RegionView.Scan();}
-  void LateUpdate(){if(!Ready||Paused)return;impact=Mathf.MoveTowards(impact,0,Time.deltaTime*4);float movement=InteractionFeel.ReducedMotion?0:Mathf.Clamp01(motor.velocity.magnitude/runSpeed)*1.4f+impact*.6f;viewCamera.fieldOfView=Mathf.Lerp(viewCamera.fieldOfView,baseFov+movement,1-Mathf.Exp(-Time.deltaTime*12));}
+  void LateUpdate(){
+   if(!Ready||Paused)return;
+   bool suppress=InteractionFeel.ReducedMotion||(arena&&arena.Downed)||(CampaignRuntime.Current&&CampaignRuntime.Current.Modal);
+   bobOffset=Vector3.Lerp(bobOffset,suppress?Vector3.zero:bobTarget,1-Mathf.Exp(-Time.deltaTime*14));
+   viewCamera.transform.localPosition=cameraRest+bobOffset;
+   bobTarget=Vector3.zero;
+   impact=Mathf.MoveTowards(impact,0,Time.deltaTime*4);float movement=InteractionFeel.ReducedMotion?0:Mathf.Clamp01(motor.velocity.magnitude/runSpeed)*1.4f+impact*.6f;viewCamera.fieldOfView=Mathf.Lerp(viewCamera.fieldOfView,baseFov+movement,1-Mathf.Exp(-Time.deltaTime*12));
+  }
   void FixedUpdate(){if(!Ready||Paused)return;dashCooldown=Mathf.Max(0,dashCooldown-Time.fixedDeltaTime);scanCooldown=Mathf.Max(0,scanCooldown-Time.fixedDeltaTime);}
-  public void ResetMotion(){smoothInput=Vector2.zero;vertical=0;steps=0;dashDistance=0;dashDirection=Vector3.zero;}
+  public void ResetMotion(){smoothInput=Vector2.zero;horizontalVelocity=Vector3.zero;dashDistance=0;vertical=0;steps=0;bob=0;bobOffset=bobTarget=Vector3.zero;viewCamera.transform.localPosition=cameraRest;}
   public void Respawn(){ResetMotion();motor.enabled=false;transform.position=spawn;vertical=0;motor.enabled=true;}
   public void Return(){if(CampaignRuntime.Current&&CampaignRuntime.Current.BombSeconds>=0){CampaignRuntime.Current.Notice("请前往入口信标撤离");return;}if(session)session.ReturnToExpedition();}
   void Label(Rect r,string s,int size,Color c,TextAnchor align=TextAnchor.MiddleLeft){GUI.Label(r,s,new GUIStyle(GUI.skin.label){font=uiFont,fontSize=size,normal={textColor=c},alignment=align});}

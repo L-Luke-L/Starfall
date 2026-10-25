@@ -1,0 +1,39 @@
+{
+  "unityVersion": "6000.3.24f1",
+  "pipeline": "Built-in",
+  "graphics": "Direct3D 11",
+  "unityImportAndPlayPassed": true,
+  "regionsChecked": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "allRegionReachabilityPassed": true,
+  "gameRuntimeErrors": 0,
+  "editorSearchExceptionObserved": true,
+  "playerBuildVerified": false,
+  "targetHardwarePerformanceVerified": false,
+  "fullCombatSaveRegressionVerified": false,
+  "baselinePreservation": {
+    "baselineFiles": 853,
+    "changedOriginalFiles": [
+      "Packages/manifest.json",
+      "Packages/packages-lock.json"
+    ],
+    "intentionalChanges": "Animation/ParticleSystem module dependencies only",
+    "unitySerializedMaterialEditsRestored": [
+      "Assets/Art/Combat/Vein CobaltSilicate.mat",
+      "Assets/Art/Combat/Vein CopperCompound.mat",
+      "Assets/Art/Combat/Vein FerricAlloy.mat",
+      "Assets/Art/Combat/Vein RareComposite.mat",
+      "Assets/Art/LostRealms/Region 2 signal.mat",
+      "Assets/Art/LostRealms/Region 3 signal.mat",
+      "Assets/Art/LostRealms/Region 4 signal.mat",
+      "Assets/Art/LostRealms/Region 5 signal.mat"
+    ],
+    "passed": true
+  },
+  "evidence": "art-fix-runtime-checks.txt"
+}

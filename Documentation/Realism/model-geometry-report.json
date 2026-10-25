@@ -1,0 +1,278 @@
+[
+  {
+    "id": "Dinosaur",
+    "meshes": 1,
+    "triangles": 11938,
+    "materials": [
+      "Dinosaur__M0"
+    ],
+    "addedArmour": 0
+  },
+  {
+    "id": "Wyvern",
+    "meshes": 1,
+    "triangles": 19541,
+    "materials": [
+      "Wyvern__M0"
+    ],
+    "addedArmour": 0
+  },
+  {
+    "id": "AncientDragon",
+    "meshes": 1,
+    "triangles": 53765,
+    "materials": [
+      "AncientDragon__Armour",
+      "AncientDragon__Horn",
+      "AncientDragon__M0"
+    ],
+    "addedArmour": 114
+  },
+  {
+    "id": "Explorer",
+    "meshes": 4,
+    "triangles": 58312,
+    "materials": [
+      "Explorer__M0",
+      "Explorer__M1",
+      "Explorer__M2"
+    ],
+    "addedArmour": 0
+  },
+  {
+    "id": "Crate",
+    "meshes": 1,
+    "triangles": 1758,
+    "materials": [
+      "Crate__M0",
+      "Crate__M1"
+    ],
+    "addedArmour": 0
+  },
+  {
+    "id": "Ship",
+    "meshes": 1,
+    "triangles": 33280,
+    "materials": [
+      "Ship__M0"
+    ],
+    "addedArmour": 0
+  },
+  {
+    "id": "Rock1",
+    "meshes": 4,
+    "triangles": 18668,
+    "materials": [
+      "Rock1__M0"
+    ],
+    "addedArmour": 0
+  },
+  {
+    "id": "Rock2",
+    "meshes": 1,
+    "triangles": 3304,
+    "materials": [
+      "Rock2__M0"
+    ],
+    "addedArmour": 0
+  },
+  {
+    "id": "Rock3",
+    "meshes": 1,
+    "triangles": 5598,
+    "materials": [
+      "Rock3__M0"
+    ],
+    "addedArmour": 0
+  },
+  {
+    "id": "Control",
+    "meshes": 1,
+    "triangles": 330,
+    "materials": [
+      "Control__M0",
+      "Control__M1",
+      "Control__M10",
+      "Control__M11",
+      "Control__M12",
+      "Control__M13",
+      "Control__M14",
+      "Control__M15",
+      "Control__M16",
+      "Control__M17",
+      "Control__M18",
+      "Control__M19",
+      "Control__M2",
+      "Control__M20",
+      "Control__M21",
+      "Control__M22",
+      "Control__M23",
+      "Control__M24",
+      "Control__M25",
+      "Control__M26",
+      "Control__M27",
+      "Control__M28",
+      "Control__M29",
+      "Control__M3",
+      "Control__M4",
+      "Control__M5",
+      "Control__M6",
+      "Control__M7",
+      "Control__M8",
+      "Control__M9"
+    ],
+    "addedArmour": 0
+  },
+  {
+    "id": "Terminal",
+    "meshes": 1,
+    "triangles": 160,
+    "materials": [
+      "Terminal__M0",
+      "Terminal__M1",
+      "Terminal__M10",
+      "Terminal__M11",
+      "Terminal__M12",
+      "Terminal__M13",
+      "Terminal__M14",
+      "Terminal__M15",
+      "Terminal__M16",
+      "Terminal__M17",
+      "Terminal__M18",
+      "Terminal__M19",
+      "Terminal__M2",
+      "Terminal__M20",
+      "Terminal__M21",
+      "Terminal__M22",
+      "Terminal__M23",
+      "Terminal__M24",
+      "Terminal__M25",
+      "Terminal__M26",
+      "Terminal__M27",
+      "Terminal__M28",
+      "Terminal__M29",
+      "Terminal__M3",
+      "Terminal__M4",
+      "Terminal__M5",
+      "Terminal__M6",
+      "Terminal__M7",
+      "Terminal__M8",
+      "Terminal__M9"
+    ],
+    "addedArmour": 0
+  },
+  {
+    "id": "Tank",
+    "meshes": 1,
+    "triangles": 916,
+    "materials": [
+      "Tank__M0",
+      "Tank__M1",
+      "Tank__M10",
+      "Tank__M11",
+      "Tank__M12",
+      "Tank__M13",
+      "Tank__M14",
+      "Tank__M15",
+      "Tank__M16",
+      "Tank__M17",
+      "Tank__M18",
+      "Tank__M19",
+      "Tank__M2",
+      "Tank__M20",
+      "Tank__M21",
+      "Tank__M22",
+      "Tank__M23",
+      "Tank__M24",
+      "Tank__M25",
+      "Tank__M26",
+      "Tank__M27",
+      "Tank__M28",
+      "Tank__M29",
+      "Tank__M3",
+      "Tank__M4",
+      "Tank__M5",
+      "Tank__M6",
+      "Tank__M7",
+      "Tank__M8",
+      "Tank__M9"
+    ],
+    "addedArmour": 0
+  },
+  {
+    "id": "Pipe",
+    "meshes": 1,
+    "triangles": 1272,
+    "materials": [
+      "Pipe__M0",
+      "Pipe__M1",
+      "Pipe__M10",
+      "Pipe__M11",
+      "Pipe__M12",
+      "Pipe__M13",
+      "Pipe__M14",
+      "Pipe__M15",
+      "Pipe__M16",
+      "Pipe__M17",
+      "Pipe__M18",
+      "Pipe__M19",
+      "Pipe__M2",
+      "Pipe__M20",
+      "Pipe__M21",
+      "Pipe__M22",
+      "Pipe__M23",
+      "Pipe__M24",
+      "Pipe__M25",
+      "Pipe__M26",
+      "Pipe__M27",
+      "Pipe__M28",
+      "Pipe__M29",
+      "Pipe__M3",
+      "Pipe__M4",
+      "Pipe__M5",
+      "Pipe__M6",
+      "Pipe__M7",
+      "Pipe__M8",
+      "Pipe__M9"
+    ],
+    "addedArmour": 0
+  },
+  {
+    "id": "Tower",
+    "meshes": 1,
+    "triangles": 1198,
+    "materials": [
+      "Tower__M0",
+      "Tower__M1",
+      "Tower__M10",
+      "Tower__M11",
+      "Tower__M12",
+      "Tower__M13",
+      "Tower__M14",
+      "Tower__M15",
+      "Tower__M16",
+      "Tower__M17",
+      "Tower__M18",
+      "Tower__M19",
+      "Tower__M2",
+      "Tower__M20",
+      "Tower__M21",
+      "Tower__M22",
+      "Tower__M23",
+      "Tower__M24",
+      "Tower__M25",
+      "Tower__M26",
+      "Tower__M27",
+      "Tower__M28",
+      "Tower__M29",
+      "Tower__M3",
+      "Tower__M4",
+      "Tower__M5",
+      "Tower__M6",
+      "Tower__M7",
+      "Tower__M8",
+      "Tower__M9"
+    ],
+    "addedArmour": 0
+  }
+]
