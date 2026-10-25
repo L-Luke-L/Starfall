@@ -1,0 +1,60 @@
+using System;
+namespace Starfall {
+ public static class GuidanceRuleChecks {
+  static CampaignState Ready(){var s=CampaignState.New();s.coordinates.Add(1);s.device=s.calibrated=true;return s;}
+  static GuidanceContext Context(){return new GuidanceContext {
+   projects=new[]{new FrontierCatalog.Project{id="carrier",title="远行货架",requirement="engineer-rescued",cost=new[]{new ItemStack(ItemId.IronIngot,2)}}},
+   commissions=new[]{new FrontierCatalog.Commission{id="surveyor",title="夜空的坐标",eventId="survey",goal=3},new FrontierCatalog.Commission{id="smith",title="落锤之后",eventId="forging",goal=5},new FrontierCatalog.Commission{id="defender",title="守住回程",eventId="kill",goal=4}},
+   modules=new[]{new LostRealmCatalog.Module{id="reload",title="快换机构",unlock="engineer-rescued",parts=5}}
+  };}
+  public static void Run(Action<string,bool> check){
+   var c=Context();var s=CampaignState.New();var g=CampaignGuidance.Resolve(s,c);
+   check("New player is directed to mine before any scan unlock",g.targetKey=="mine"&&g.region==0);
+   s.underground=true;c.underground=true;g=CampaignGuidance.Resolve(s,c);check("Underground start gives ore and hook action",g.targetKey.StartsWith("ore:")&&g.action.Contains("空格"));
+   s.coordinates.Add(1);g=CampaignGuidance.Resolve(s,c);check("Recovered coordinate leads to wreck cargo",g.region==1&&g.targetKey=="chest");
+   s.device=true;g=CampaignGuidance.Resolve(s,c);check("Bound device leads to return beacon",g.region==1&&g.targetKey=="beacon");
+   s=Ready();c.underground=false;s.coordinates.Add(2);s.trackedObjective="quest:2";g=CampaignGuidance.Resolve(s,c);
+   check("Engineer rescue points to required winch first",g.region==2&&g.targetKey=="winch");
+   s.expansionProgress.Add("winch");g=CampaignGuidance.Resolve(s,c);check("Engineer winch success advances to shelter",g.targetKey=="shelter");
+   s.expansionProgress.Add("engineer-rescued");g=CampaignGuidance.Resolve(s,c);check("Completed optional quest falls back to main",g.key=="main:escape");
+   s.trackedObjective="quest:4";g=CampaignGuidance.Resolve(s,c);check("Locked medical region supplies coordinate acquisition step",g.region==0&&g.layer>0);
+   s.coordinates.Add(3);g=CampaignGuidance.Resolve(s,c);check("Doctor rescue starts at power",g.targetKey=="power");s.expansionProgress.Add("power");g=CampaignGuidance.Resolve(s,c);check("Restored power advances to isolation door",g.targetKey=="medical-door");
+   s.trackedObjective="quest:1";g=CampaignGuidance.Resolve(s,c);check("Anomaly quest first resolves locked scan prerequisite",g.targetKey.StartsWith("antenna-")&&g.region==1);
+   s.expansionProgress.Add("drone-rescued");s.expansionProgress.Add("signal-0");g=CampaignGuidance.Resolve(s,c);check("Signal collection skips completed region",g.region==3&&g.targetKey=="signal-1");
+   s.trackedObjective="quest:5";g=CampaignGuidance.Resolve(s,c);check("Samples require doctor before collection",g.targetKey=="medical-door");
+   s.expansionProgress.Add("doctor-rescued");s.expansionProgress.Add("sample-0");g=CampaignGuidance.Resolve(s,c);check("Samples skip previously collected vial",g.targetKey=="sample-1");
+   s=Ready();s.trackedObjective="commission:surveyor";s.frontierCounters.Add(new FrontierCounter{id="survey",count=3});g=CampaignGuidance.Resolve(s,c);
+   check("Achieved commission remains pending claim at camp",g.claimable&&!g.complete&&g.region==0&&g.targetKey=="camp");
+   s.expansionProgress.Add("commission-surveyor");g=CampaignGuidance.Resolve(s,c);check("Claimed commission returns to main",g.key=="main:escape");
+   s.trackedObjective="relics";for(int i=1;i<=5;i++)s.expansionProgress.Add("relic-"+i);g=CampaignGuidance.Resolve(s,c);check("Five relics still guide to atlas restoration",g.targetKey=="atlas"&&!g.complete);
+   s.expansionProgress.Add("atlas-restored");check("Restored atlas completes relic task",CampaignGuidance.Describe(s,c,"relics").complete);
+   s=Ready();s.trackedObjective="main:investigate";s.unlockedLayer=5;for(int i=2;i<=5;i++)s.coordinates.Add(i);s.Learn("J03",2);s.Learn("J04",3);s.Learn("J06",4);s.Learn("J07",5);s.Flag("bomb-crafted");g=CampaignGuidance.Resolve(s,c);
+   check("Core investigation never requires ship repairs",g.region==5&&g.targetKey=="boss-node"&&s.repairs.Count==0);
+   c.nodesRemaining=0;c.bossWeakOpen=false;g=CampaignGuidance.Resolve(s,c);check("Closed boss weakpoint explains waiting",g.targetKey=="boss"&&g.action.Contains("等待"));
+   s.Flag("boss-defeated");g=CampaignGuidance.Resolve(s,c);check("Defeated boss guides to unfinished core safety steps",g.targetKey=="core"&&g.stepId=="core:life-support-checked");
+   s.Flag("life-support-checked");s.Flag("coupling-cut");s.Flag("evac-anchor");g=CampaignGuidance.Resolve(s,c);check("Safety steps lead to bomb installation",g.stepId=="core:install");s.Flag("bomb-installed");g=CampaignGuidance.Resolve(s,c);check("Installation requires explicit detonation confirmation",g.stepId=="core:confirm");
+   c.bombSeconds=30;s.trackedObjective="quest:0";g=CampaignGuidance.Resolve(s,c);check("Evacuation overrides optional tracked quest",g.targetKey=="beacon"&&g.key=="emergency:evacuate");check("Resolving priority never changes tracked objective",s.trackedObjective=="quest:0");
+   c.bombSeconds=-1;c.relayRemaining=10;c.relayRegion=2;c.relayMask=1;g=CampaignGuidance.Resolve(s,c);check("Relay points to an unlit receiver",g.region==2&&g.targetKey=="relay:1");c.relayRemaining=0;g=CampaignGuidance.Resolve(s,c);check("Expired relay restores original tracked quest",g.key=="quest:0");
+   s=Ready();s.trackedObjective="build:carrier";g=CampaignGuidance.Resolve(s,c);check("Locked construction points to partner prerequisite",g.targetKey=="winch"||g.layer>0);s.expansionProgress.Add("engineer-rescued");s.coordinates.Add(2);s.unlockedLayer=2;s.bag.Add(ItemId.IronIngot,2);g=CampaignGuidance.Resolve(s,c);check("Affordable construction returns to camp",g.region==0&&g.targetKey=="camp");
+   s=Ready();s.unlockedLayer=2;s.coordinates.Add(2);s.bag.Add(ItemId.IronIngot,5);s.warehouse.Add(ItemId.IronIngot,1);g=CampaignGuidance.Describe(s,c,"repair:0");check("Warehouse materials count toward executable repair",g.targetKey=="ship");
+   s.warehouse.Remove(ItemId.IronIngot,1);var box=new SavedCrate{id="fixture",region=2};box.items.Add(ItemId.IronIngot,1);s.crates.Add(box);g=CampaignGuidance.Describe(s,c,"repair:0");check("Remote death crate is guided recovery not ready inventory",g.targetKey=="crate:fixture"&&g.region==2);
+   s=Ready();s.trackedObjective="not-a-task";g=CampaignGuidance.Resolve(s,c);check("Unknown saved tracking key safely falls back to main",g.key=="main:escape");check("Unknown tracking never corrupts original state",s.trackedObjective=="not-a-task");
+   s.trackedObjective="quest:999";check("Out of range legacy quest safely falls back",CampaignGuidance.Resolve(s,c).key=="main:escape");
+   s=Ready();s.coordinates.Add(2);check("Region objectives are discoverable without random proximity",CampaignGuidance.TaskKeys(s,c,1).Contains("quest:2"));
+   s=Ready();s.trackedObjective="commission:smith";s.bag.Add(ItemId.PurpleIngot,1);g=CampaignGuidance.Resolve(s,c);check("Existing ingots do not satisfy need to perform a new forge",g.targetKey=="mine"||g.targetKey.StartsWith("ore:"));
+   s=Ready();c.nodesRemaining=3;s.trackedObjective="main:investigate";s.coordinates.Add(5);s.unlockedLayer=5;s.Learn("J04",3);s.Learn("J06",4);s.Learn("J07",5);s.Flag("bomb-crafted");g=CampaignGuidance.Resolve(s,c);check("Core route uses actual required knowledge without extra archive gate",g.targetKey=="boss-node");
+   s=Ready();s.guidanceRoute="investigate";s.trackedObjective="quest:0";s.expansionProgress.Add("drone-rescued");g=CampaignGuidance.Resolve(s,c);check("Completed side task restores chosen investigation route",g.key=="main:investigate");
+   s=Ready();s.unlockedLayer=1;c.underground=true;for(int i=0;i<12;i++)s.minedNodes.Add(CampaignRules.NodeId(1,i));g=CampaignGuidance.Describe(s,c,"quest:2");check("Completed mine layer exposes drill for next coordinate",g.targetKey=="drill"&&g.layer==1);c.underground=false;
+   s.Flag("rift-destroyed");g=CampaignGuidance.Resolve(s,c);check("Collapsed rifts guide player to remain decision",g.region==0&&g.stepId=="ending:remain");
+   check("Journal main task also reflects the remain decision",CampaignGuidance.Describe(s,c,"main:investigate").stepId=="ending:remain");
+   s.Flag("ecology-chosen");g=CampaignGuidance.Resolve(s,c);check("Ecology epilogue resolves first unfinished station",g.targetKey=="ecology:0");s.Flag("pollution-off");check("Completed ecology station is skipped",CampaignGuidance.Resolve(s,c).targetKey=="ecology:1");
+   s=Ready();for(int i=0;i<4;i++)s.repairs.Add(i.ToString());g=CampaignGuidance.Resolve(s,c);check("Escape path does not require any core archives",g.stepId=="ship:navigation");s.Flag("ship-navigation");s.bag.Add(ItemId.Fuel,8);g=CampaignGuidance.Resolve(s,c);check("Fueled inventory still requires actual ship loading",g.stepId=="ship:fuel");s.Flag("ship-fueled");check("Ready escape retains explicit takeoff confirmation",CampaignGuidance.Resolve(s,c).stepId=="ship:confirm");
+   s=Ready();s.expansionProgress.Add("engineer-rescued");s.bag.Add(ItemId.MachineParts,5);g=CampaignGuidance.Describe(s,c,"module:reload");check("Module materials lead to actual workshop step",g.targetKey=="camp"&&!g.complete);s.craftedModules.Add("reload");g=CampaignGuidance.Describe(s,c,"module:reload");check("Crafted module remains unfinished until equipped",!g.complete&&g.action.Contains("安装"));s.equippedModules.Add("reload");check("Equipped module task completes",CampaignGuidance.Describe(s,c,"module:reload").complete);
+   s=Ready();s.region=3;s.coordinates.Add(2);s.coordinates.Add(3);g=CampaignGuidance.Describe(s,c,"surveys");check("Grouped survey prefers unfinished current region",g.region==3);s.expansionProgress.Add("survey-3");check("Completed current survey points to another region",CampaignGuidance.Describe(s,c,"surveys").region!=3);
+   s=Ready();s.unlockedLayer=2;s.coordinates.Add(2);for(int i=0;i<12;i++)if(CampaignRules.NodeItem(2,i)==ItemId.IronOre)s.minedNodes.Add(CampaignRules.NodeId(2,i));var minedArea=new RegionState{id=2};for(int i=0;i<12;i++)minedArea.mined.Add(1400+i);s.regions.Add(minedArea);var rawBox=new SavedCrate{id="lost-raw",region=2};rawBox.items.Add(ItemId.IronOre,6);s.crates.Add(rawBox);g=CampaignGuidance.Describe(s,c,"repair:0");check("Ingot shortage first recovers its raw ore from death crate",g.targetKey=="crate:lost-raw"&&g.region==2);s.crates.Clear();s.bag.Add(ItemId.IronOre,6);g=CampaignGuidance.Describe(s,c,"repair:0");check("Recovered raw ore continues to actual forge step",g.stepId=="forge:1"&&g.targetKey=="camp");
+   s=Ready();s.unlockedLayer=2;s.coordinates.Add(2);s.trackedObjective="commission:smith";for(int i=0;i<12;i++)s.minedNodes.Add(CampaignRules.NodeId(1,i));s.bag.Add(ItemId.PurpleIngot,8);s.bag.Add(ItemId.IronOre,4);g=CampaignGuidance.Resolve(s,c);check("Forge commission uses available iron instead of exhausted purple",g.stepId=="forge:1"&&g.targetKey=="camp");
+   s=Ready();s.unlockedLayer=2;s.coordinates.Add(2);s.expansionProgress.AddRange(new[]{"engineer-rescued","cache-2-0","cache-2-1","ruin-2","commission-surveyor","commission-smith","commission-defender"});for(int i=0;i<12;i++)s.minedNodes.Add(CampaignRules.NodeId(2,i));c.underground=true;g=CampaignGuidance.Describe(s,c,"module:reload");check("Exhausted known component sources lead to next region",g.targetKey=="drill"&&g.stepId.StartsWith("coordinate:3:"));c.underground=false;
+   s=Ready();s.region=1;s.coordinates.Add(2);s.trackedObjective="commission:defender";c.hasLivingEnemy=r=>r==2;g=CampaignGuidance.Resolve(s,c);check("Kill commission leaves an empty current region for living targets",g.region==2&&g.targetKey=="enemy");s.coordinates.Remove(2);c.hasLivingEnemy=r=>false;g=CampaignGuidance.Resolve(s,c);check("Kill commission unlocks another region when known targets are gone",g.region==0&&g.stepId.StartsWith("coordinate:2:"));c.hasLivingEnemy=null;
+  }
+ }
+}

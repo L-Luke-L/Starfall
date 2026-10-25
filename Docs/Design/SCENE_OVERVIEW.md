@@ -17,7 +17,7 @@
 - `Assets/Prefabs/Buried sample *.prefab`：独立矿物样本和未绑定的内容接口。
 - 场景 Hierarchy 按 Cosmos / Distant landscape / Surface / Interactive sites / Underground / Atmosphere 分组；没有整张合并的场景贴图。
 - `Interactable` 提供种类、交互半径、描述和 `onInteract`（Inspector 中的 UnityEvent）接口，可挂剧情、背包、任务或新关卡逻辑。
-- `SceneDirector` Inspector 可调行走速度、边界、镜头终点、切换时长、摆角、绳长和收放速度。
+- `SceneDirector` Inspector 可调行走速度、边界、镜头终点、切换时长、摆角、绳长、收放速度和空钩回收倍率。上下井默认采用 0.5 秒可跳过过渡，空钩默认以双倍速度收回。
 - 动态光影是 2D 精灵效果，未依赖 URP 或外部美术插件。
 
 ## 素材

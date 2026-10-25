@@ -6,7 +6,7 @@ namespace Starfall {
  public sealed partial class CampaignRuntime {
   string panel="";int tab,selected=-1,warehousePage,selectedJournal;bool fromWarehouse,priorPaused;float priorScale=1,emergencyTime;int emergencyItem=-1;int consumedFrame=-1;
   public bool ConsumedInput=>consumedFrame==Time.frameCount;
-  public void Open(string page){if(!Modal){priorScale=Time.timeScale;priorPaused=Explorer?Explorer.Paused:director.IsPaused;if(Explorer)Explorer.SetPaused(true);else Time.timeScale=0;}panel=page;selected=-1;consumedFrame=Time.frameCount;InteractionFeel.Play(FeelCue.Click,.5f);}
+  public void Open(string page){director.CompleteTravel();if(!Modal){priorScale=Time.timeScale;priorPaused=Explorer?Explorer.Paused:director.IsPaused;if(Explorer)Explorer.SetPaused(true);else Time.timeScale=0;}if(page=="journal")PrepareGuidanceJournal();panel=page;selected=-1;consumedFrame=Time.frameCount;InteractionFeel.Play(FeelCue.Click,.5f);}
   public void Close(){if(!Modal)return;panel="";emergencyItem=-1;consumedFrame=Time.frameCount;if(Explorer)Explorer.SetPaused(priorPaused);Time.timeScale=priorScale;}
   void Toggle(string page){if(Modal)Close();else Open(page);}
   public bool SurfaceInteract(){
@@ -16,12 +16,7 @@ namespace Starfall {
    if(TryFrontierTerminal()||TryCampCompanion())return true;
    if(AtCamp){Open("camp");return true;}if(AtShip){Open("ship");return true;}return false;
   }
-  string Objective {
-   get {if(State.saviorComplete)return "生态站运行中";if(State.Has("ecology-chosen"))return "关闭污染 · 修复净水 · 播下种子";if(State.Has("rift-destroyed"))return "回到营地，决定留下";if(State.escapeComplete&&State.Has("escape-view"))return "航程继续";
-    if(!string.IsNullOrEmpty(TrackedHint))return TrackedHint;
-    if(!State.coordinates.Contains(1))return "矿井 · 回收紫铜与裂纹矿物";if(!State.device)return "星界遗骸 · 调查中央货舱";if(!State.calibrated)return "返回信标 · 校准跃迁装置";
-    if(State.repairs.Count<4)return "探索矿层 "+State.unlockedLayer+" · 收集修船材料";if(!State.Knows("J07"))return "飞船可修复 · 调查同盟档案";if(!State.Has("bomb-crafted"))return "修船离开 / 制作异晶炸弹";if(!State.Has("boss-defeated"))return "核心 · 击破三处供能节点";return "切断耦合 · 校准撤离锚点";}
-  }
+  string Objective=>CurrentGuidance.title+" · "+CurrentGuidance.instruction;
   void Caption(Rect r,string text,int size=18,Color? color=null,TextAnchor align=TextAnchor.MiddleLeft){InteractionFeel.Text(r,text,director.uiFont,size,color??new Color(.84f,.92f,.92f),align);}
   bool Action(Rect r,string text,bool enabled=true)=>InteractionFeel.Button(r,text,director.uiFont,17,new Color(.94f,.73f,.38f),enabled&&!Busy);
   void Paragraph(Rect r,string text,int size=18){var style=new GUIStyle(GUI.skin.label){font=director.uiFont,fontSize=size,wordWrap=true,normal={textColor=new Color(.8f,.88f,.89f)}};GUI.Label(r,text,style);}
@@ -29,15 +24,16 @@ namespace Starfall {
    if(Current!=this||State==null||!director.uiFont)return;var previous=GUI.matrix;GUI.depth=-160;float scale=Mathf.Min(Screen.width/1600f,Screen.height/900f);GUI.matrix=Matrix4x4.TRS(new Vector3((Screen.width-1600*scale)/2,(Screen.height-900*scale)/2,0),Quaternion.identity,Vector3.one*scale);
    if(!director.forge.IsOpen&&!Modal){
     if(!director.battle.IsEngaged&&!director.underground)DrawCampPrompt();
-    Caption(new Rect(44,88,780,26),Objective,14,new Color(.72f,.83f,.85f,.9f));Caption(new Rect(1130,director.underground&&!director.battle.IsEngaged?802:849,430,25),"B 背包   J 手账   F5 保存",12,null,TextAnchor.MiddleRight);
-    if(director.underground&&!director.battle.IsEngaged){Caption(new Rect(525,45,550,32),"矿层 "+State.layer+"  ·  "+Collected(State.layer)+" / "+CampaignRules.NodeCount(State.layer),18,null,TextAnchor.MiddleCenter);if(Action(new Rect(650,93,300,35),Busy?"钻进中…":LayerComplete(State.layer)&&State.layer==State.unlockedLayer&&State.layer<5?"启动钻机 ↓":"切换已解锁矿层",!Busy)){if(LayerComplete(State.layer)&&State.layer==State.unlockedLayer&&State.layer<5)StartDrill();else Open("layers");}}
+    if(director.IsPaused||Explorer&&Explorer.Paused)DrawGuidanceSettings(new Rect(650,610,300,36));else DrawGuidanceHud();Caption(new Rect(1130,director.underground&&!director.battle.IsEngaged?802:849,430,25),"B 背包   J 手账   F5 保存",12,null,TextAnchor.MiddleRight);
+    if(director.underground&&!director.battle.IsEngaged&&!director.Transitioning){Caption(new Rect(525,45,550,32),"矿层 "+State.layer+"  ·  "+Collected(State.layer)+" / "+CampaignRules.NodeCount(State.layer),18,null,TextAnchor.MiddleCenter);if(Action(new Rect(650,93,300,35),Busy?"钻进中…":LayerComplete(State.layer)&&State.layer==State.unlockedLayer&&State.layer<5?"启动钻机 ↓":"切换已解锁矿层",!Busy)){if(LayerComplete(State.layer)&&State.layer==State.unlockedLayer&&State.layer<5)StartDrill();else Open("layers");}}
     if(BombSeconds>=0)Caption(new Rect(550,136,500,50),"核心崩解  "+Mathf.CeilToInt(BombSeconds)+"s · 返回信标",26,new Color(1,.45f,.23f),TextAnchor.MiddleCenter);
    }
    if(toastAge>0&&!Modal)Caption(new Rect(390,725,820,42),toast,19,null,TextAnchor.MiddleCenter);
    if(Modal){
     GUI.color=new Color(.015f,.026f,.037f,.90f);GUI.DrawTexture(new Rect(120,90,1360,720),Texture2D.whiteTexture);GUI.color=Color.white;
-    Caption(new Rect(175,122,950,42),Title(panel),30);if(Action(new Rect(1335,124,90,35),"Esc"))Close();
+    Caption(new Rect(175,122,950,42),panel=="guide-help"?"操作与任务帮助":Title(panel),30);if(Action(new Rect(1335,124,90,35),"Esc"))Close();
     if(panel=="frontier")DrawFrontier();else if(panel=="companion")DrawCompanion();else if(panel=="bag"||panel=="camp"||panel=="warehouse")DrawInventory();else if(panel=="workshop")DrawWorkshop();else if(panel=="forge")DrawForgeSelect();else if(panel=="craft")DrawCraft();else if(panel=="ship")DrawShip();else if(panel=="takeoff")DrawTakeoff();else if(panel=="coordinates")DrawCoordinates();else if(panel=="journal")DrawJournal();else if(panel=="system")DrawSystem();else if(panel=="new-game")DrawNewGame();else if(panel=="layers")DrawLayers();else if(panel=="chest")DrawChest();else if(panel=="terminal")DrawTerminal();else if(panel=="permission")DrawPermission();else if(panel=="core")DrawCore();else if(panel=="detonate")DrawDetonate();else if(panel=="remain")DrawRemain();else if(panel=="escaped"||panel=="saved")DrawEnding();
+    else if(panel=="guide-help")DrawGuidanceHelp();
     if(toastAge>0)Caption(new Rect(180,755,1240,32),toast,15,new Color(1,.79f,.42f));
    }
    DrawPresentation();GUI.matrix=previous;GUI.color=Color.white;
@@ -93,7 +89,7 @@ namespace Starfall {
   void DrawNewGame(){Paragraph(new Rect(310,265,980,180),"会从迫降重新开始。当前故事先保存到独立备份，正常自动存档将用于新故事。\n\n新故事从手枪12发装填、24发备用与2份应急燃料开始。",23);if(Action(new Rect(380,580,360,60),"确认开始"))StartCoroutine(NewGame());if(Action(new Rect(860,580,360,60),"返回"))panel="system";}
   void DrawJournal(){
    string[] pages={"当前目标","已获线索","已证实事实","物种与矿物","修复清单","失落星界","余烬重建"};for(int i=0;i<pages.Length;i++)if(Action(new Rect(195+i*176,190,166,42),pages[i]))tab=i;
-   if(tab==0){Paragraph(new Rect(250,281,1100,220),Objective+"\n\n矿井深度："+State.unlockedLayer+" / 5\n已发现区域："+State.coordinates.Count+"\n飞船修复："+State.repairs.Count+" / 4",24);if(Action(new Rect(1020,635,300,50),"存档与检查点"))panel="system";}
+   if(tab==0)DrawGuidanceJournal();
    if(tab==1){for(int i=0;i<State.journal.Count;i++){var r=State.journal[i];if(Action(new Rect(200,250+i*51,305,43),r.id+" · "+CampaignJournal.Title(r.id)))selectedJournal=i;}if(State.journal.Count>0){selectedJournal=Mathf.Clamp(selectedJournal,0,State.journal.Count-1);var r=State.journal[selectedJournal];Caption(new Rect(565,260,750,50),CampaignJournal.Title(r.id),25);Paragraph(new Rect(565,330,750,320),CampaignJournal.Text(r.id),21);Caption(new Rect(565,693,750,32),CampaignRules.Regions[r.region]+" · "+r.acquired+" UTC",13);}else Paragraph(new Rect(260,285,1100,100),"找到遗骸中的探险者手账后，可以记录线索。");}
    if(tab==2){int i=0;foreach(var id in new[]{"J04","J06","J07"}){Paragraph(new Rect(260,278+i*133,1090,105),State.Knows(id)?CampaignJournal.Fact(id):"未证实 · 继续调查区域档案",22);i++;}}
    if(tab==3){Paragraph(new Rect(245,270,1130,340),"紫铜矿：已识别，原矿用于弹药；金属用于配电。\n"+(State.Has("identified-0")?"陨铁：结构金属。\n":"")+(State.Has("identified-1")?"赤辉铜：与紫铜不同的能源材料。\n":"")+(State.Has("identified-2")?"霜钴：耐热与冷却。\n":"")+(State.Has("identified-3")?"星髓：导航稳定材料。\n":"")+(State.unlockedLayer==5?"稳定异晶：D4结晶，直接使用，不参与锻造。\n":"")+(State.Knows("J04")?"地龙与飞龙：变异本土生物。D4污染改变了它们的生理与行为。":"物种来源尚未查明。"),22);}

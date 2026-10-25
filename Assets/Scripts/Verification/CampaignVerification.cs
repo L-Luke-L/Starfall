@@ -11,7 +11,7 @@ namespace Starfall {
   IEnumerator Start(){
    if(!Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-campaignQA"))yield break;
    folder=Path.GetFullPath(Path.Combine(Application.dataPath,"../../../QA/Reports/Campaign"));Directory.CreateDirectory(folder);yield return new WaitForSeconds(2);
-   c=CampaignRuntime.Current;d=GetComponent<SceneDirector>();var run=Run();
+   c=CampaignRuntime.Current;d=GetComponent<SceneDirector>();var run=Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-mineTravelOnly")?MineTravelVerification.Run(c,d,Check):Run();
    while(true){object value=null;bool more=false;try{more=run.MoveNext();if(more)value=run.Current;}catch(Exception e){Check("Unhandled: "+e,false);break;}if(!more)break;yield return value;}
    File.WriteAllLines(Path.Combine(folder,"campaign-report.txt"),results);Debug.Log(failures==0?"CAMPAIGN_QA_PASS":"CAMPAIGN_QA_FAIL "+failures);Application.Quit(failures==0?0:2);
   }
@@ -25,6 +25,7 @@ namespace Starfall {
   void Warp(Vector3 p){var f=c.Explorer;f.Motor.enabled=false;f.transform.position=p;f.Motor.enabled=true;f.ResetMotion();Physics.SyncTransforms();}
   void Face(Vector3 point){var f=c.Explorer;var v=point-f.viewCamera.transform.position;f.transform.rotation=Quaternion.Euler(0,Mathf.Atan2(v.x,v.z)*Mathf.Rad2Deg,0);f.Look(0,f.Pitch+Mathf.Atan2(v.y,new Vector2(v.x,v.z).magnitude)*Mathf.Rad2Deg);}
   IEnumerator Run(){
+   yield return MineTravelVerification.Run(c,d,Check);
    Check("New story 12+24 rounds, 2 fuel, protected pistol",c.State.magazine==12&&c.State.bag.Count(ItemId.Ammo)==24&&c.State.bag.Count(ItemId.Fuel)==2&&!c.State.device);
    var box=new ItemContainer(2);Check("Stack splits at 99",box.Add(ItemId.IronOre,100)&&box.stacks.Count==2&&box.Count(ItemId.IronOre)==100);Check("Full container addition atomic",!box.Add(ItemId.CobaltOre,1)&&box.Count(ItemId.IronOre)==100);
    var dest=new ItemContainer(1);dest.Add(ItemId.Fuel,99);Check("Full transfer preserves source",!box.TransferTo(dest,ItemId.IronOre,1)&&box.Count(ItemId.IronOre)==100);box.Remove(ItemId.IronOre,2);box.Sort();Check("Merge and split",box.stacks.Count==1&&box.Split(0)&&box.Count(ItemId.IronOre)==98);

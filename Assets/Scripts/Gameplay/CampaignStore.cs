@@ -27,6 +27,9 @@ namespace Starfall {
    if(float.IsNaN(s.pulseCooldown)||float.IsInfinity(s.pulseCooldown)||s.pulseCooldown<0||s.pulseCooldown>18.1f||s.health<0||s.health>100||s.shotgunMagazine%2!=0||s.railMagazine%3!=0)throw new InvalidDataException("角色状态损坏");
    var areas=new System.Collections.Generic.HashSet<int>();foreach(var area in s.coordinates)if(area<1||area>5||!areas.Add(area))throw new InvalidDataException("区域坐标损坏");
    if(s.trackedObjective==null)s.trackedObjective="";
+   if(s.guidanceRoute!="investigate")s.guidanceRoute="escape";
+   if(s.guidanceSeen==null)s.guidanceSeen=new System.Collections.Generic.List<string>();
+   var seen=new System.Collections.Generic.HashSet<string>();s.guidanceSeen.RemoveAll(x=>string.IsNullOrEmpty(x)||x.Length>32||!seen.Add(x));
   }
   static void Validate(ItemContainer c){if(c==null||c.capacity<1||c.capacity>48||c.stacks==null||c.stacks.Count>c.capacity)throw new InvalidDataException("容器损坏");foreach(var s in c.stacks)if(s==null||s.count<1||s.count>99||(int)s.item<0||(int)s.item>=CampaignRules.ItemNames.Length)throw new InvalidDataException("物品损坏");}
   public static CampaignState Copy(CampaignState state)=>JsonUtility.FromJson<CampaignState>(JsonUtility.ToJson(state));

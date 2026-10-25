@@ -46,6 +46,7 @@ namespace Starfall {
    if(!player.Ready||player.Paused||!player.arena.Active)return;
    focus=null;float closest=4;
    foreach(var s in sites){if(s.Key=="wreck")continue;float distance=Vector3.Distance(player.transform.position,s.Value.position);if(distance<closest&&Near(s.Key)){focus=s.Key;closest=distance;}}
+   PreferGuidanceFocus();
    TickRegionalEvent();TickRelays();TickFrontier();foreach(var id in new List<string>(crates.Keys))if(!campaign.State.crates.Exists(x=>x.id==id&&x.region==this.id)){sites.Remove("crate:"+id);Destroy(crates[id]);crates.Remove(id);}
   }
   public bool Interact(){
@@ -56,7 +57,7 @@ namespace Starfall {
    if(IsExpansionSite(focus)){campaign.ExpansionInteract(focus);RefreshExpansionSite(focus);return true;}
    campaign.Open(focus=="chest"?"chest":focus=="core"?"core":"terminal");return true;
   }
-  void OnGUI(){if(!player.Ready||player.Paused||campaign.Modal)return;DrawScanMarkers();DrawRelayHud();DrawFrontierHud();if(focus==null)return;var title=focus.StartsWith("crate:")?"回收物资":IsFrontierSite(focus)?FrontierSiteName(focus):IsRelaySite(focus)?"同步中继":IsExpansionSite(focus)?ExpansionSiteName(focus):focus=="chest"?"打开遗骸货舱":focus=="core"?"核心控制台":"查看区域终端";InteractionFeel.Text(new Rect(Screen.width/2-230,Screen.height*.69f,460,35),"E  "+title,player.uiFont,18,new Color(.92f,.77f,.49f),TextAnchor.MiddleCenter);}
+  void OnGUI(){if(!player.Ready||player.Paused||campaign.Modal)return;DrawScanMarkers();DrawRelayHud();DrawFrontierHud();if(focus==null)return;var title=focus.StartsWith("crate:")?"回收物资":IsFrontierSite(focus)?FrontierSiteName(focus):IsRelaySite(focus)?"同步中继":IsExpansionSite(focus)?ExpansionSiteName(focus):focus=="chest"?"打开遗骸货舱":focus=="core"?"核心控制台":"查看区域终端";InteractionFeel.Text(new Rect(Screen.width/2-230,Screen.height*.69f,460,35),GuidanceFocusPrompt(title),player.uiFont,18,new Color(.92f,.77f,.49f),TextAnchor.MiddleCenter);}
   public void DrawTerminalView(){
    campaign.StoryText(new Rect(240,215,1110,165),id==2?"撤离记录仍在循环。\n军需官（救援站频道）：先修好中继，我们就能一起回家。":id==3?"医疗报告、裂隙实验与中继日志保存在这里。\n诊断上传只需要局部数据；完整请求包含现实端出口权限。":id==4?"军用船坞内的军令、原型维护记录与舰队清单相互吻合。\n指挥官：把装置交出来，我们可以一起离开。你也能分享下一次远征。":"同盟最后的隔离方案与种源库记录已找到。\n共用核心连接全部星界，切断现实耦合才能限制坍缩。",22);
    if(campaign.StoryAction(new Rect(260,429,1040,55),"读取档案与领取补给")){ReadArchive();}

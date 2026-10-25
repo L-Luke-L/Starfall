@@ -31,6 +31,7 @@ namespace Starfall {
   public List<JournalRecord> journal=new List<JournalRecord>();public List<RegionState> regions=new List<RegionState>();public List<SavedCrate> crates=new List<SavedCrate>();
   public List<string> expansionProgress=new List<string>(),craftedModules=new List<string>(),equippedModules=new List<string>();
   public string trackedObjective="";public float pulseCooldown;
+  public string guidanceRoute="escape";public List<string> guidanceSeen=new List<string>();
   public List<FrontierCounter> frontierCounters=new List<FrontierCounter>();public List<string> frontierReceipts=new List<string>(),fieldRecords=new List<string>();public List<RuinRecord> ruins=new List<RuinRecord>();
   public float blastCooldown,decoyCooldown;
   public int pendingForge=-1;public string lastSaved;

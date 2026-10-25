@@ -2,6 +2,8 @@
 
 ## 玩法与操作
 
+- [任务指引：分步目标、导航与详细帮助](Gameplay/QUEST_GUIDANCE.md)
+
 - [余烬重建：营地建设、委托、遗迹与战术道具](Gameplay/FRONTIER.md)
 
 - [回声远征：中继挑战、伙伴交流与观测台](Gameplay/VOYAGES.md)

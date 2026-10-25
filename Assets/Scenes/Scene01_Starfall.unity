@@ -161607,13 +161607,14 @@ MonoBehaviour:
   wormholeSite: {fileID: 359003992}
   surfaceY: -3.8
   undergroundCameraY: -8
-  transitionSeconds: 2.4
+  transitionSeconds: 0.5
   moveSpeed: 3.1
   leftBound: -14.3
   rightBound: 14.3
   swingDegrees: 34
   castSpeed: 5.8
   retrieveSpeed: 4.6
+  emptyRetrieveMultiplier: 2
   maxCableLength: 13.2
   underground: 0
 --- !u!4 &1881454304
