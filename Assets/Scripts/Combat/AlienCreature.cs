@@ -20,6 +20,7 @@ namespace Starfall {
   public int Shots {get;private set;}
   public int Charges {get;private set;}
   public int Bites {get;private set;}
+  public Vector3 VolleyAim=>lockedAim;
   public Vector3 Home {get;private set;}
   public bool IsWindingUp=>State==CreatureState.ChargeTell||State==CreatureState.BiteTell||State==CreatureState.VolleyTell;
   public bool CanBeLured=>!GetComponent<EliteCreature>()&&!Staggered&&(State==CreatureState.Roam||State==CreatureState.Pursue||State==CreatureState.Orbit);

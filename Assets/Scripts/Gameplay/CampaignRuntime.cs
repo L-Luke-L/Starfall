@@ -11,14 +11,14 @@ namespace Starfall {
   public static CampaignRuntime Current {get;private set;}
   public SceneDirector director;public CampaignState State {get;private set;}public CampaignStore Store {get;private set;}
   public CampaignRegion RegionView {get;private set;}public bool Busy {get;private set;}public float BombSeconds {get;private set;}=-1;
-  public bool Modal=>panel!="";public bool IsQA=>Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-campaignQA"||x=="-lostRealmQA"||x=="-frontierQA"||x=="-guidanceQA");
+  public bool Modal=>panel!="";public bool IsQA=>Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-campaignQA"||x=="-lostRealmQA"||x=="-frontierQA"||x=="-guidanceQA"||x=="-interfaceQA");
   public bool AtCamp=>!director.battle.IsEngaged&&!director.underground&&!director.Transitioning&&Mathf.Abs(director.player.position.x-director.camp.transform.position.x)<=Mathf.Max(director.camp.radius,5.4f);
   public bool AtShip=>!director.battle.IsEngaged&&!director.underground&&Mathf.Abs(director.player.position.x-director.wreck.transform.position.x)<=director.wreck.radius;
   public FirstPersonExplorer Explorer=>director.battle.Explorer;
   bool loading,saveBlocked;float autosave,toastAge;string toast;Vector3[] oreOrigins;List<SubsurfaceDefinition> generated=new List<SubsurfaceDefinition>();
   readonly Dictionary<int,BasinProgress> progress=new Dictionary<int,BasinProgress>();
   void Awake(){
-   if(Array.Exists(Environment.GetCommandLineArgs(),x=>(x.EndsWith("QA",StringComparison.OrdinalIgnoreCase)&&x!="-campaignQA"&&x!="-lostRealmQA"&&x!="-frontierQA"&&x!="-guidanceQA")||x=="-battlePreview"||x=="-titanPreview")){enabled=false;return;}
+   if(Array.Exists(Environment.GetCommandLineArgs(),x=>(x.EndsWith("QA",StringComparison.OrdinalIgnoreCase)&&x!="-campaignQA"&&x!="-lostRealmQA"&&x!="-frontierQA"&&x!="-guidanceQA"&&x!="-interfaceQA")||x=="-battlePreview"||x=="-titanPreview")){enabled=false;return;}
    Current=this;if(!director)director=GetComponent<SceneDirector>();bool guidanceVerification=Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-guidanceQA"||x=="-guidanceSave");Store=new CampaignStore(guidanceVerification?Path.GetFullPath(Path.Combine(Application.dataPath,"../../../QA/GuidanceVerification")):Path.Combine(Application.persistentDataPath,IsQA?"CampaignVerification":"CampaignV1"));
    State=IsQA?CampaignState.New():Store.Load()??CampaignState.New();saveBlocked=!IsQA&&Store.Error!=null;RecoverForge();ReconcileExpansionState();ReconcileFrontierState();
   }

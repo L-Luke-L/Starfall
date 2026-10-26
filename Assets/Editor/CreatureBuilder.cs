@@ -18,6 +18,13 @@ public static class CreatureBuilder {
  static Mesh Spike(){var v=new List<Vector3>{new Vector3(0,1,0)};for(int i=0;i<7;i++){float a=i*Mathf.PI*2/7;v.Add(new Vector3(Mathf.Cos(a),0,Mathf.Sin(a)));}var t=new List<int>();for(int i=0;i<7;i++)t.AddRange(new[]{0,1+(i+1)%7,1+i});return Facet(v.ToArray(),t.ToArray(),"Chitin spike");}
  static void Materials(){Directory.CreateDirectory(Folder);pebble=Save(Stone(),"OrganicSegment.asset");spike=Save(Spike(),"ChitinSpike.asset");wing=Save(Facet(new[]{new Vector3(0,0,-.65f),new Vector3(0,.12f,.8f),new Vector3(1.5f,.25f,-.2f),new Vector3(.4f,-.1f,-.3f)},new[]{0,1,2,0,2,3,1,3,2,0,3,1},"Swept fin"),"SweptFin.asset");shell=Mat("Basalt hide",new Color(.17f,.20f,.23f));plate=Mat("Oxidized carapace",new Color(.39f,.25f,.15f));joint=Mat("Dark sinew",new Color(.065f,.075f,.09f));amber=Mat("Molten sensory organs",new Color(.93f,.29f,.055f),1.8f);teal=Mat("Plasma organs",new Color(.10f,.75f,.76f),1.7f);membrane=Mat("Blue violet chitin",new Color(.19f,.25f,.39f));black=Mat("Obsidian claws",new Color(.055f,.065f,.075f));warningMat=Mat("Charge ground trace",new Color(.8f,.23f,.06f),1);}
  static AlienCreature Model(CreatureKind kind){
+  // Existing encounter scenes reference these root/component file IDs. Upgrade in place.
+  string existingPath=Folder+(kind==CreatureKind.RiftMauler?"RiftMauler":"SpineFloater")+".prefab";
+  if(AssetDatabase.LoadAssetAtPath<GameObject>(existingPath)&&File.Exists("Assets/ThirdParty/Quaternius/Monsters/Dino.fbx")){
+   OpenMonsterAssetBuilder.EnsureImportedAssets();var existing=PrefabUtility.LoadPrefabContents(existingPath);
+   try{OpenMonsterAssetBuilder.Apply(existing.GetComponent<AlienCreature>());PrefabUtility.SaveAsPrefabAsset(existing,existingPath);}finally{PrefabUtility.UnloadPrefabContents(existing);}
+   return AssetDatabase.LoadAssetAtPath<GameObject>(existingPath).GetComponent<AlienCreature>();
+  }
   var root=Group(kind==CreatureKind.RiftMauler?"玄脊地龙 · Basalt Drake":"苍翼飞龙 · Azure Wyvern",null,Vector3.zero);var c=root.gameObject.AddComponent<AlienCreature>();c.kind=kind;
   var agent=root.GetComponent<NavMeshAgent>();agent.radius=kind==CreatureKind.RiftMauler?.85f:.75f;agent.height=kind==CreatureKind.RiftMauler?3.2f:1.6f;agent.baseOffset=kind==CreatureKind.RiftMauler?0:3;agent.acceleration=10;agent.stoppingDistance=kind==CreatureKind.RiftMauler?3f:.7f;agent.enabled=false;agent.autoBraking=true;agent.obstacleAvoidanceType=ObstacleAvoidanceType.HighQualityObstacleAvoidance;agent.avoidancePriority=kind==CreatureKind.RiftMauler?40:55;
   var collider=root.gameObject.AddComponent<CapsuleCollider>();collider.radius=kind==CreatureKind.RiftMauler?.85f:.75f;collider.height=kind==CreatureKind.RiftMauler?3.1f:1.6f;collider.center=Vector3.up*(kind==CreatureKind.RiftMauler?1.6f:.15f);
@@ -71,6 +78,7 @@ public static class CreatureBuilder {
   }
   c.limbs=limbs.ToArray();c.fins=fins.ToArray();c.glow=Group("Attack tell light",c.core,Vector3.zero).gameObject.AddComponent<Light>();c.glow.type=LightType.Point;c.glow.color=kind==CreatureKind.RiftMauler?new Color(1,.25f,.03f):new Color(.1f,1,1);c.glow.range=4;c.glow.intensity=1;
   c.warning=Group("Committed charge trajectory",root,Vector3.zero).gameObject.AddComponent<LineRenderer>();c.warning.sharedMaterial=warningMat;c.warning.positionCount=20;c.warning.startWidth=.17f;c.warning.endWidth=.34f;c.warning.useWorldSpace=true;c.warning.enabled=false;c.warning.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;
+  OpenMonsterAssetBuilder.Apply(c);
   var prefab=PrefabUtility.SaveAsPrefabAsset(root.gameObject,Folder+(kind==CreatureKind.RiftMauler?"RiftMauler":"SpineFloater")+".prefab");Object.DestroyImmediate(root.gameObject);return prefab.GetComponent<AlienCreature>();
  }
  public static void Install(FirstPersonExplorer player,AlienSurfaceLandmarks landmarks){

@@ -26,24 +26,25 @@ namespace Starfall {
    GUI.color=new Color(.02f,.035f,.04f,.8f);GUI.DrawTexture(new Rect(x,y,236,29),Texture2D.whiteTexture);GUI.color=Color.white;Caption(new Rect(x+5,y,226,29),edge?"转向 · "+n.label:n.label,13,new Color(1,.86f,.55f),TextAnchor.MiddleCenter);
   }
   void DrawGuidanceJournal(){
-   if(Action(new Rect(1175,124,135,35),"存档 / 检查点"))panel="system";
-   string[] categories={"主线 / 修船","伙伴支线","星界探索","建设 / 制作","长期委托","物资回收"};for(int i=0;i<categories.Length;i++)if(Action(new Rect(200+i*199,247,188,35),categories[i])){guidanceCategory=i;guidanceSelected="";guidanceListScroll=guidanceDescriptionScroll=Vector2.zero;guidanceHelpLevel=0;}
+   TerminalHeader(397,211,300,"分步任务","选择分类，查看操作与前置条件");
+   string[] categories={"主线 / 修船","伙伴支线","星界探索","建设 / 制作","长期委托","物资回收"};for(int i=0;i<categories.Length;i++)if(TerminalButton(new Rect(395+i%2*156,278+i/2*34,150,30),categories[i],true,guidanceCategory==i,15)){guidanceCategory=i;guidanceSelected="";guidanceListScroll=guidanceDescriptionScroll=Vector2.zero;guidanceHelpLevel=0;}
    var context=GetGuidanceContext();var keys=CampaignGuidance.TaskKeys(State,context,guidanceCategory);
    if(!keys.Contains(guidanceSelected))guidanceSelected=keys.Contains(State.trackedObjective)?State.trackedObjective:keys.Count>0?keys[0]:"";
-   guidanceListScroll=GUI.BeginScrollView(new Rect(200,300,370,390),guidanceListScroll,new Rect(0,0,343,Mathf.Max(386,keys.Count*56)));
-   for(int i=0;i<keys.Count;i++){var task=CampaignGuidance.Describe(State,context,keys[i]);if(task==null)continue;string mark=task.complete?"✓ ":task.claimable?"待领取 · ":keys[i]==State.trackedObjective?"▶ ":"";if(Action(new Rect(0,i*56,340,48),mark+task.title)){guidanceSelected=keys[i];guidanceDescriptionScroll=Vector2.zero;guidanceHelpLevel=0;}}
+   guidanceListScroll=GUI.BeginScrollView(new Rect(395,389,308,301),guidanceListScroll,new Rect(0,0,288,Mathf.Max(297,keys.Count*56)));
+   for(int i=0;i<keys.Count;i++){var task=CampaignGuidance.Describe(State,context,keys[i]);if(task==null)continue;string mark=task.complete?"✓ ":task.claimable?"待领取 · ":keys[i]==State.trackedObjective?"▶ ":"";if(TerminalButton(new Rect(0,i*56,285,48),mark+task.title,true,guidanceSelected==keys[i],16)){guidanceSelected=keys[i];guidanceDescriptionScroll=Vector2.zero;guidanceHelpLevel=0;}}
    GUI.EndScrollView();
    var selected=CampaignGuidance.Describe(State,context,guidanceSelected);
-   if(selected==null){Paragraph(new Rect(625,330,690,150),guidanceCategory==5?"没有待回收物资。死亡后可在这里追踪回收箱；也能在营地转运取回。":"进入新区域后，这里会登记可进行的任务。先跟随主线取得区域坐标。",21);}
+   if(selected==null){DetailHeading("暂无任务","继续探索以登记新的目标");DetailParagraph(guidanceCategory==5?"没有待回收物资。死亡后可在这里追踪回收箱；也能在营地转运取回。":"进入新区域后，这里会登记可进行的任务。先跟随主线取得区域坐标。",331,200);}
    else{
-    Caption(new Rect(610,302,720,35),selected.title+" · "+(selected.complete?"已完成":selected.claimable?"待领取":!string.IsNullOrEmpty(selected.blockedReason)?"缺少前置":"可进行"),23);
-    string body=GuidanceDescription(selected);float contentHeight=Mathf.Max(340,body.Split('\n').Length*29+180);
-    guidanceDescriptionScroll=GUI.BeginScrollView(new Rect(605,349,745,331),guidanceDescriptionScroll,new Rect(0,0,710,contentHeight));Paragraph(new Rect(3,0,700,contentHeight),body,18);GUI.EndScrollView();
-    if(Action(new Rect(610,696,225,38),selected.complete?"任务已完成":"追踪此任务",!selected.complete)){TrackObjective(guidanceSelected);guidanceHelpLevel=0;}
-    if(Action(new Rect(850,696,225,38),"返回主线追踪"))TrackObjective("");
-    if(Action(new Rect(1090,696,245,38),selected.stepId=="ending:remain"?"决定是否留下":"查看详细提示")){if(selected.stepId=="ending:remain")Open("remain");else{guidanceHelpLevel=Mathf.Min(3,guidanceHelpLevel+1);InvalidateGuidance();}}
+    DetailHeading(selected.title,selected.complete?"已完成":selected.claimable?"待领取":!string.IsNullOrEmpty(selected.blockedReason)?"缺少前置":"可进行");
+    string body=GuidanceDescription(selected);var descriptionStyle=new GUIStyle(GUI.skin.label){font=director.uiFont,fontSize=18,wordWrap=true,padding=new RectOffset(0,0,0,0)};float contentHeight=Mathf.Max(340,descriptionStyle.CalcHeight(new GUIContent(body),600)+10);
+    guidanceDescriptionScroll=GUI.BeginScrollView(new Rect(768,332,633,325),guidanceDescriptionScroll,new Rect(0,0,610,contentHeight));Paragraph(new Rect(3,0,600,contentHeight),body,18);GUI.EndScrollView();
+    if(TerminalButton(new Rect(770,678,199,38),selected.complete?"任务已完成":"追踪此任务",!selected.complete,State.trackedObjective==guidanceSelected)){TrackObjective(guidanceSelected);guidanceHelpLevel=0;}
+    if(TerminalButton(new Rect(981,678,199,38),"返回主线追踪"))TrackObjective("");
+    if(TerminalButton(new Rect(1192,678,209,38),selected.stepId=="ending:remain"?"决定是否留下":"查看详细提示")){if(selected.stepId=="ending:remain")Open("remain");else{guidanceHelpLevel=Mathf.Min(3,guidanceHelpLevel+1);InvalidateGuidance();}}
    }
-   if(Action(new Rect(205,699,355,34),"查看全部操作说明"))panel="guide-help";
+   if(TerminalButton(new Rect(395,696,308,30),"存档 / 检查点"))panel="system";
+   if(TerminalButton(new Rect(395,734,308,30),"查看全部操作说明"))panel="guide-help";
   }
   void PrepareGuidanceJournal(){tab=0;string key=CurrentGuidance.key;if(guidanceSelected!=key)guidanceHelpLevel=0;guidanceCategory=key.StartsWith("quest:")?1:key.StartsWith("relay:")||key.StartsWith("survey")||key.StartsWith("ruin")||key=="relics"?2:key.StartsWith("build:")||key.StartsWith("module:")||key.StartsWith("craft:")?3:key.StartsWith("commission:")?4:key.StartsWith("crate:")?5:0;guidanceSelected=key;guidanceDescriptionScroll=guidanceListScroll=Vector2.zero;}
   string GuidanceDescription(GuidanceStep g){

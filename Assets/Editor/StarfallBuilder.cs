@@ -121,6 +121,7 @@ public static class StarfallBuilder {
  }
  [MenuItem("Starfall/Build Windows")]
  public static void Build(){
+  OpenMonsterAssetBuilder.EnsureImportedAssets();OpenMonsterAssetBuilder.UpgradeCreaturePrefabs();AssetDatabase.SaveAssets();
   Directory.CreateDirectory("Builds/Windows");
   var scenes=System.Array.FindAll(EditorBuildSettings.scenes,s=>s.enabled&&File.Exists(s.path));
   var paths=System.Array.ConvertAll(scenes,s=>s.path);

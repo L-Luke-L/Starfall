@@ -26,6 +26,7 @@ namespace Starfall {
   public bool Downed=>Health<=0;
   public bool CanTarget=>Active&&!Safe&&!Downed;
   public event Action<int,AlienCreature> PlayerDamaged;
+  public event Action<AlienBolt,Collider,bool> ProjectileHit;
   NavMeshDataInstance nav;float hitFlash,immune,downTimer,quiet,regeneration;
   void Awake(){if(navigation)nav=NavMesh.AddNavMeshData(navigation);foreach(var c in creatures)if(c)c.GetComponent<NavMeshAgent>().enabled=true;if(Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-battleQA"))SimulationEnabled=false;}
   public void RestoreHealth(int health){Health=Mathf.Clamp(health,1,100);}
@@ -44,15 +45,16 @@ namespace Starfall {
    if(Downed){downTimer=1.5f;ClearBolts();if(CampaignRuntime.Current){if(CampaignRuntime.Current.BombSeconds>=0)CampaignRuntime.Current.StartCoroutine(CampaignRuntime.Current.Restore("before-core"));else CampaignRuntime.Current.DropOnDeath(player.transform.position);}}return true;
   }
   public void ClearBolts(){foreach(var b in GetComponentsInChildren<AlienBolt>())Destroy(b.gameObject);}
+  internal void ReportProjectileHit(AlienBolt bolt,Collider collider,bool damaged){ProjectileHit?.Invoke(bolt,collider,damaged);}
   public AlienBolt Fire(AlienCreature owner,Vector3 origin,Vector3 aim){
-   var g=GameObject.CreatePrimitive(PrimitiveType.Sphere);g.name="Dragon plasma · swept collision";g.transform.SetParent(transform);g.transform.position=origin;g.transform.localScale=Vector3.one*.28f;Destroy(g.GetComponent<Collider>());g.GetComponent<Renderer>().sharedMaterial=projectileMaterial;
+   var g=GameObject.CreatePrimitive(PrimitiveType.Sphere);g.name="Dragon plasma · swept collision";g.transform.SetParent(transform);g.transform.position=origin;g.transform.localScale=Vector3.one*.28f;var collider=g.GetComponent<Collider>();collider.enabled=false;Destroy(collider);g.GetComponent<Renderer>().sharedMaterial=projectileMaterial;
    var bolt=g.AddComponent<AlienBolt>();bolt.arena=this;bolt.owner=owner;bolt.velocity=(aim-origin).normalized*19;
    var trail=g.AddComponent<TrailRenderer>();trail.sharedMaterial=projectileMaterial;trail.time=.23f;trail.startWidth=.21f;trail.endWidth=.015f;trail.minVertexDistance=.08f;
    return bolt;
   }
   public void Impact(Vector3 position,Color color){
    for(int i=0;i<5;i++){
-    var g=GameObject.CreatePrimitive(PrimitiveType.Cube);g.name="Impact chip";g.transform.SetParent(transform);g.transform.position=position;g.transform.localScale=new Vector3(.018f,.038f,.018f);Destroy(g.GetComponent<Collider>());
+    var g=GameObject.CreatePrimitive(PrimitiveType.Cube);g.name="Impact chip";g.transform.SetParent(transform);g.transform.position=position;g.transform.localScale=new Vector3(.018f,.038f,.018f);var collider=g.GetComponent<Collider>();collider.enabled=false;Destroy(collider);
     var renderer=g.GetComponent<Renderer>();renderer.sharedMaterial=impactMaterial;renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;
     var block=new MaterialPropertyBlock();block.SetColor("_Color",color);block.SetColor("_EmissionColor",color*.7f);renderer.SetPropertyBlock(block);
     var chip=g.AddComponent<ImpactChip>();chip.arena=this;chip.velocity=new Vector3(Mathf.Cos(i*2.4f)*.9f,1.1f+i*.12f,Mathf.Sin(i*2.4f)*.9f);
