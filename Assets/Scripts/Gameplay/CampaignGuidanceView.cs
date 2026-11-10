@@ -18,12 +18,18 @@ namespace Starfall {
   }
   void DrawGuidanceMarker(GuidanceNavigation n){
    var cam=Explorer?Explorer.viewCamera:director.worldCamera;if(!cam)return;Vector2 p;bool edge=false;
-   if(n.screen)p=n.screenPoint;else{var v=cam.WorldToViewportPoint(n.point+Vector3.up*(Explorer?1.0f:.6f));p=new Vector2(v.x*1600,(1-v.y)*900);if(v.z<=0){p=new Vector2(1600-p.x,900-p.y);edge=true;}if(p.x<28||p.x>1572||p.y<55||p.y>735)edge=true;p.x=Mathf.Clamp(p.x,28,1572);p.y=Mathf.Clamp(p.y,55,735);}
+   if(n.screen)p=n.screenPoint;else{var v=cam.WorldToViewportPoint(n.point+Vector3.up*(Explorer?1.0f:.6f));p=GuidanceViewportToCanvas(v,cam.rect,new Vector2(Screen.width,Screen.height));if(v.z<=0){p=new Vector2(1600-p.x,900-p.y);edge=true;}if(p.x<28||p.x>1572||p.y<55||p.y>735)edge=true;p.x=Mathf.Clamp(p.x,28,1572);p.y=Mathf.Clamp(p.y,55,735);}
    if(p.x<530&&p.y>75&&p.y<275)p.x=540;
    string glyph=edge?(p.x<100?"◀":p.x>1500?"▶":p.y<150?"▲":"▼"):"◇";
    Caption(new Rect(p.x-18,p.y-19,36,38),glyph,26,new Color(1,.81f,.35f),TextAnchor.MiddleCenter);
    float x=Mathf.Clamp(p.x-118,22,1342),y=p.y+20;if(Mathf.Abs(p.x-800)<80&&Mathf.Abs(p.y-450)<80){x=p.x+42;y=p.y-15;}
    GUI.color=new Color(.02f,.035f,.04f,.8f);GUI.DrawTexture(new Rect(x,y,236,29),Texture2D.whiteTexture);GUI.color=Color.white;Caption(new Rect(x+5,y,226,29),edge?"转向 · "+n.label:n.label,13,new Color(1,.86f,.55f),TextAnchor.MiddleCenter);
+  }
+  internal static Vector2 GuidanceViewportToCanvas(Vector3 viewport,Rect cameraRect,Vector2 screen){
+   // FPS uses the whole window; the surface camera and GUI use a centered safe frame.
+   // Convert through physical pixels before drawing the marker in GUI coordinates.
+   float scale=Mathf.Max(.0001f,Mathf.Min(screen.x/1600f,screen.y/900f));
+   return new Vector2(((cameraRect.x+viewport.x*cameraRect.width)*screen.x-(screen.x-1600*scale)*.5f)/scale,((1-cameraRect.y-viewport.y*cameraRect.height)*screen.y-(screen.y-900*scale)*.5f)/scale);
   }
   void DrawGuidanceJournal(){
    TerminalHeader(397,211,300,"分步任务","选择分类，查看操作与前置条件");

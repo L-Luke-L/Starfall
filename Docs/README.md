@@ -2,6 +2,8 @@
 
 ## 玩法与操作
 
+- [主线演示：约8分钟自动流程与实时CG](Gameplay/SHOWCASE.md)
+
 - [任务指引：分步目标、导航与详细帮助](Gameplay/QUEST_GUIDANCE.md)
 
 - [余烬重建：营地建设、委托、遗迹与战术道具](Gameplay/FRONTIER.md)

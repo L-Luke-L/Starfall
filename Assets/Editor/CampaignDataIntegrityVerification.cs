@@ -61,6 +61,18 @@ public static class CampaignDataIntegrityVerification {
    RecoveryCase(store,"crate-null",json=>Mutate(json,s=>s.crates.Clear()).Replace("\"crates\":[]","\"crates\":[null]"));
    RecoveryCase(store,"crate-null-id",json=>Mutate(json,s=>s.crates[0].id=null));
    RecoveryCase(store,"crate-null-items",json=>Mutate(json,s=>s.crates[0].items=null));
+   RecoveryCase(store,"surface-nan",json=>Mutate(json,s=>s.surfaceX=float.NaN));
+   RecoveryCase(store,"surface-infinity",json=>Mutate(json,s=>s.surfaceX=float.PositiveInfinity));
+   RecoveryCase(store,"crate-position-nan",json=>Mutate(json,s=>s.crates[0].position=new Vector3(1,float.NaN,2)));
+   RecoveryCase(store,"drop-position-infinity",json=>Mutate(json,s=>s.regions[0].drops[0].position=new Vector3(float.NegativeInfinity,1,2)));
+   RecoveryCase(store,"crate-region-low",json=>Mutate(json,s=>s.crates[0].region=-1));
+   RecoveryCase(store,"crate-region-high",json=>Mutate(json,s=>s.crates[0].region=6));
+   RecoveryCase(store,"duplicate-crate-id",json=>Mutate(json,s=>s.crates.Add(new SavedCrate{id=s.crates[0].id,region=0})));
+   RecoveryCase(store,"region-low",json=>Mutate(json,s=>s.regions[0].id=-1));
+   RecoveryCase(store,"region-high",json=>Mutate(json,s=>s.regions[0].id=6));
+   RecoveryCase(store,"duplicate-region-id",json=>Mutate(json,s=>s.regions.Add(new RegionState{id=s.regions[0].id})));
+   RecoveryCase(store,"duplicate-enemy-id",json=>Mutate(json,s=>s.regions[0].enemies.Add(new SavedEnemy{id=s.regions[0].enemies[0].id,health=1})));
+   var opaque=Healthy();opaque.regions[0].drops.Add(new BasinDrop{id=7,kind=BasinLootKind.Ammo});opaque.regions[0].drops.Add(new BasinDrop{id=-1,kind=BasinLootKind.Fuel});store.Save(opaque,"opaque-drop-identities");loaded=store.Load("opaque-drop-identities");Check("Opaque duplicate and negative legacy drop IDs preserve independent supplies",loaded!=null&&!store.RecoveredFromBackup&&loaded.regions[0].drops.Count==3&&loaded.regions[0].drops[0].id==7&&loaded.regions[0].drops[1].id==7&&loaded.regions[0].drops[2].id==-1);
    foreach(int ore in new[]{0,4}){var reserved=Healthy();reserved.pendingForge=ore;string slot="pending-forge-valid-"+ore;store.Save(reserved,slot);var restored=store.Load(slot);Check("Pending forge boundary "+ore+" remains valid",restored!=null&&restored.pendingForge==ore&&!store.RecoveredFromBackup&&restored.bag.Count(ItemId.AlienCrystal)==7);}
    var legacy=Healthy();legacy.version=1;legacy.shotgunMagazine=-1;legacy.railMagazine=-1;legacy.selectedWeapon=99;legacy.expansionProgress=null;legacy.craftedModules=null;legacy.equippedModules=null;
    store.Save(legacy,"legacy");string legacyPath=store.PathFor("legacy"),legacyJson=File.ReadAllText(legacyPath);loaded=store.Load("legacy");

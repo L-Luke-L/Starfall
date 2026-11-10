@@ -40,7 +40,7 @@ namespace Starfall {
    DrawInventorySelection(camp);
    if(TerminalButton(new Rect(154,744,172,36),"合并 / 排序")){State.bag.Sort();if(camp)State.warehouse.Sort();selected=-1;Changed();}
    if(camp){
-    if(TerminalButton(new Rect(338,744,235,36),"同类物资快速归仓")){int moved=0;foreach(var s in new List<ItemStack>(State.bag.stacks))if(State.warehouse.Count(s.item)>0){int n=Math.Min(s.count,FreeSpace(State.warehouse,s.item));if(n>0&&State.bag.TransferTo(State.warehouse,s.item,n))moved+=n;}selected=-1;if(moved>0)Changed();Notice(moved>0?"已归仓 "+moved+" 份同类物资":"暂无可归仓的同类物资，或仓库已满");}
+    if(TerminalButton(new Rect(338,744,235,36),"同类物资快速归仓"))DepositMatchingItems();
     int i=0;foreach(var crate in new List<SavedCrate>(State.crates)){if(crate.region!=0)continue;if(TerminalButton(new Rect(594+i*210,744,196,36),"回收箱 "+(i+1))&&!RecoverCrate(crate.id))Notice("背包空间不足");if(++i>=4)break;}
    }else TerminalText(new Rect(345,744,1050,36),"选择物品查看用途。急救剂可直接使用，战术装备在野外投放。",16,CampaignGameUI.Muted);
   }
@@ -107,6 +107,11 @@ namespace Starfall {
    int amount=Math.Min(Math.Min(requested,stack.count),Math.Max(0,FreeSpace(destination,stack.item)));
    if(amount==0||!source.TransferTo(destination,stack.item,amount)){Notice("目标容器空间不足");return false;}
    selected=-1;Changed();Notice("已"+(fromWarehouse?"取出 ":"存入 ")+CampaignRules.ItemNames[(int)stack.item]+" ×"+amount+(amount<requested?" · 剩余物资保留在原处":""));return true;
+  }
+  int DepositMatchingItems(){
+   if(!AtCamp||Busy)return 0;int moved=0;
+   foreach(var stack in State.bag.Copy().stacks)if(State.warehouse.Count(stack.item)>0){int amount=Math.Min(stack.count,FreeSpace(State.warehouse,stack.item));if(amount>0&&State.bag.TransferTo(State.warehouse,stack.item,amount))moved+=amount;}
+   selected=-1;if(moved>0)Changed();Notice(moved>0?"已归仓 "+moved+" 份同类物资":"暂无可归仓的同类物资，或仓库已满");return moved;
   }
   void DrawJournalTerminal(){
    CampaignGameUI.Panel(new Rect(154,192,209,584),true);CampaignGameUI.Panel(new Rect(379,192,340,584),true);CampaignGameUI.Panel(new Rect(735,192,705,584),true);

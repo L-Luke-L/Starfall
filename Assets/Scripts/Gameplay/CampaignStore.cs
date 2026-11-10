@@ -33,17 +33,23 @@ namespace Starfall {
    }return null;
   }
   static void ValidateWorldRecords(CampaignState s){
-   foreach(var crate in s.crates){if(crate==null||string.IsNullOrEmpty(crate.id))throw new InvalidDataException("回收箱记录损坏");Validate(crate.items);}
+   if(!Finite(s.surfaceX))throw new InvalidDataException("地表位置损坏");
+   var crates=new System.Collections.Generic.HashSet<string>();
+   foreach(var crate in s.crates){if(crate==null||string.IsNullOrEmpty(crate.id)||!crates.Add(crate.id)||crate.region<0||crate.region>5||!Finite(crate.position))throw new InvalidDataException("回收箱记录损坏");Validate(crate.items);}
+   var regions=new System.Collections.Generic.HashSet<int>();
    foreach(var region in s.regions){
-    if(region==null||region.enemies==null||region.mined==null||region.drops==null)throw new InvalidDataException("区域存档损坏");
+    if(region==null||region.id<0||region.id>5||!regions.Add(region.id)||region.enemies==null||region.mined==null||region.drops==null)throw new InvalidDataException("区域存档损坏");
     // Content-specific IDs and health values may change between versions. Only
     // require an identity that can safely be used as the runtime dictionary key.
-    foreach(var enemy in region.enemies)if(enemy==null||string.IsNullOrEmpty(enemy.id))throw new InvalidDataException("敌人记录损坏");
+    var enemies=new System.Collections.Generic.HashSet<string>();
+    foreach(var enemy in region.enemies)if(enemy==null||string.IsNullOrEmpty(enemy.id)||!enemies.Add(enemy.id))throw new InvalidDataException("敌人记录损坏");
     // None means that no drop was produced; it is never a persistent pickup.
     // Loading it as a pickup would give it a medkit appearance and iron reward.
-    foreach(var drop in region.drops)if(drop==null||drop.kind==BasinLootKind.None||!Enum.IsDefined(typeof(BasinLootKind),drop.kind))throw new InvalidDataException("掉落记录损坏");
+    foreach(var drop in region.drops)if(drop==null||!Finite(drop.position)||drop.kind==BasinLootKind.None||!Enum.IsDefined(typeof(BasinLootKind),drop.kind))throw new InvalidDataException("掉落记录损坏");
    }
   }
+  static bool Finite(float value)=>!float.IsNaN(value)&&!float.IsInfinity(value);
+  static bool Finite(Vector3 value)=>Finite(value.x)&&Finite(value.y)&&Finite(value.z);
   static void ValidateStoryRecords(CampaignState s){
    if(s.pendingForge< -1||s.pendingForge>4)throw new InvalidDataException("锻造预留记录损坏");
    // Unknown nonempty log IDs can belong to newer content; preserve them.

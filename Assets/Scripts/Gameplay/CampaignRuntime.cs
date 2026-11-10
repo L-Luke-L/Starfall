@@ -11,14 +11,14 @@ namespace Starfall {
   public static CampaignRuntime Current {get;private set;}
   public SceneDirector director;public CampaignState State {get;private set;}public CampaignStore Store {get;private set;}
   public CampaignRegion RegionView {get;private set;}public bool Busy {get;private set;}public float BombSeconds {get;private set;}=-1;
-  public bool Modal=>panel!="";public bool IsQA=>Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-campaignQA"||x=="-lostRealmQA"||x=="-frontierQA"||x=="-guidanceQA"||x=="-interfaceQA");
+  public bool Modal=>panel!="";public bool IsQA=>Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-campaignQA"||x=="-lostRealmQA"||x=="-frontierQA"||x=="-guidanceQA"||x=="-interfaceQA"||x=="-showcaseQA"||x=="-projectAuditQA");
   public bool AtCamp=>!director.battle.IsEngaged&&!director.underground&&!director.Transitioning&&Mathf.Abs(director.player.position.x-director.camp.transform.position.x)<=Mathf.Max(director.camp.radius,5.4f);
   public bool AtShip=>!director.battle.IsEngaged&&!director.underground&&Mathf.Abs(director.player.position.x-director.wreck.transform.position.x)<=director.wreck.radius;
   public FirstPersonExplorer Explorer=>director.battle.Explorer;
   bool loading,saveBlocked;float autosave,toastAge;string toast;Vector3[] oreOrigins;List<SubsurfaceDefinition> generated=new List<SubsurfaceDefinition>();
   readonly Dictionary<int,BasinProgress> progress=new Dictionary<int,BasinProgress>();
   void Awake(){
-   if(Array.Exists(Environment.GetCommandLineArgs(),x=>(x.EndsWith("QA",StringComparison.OrdinalIgnoreCase)&&x!="-campaignQA"&&x!="-lostRealmQA"&&x!="-frontierQA"&&x!="-guidanceQA"&&x!="-interfaceQA")||x=="-battlePreview"||x=="-titanPreview")){enabled=false;return;}
+   if(Array.Exists(Environment.GetCommandLineArgs(),x=>(x.EndsWith("QA",StringComparison.OrdinalIgnoreCase)&&x!="-campaignQA"&&x!="-lostRealmQA"&&x!="-frontierQA"&&x!="-guidanceQA"&&x!="-interfaceQA"&&x!="-showcaseQA"&&x!="-projectAuditQA")||x=="-battlePreview"||x=="-titanPreview")){enabled=false;return;}
    Current=this;if(!director)director=GetComponent<SceneDirector>();bool guidanceVerification=Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-guidanceQA"||x=="-guidanceSave");Store=new CampaignStore(guidanceVerification?Path.GetFullPath(Path.Combine(Application.dataPath,"../../../QA/GuidanceVerification")):Path.Combine(Application.persistentDataPath,IsQA?"CampaignVerification":"CampaignV1"));
    State=IsQA?CampaignState.New():Store.Load()??CampaignState.New();saveBlocked=!IsQA&&Store.Error!=null;RecoverForge();ReconcileExpansionState();ReconcileFrontierState();
   }
@@ -93,7 +93,7 @@ namespace Starfall {
    if(c.items.stacks.Count>0){if(NavMesh.SamplePosition(point,out var hit,10,NavMesh.AllAreas))c.position=hit.position;else if(Explorer)c.position=Explorer.returnBeacon.position+Vector3.right*3;State.crates.Add(c);if(RegionView)RegionView.SpawnCrate(c);}
    Changed();return c;
   }
-  public bool RecoverCrate(string id){var c=State.crates.Find(x=>x.id==id);if(c==null)return false;bool near=c.region==0?AtCamp:State.region==c.region&&Explorer&&Vector3.Distance(Explorer.transform.position,c.position)<4;if(!near)return false;bool any=false;foreach(var s in new List<ItemStack>(c.items.stacks)){int n=Math.Min(s.count,FreeSpace(State.bag,s.item));if(n>0){c.items.TransferTo(State.bag,s.item,n);any=true;}}if(c.items.stacks.Count==0)State.crates.Remove(c);if(any){InteractionFeel.Play(FeelCue.Pickup,.8f);Changed();}return any;}
+  public bool RecoverCrate(string id){var c=State.crates.Find(x=>x.id==id);if(c==null)return false;bool near=c.region==0?AtCamp:State.region==c.region&&Explorer&&Vector3.Distance(Explorer.transform.position,c.position)<4;if(!near)return false;bool any=false;foreach(var s in c.items.Copy().stacks){int n=Math.Min(s.count,FreeSpace(State.bag,s.item));if(n>0){c.items.TransferTo(State.bag,s.item,n);any=true;}}if(c.items.stacks.Count==0)State.crates.Remove(c);if(any){InteractionFeel.Play(FeelCue.Pickup,.8f);Changed();}return any;}
   static int FreeSpace(ItemContainer c,ItemId id){int n=(c.capacity-c.stacks.Count)*99;foreach(var s in c.stacks)if(s.item==id)n+=99-s.count;return n;}
   public bool TransportCrates(){if(!AtCamp&&!State.Has("boss-defeated"))return false;foreach(var c in State.crates){c.region=0;c.position=Vector3.zero;}Changed();return true;}
   public int Available(ItemId item){
@@ -110,7 +110,9 @@ namespace Starfall {
    if(!State.Has("bomb-crafted"))foreach(var s in CampaignRules.BombCost)if(s.item==item||((int)item<5&&(int)s.item==(int)item+5))n+=s.count;
    if(item==ItemId.Fuel){if(!State.Has("ship-fueled"))n+=8;n+=2;}if(item==ItemId.PurpleOre)n+=4;return Math.Max(n,(int)item<5?2:item==ItemId.AlienCrystal?2:0);
   }
-  public bool CanEmergency(ItemId item)=>CampaignRules.MinimumLayer(item)<=State.unlockedLayer&&((int)item<5||item==ItemId.Fuel||item==ItemId.AlienCrystal)&&Available(item)<Needed(item);
+  // Refined copper can repair the ship, but cannot replace the raw copper used by ammunition.
+  int AvailablePurpleOre(){int ingots=State.bag.Count(ItemId.PurpleIngot)+State.warehouse.Count(ItemId.PurpleIngot);foreach(var crate in State.crates)ingots+=crate.items.Count(ItemId.PurpleIngot);return Math.Max(0,Available(ItemId.PurpleOre)-ingots);}
+  public bool CanEmergency(ItemId item)=>CampaignRules.MinimumLayer(item)<=State.unlockedLayer&&((int)item<5||item==ItemId.Fuel||item==ItemId.AlienCrystal)&&(Available(item)<Needed(item)||item==ItemId.PurpleOre&&AvailablePurpleOre()<4);
   public bool CompleteEmergency(ItemId item){if(!AtCamp||!CanEmergency(item)||!State.bag.Add(item,1))return false;Changed();return true;}
   public static ItemId DropItem(BasinLootKind kind)=>kind==BasinLootKind.Fuel?ItemId.Fuel:kind==BasinLootKind.Ammo?ItemId.Ammo:kind==BasinLootKind.Medkit?ItemId.Medkit:ItemId.IronOre;
   public static int DropCount(BasinLootKind kind)=>kind==BasinLootKind.Fuel?2:kind==BasinLootKind.Ammo?18:1;
@@ -119,17 +121,19 @@ namespace Starfall {
   public bool BeginDetonation(){if(State.region!=5||!RegionView||!RegionView.Near("core")||!SavingReady||!State.Has("bomb-installed")||BombSeconds>=0)return false;Close();if(!Save("before-core"))return false;BombSeconds=45;State.Flag("detonation-active");Save();Notice("核心崩解 · 返回信标跃迁");return true;}
   public bool Evacuate(){if(BombSeconds<=0||!Explorer||Vector3.Distance(Explorer.transform.position,Explorer.returnBeacon.position)>4)return false;BombSeconds=-1;State.flags.Remove("detonation-active");State.Flag("rift-destroyed");Close();director.battle.ReturnToExpedition();InteractionFeel.Play(FeelCue.Portal,1);return true;}
   public IEnumerator Restore(string slot){
-   var restored=Store.Load(slot);if(restored==null){Notice("没有可用的检查点");yield break;}director.CancelTravel();loading=true;bool escape=State.escapeComplete,savior=State.saviorComplete;Close();BombSeconds=-1;
+   var restored=Store.Load(slot);if(restored==null){Notice("没有可用的检查点");yield break;}director.CancelTravel();director.CancelHook();loading=true;bool escape=State.escapeComplete,savior=State.saviorComplete;Close();BombSeconds=-1;
+   while(director.battle.IsTransitioning)yield return null;
    if(director.battle.IsEngaged){director.battle.ReturnToExpedition();while(director.battle.IsEngaged)yield return null;}
    Close();State=restored;State.escapeComplete|=escape;State.saviorComplete|=savior;State.region=0;State.underground=false;State.flags.Remove("escape-view");progress.Clear();RecoverForge();ReconcileExpansionState();ReconcileFrontierState();director.worldCamera.transform.position=new Vector3(0,0,-20);director.underground=false;director.player.position=new Vector3(State.surfaceX,director.surfaceY,0);ApplyLayer();loading=false;saveBlocked=false;Changed();Notice("已恢复检查点，物资与任务进度已保留");
   }
-  public IEnumerator NewGame(){director.CancelTravel();Close();if(director.battle.IsEngaged){director.battle.ReturnToExpedition();while(director.battle.IsEngaged)yield return null;}if(!saveBlocked)Save("previous-story");State=CampaignState.New();ReconcileFrontierState();progress.Clear();saveBlocked=false;BombSeconds=-1;director.underground=false;director.worldCamera.transform.position=new Vector3(0,0,-20);director.player.position=new Vector3(-10,director.surfaceY,0);ApplyLayer();Changed();}
+  public IEnumerator NewGame(){director.CancelTravel();director.CancelHook();Close();while(director.battle.IsTransitioning)yield return null;if(director.battle.IsEngaged){director.battle.ReturnToExpedition();while(director.battle.IsEngaged)yield return null;}if(!saveBlocked)Save("previous-story");State=CampaignState.New();ReconcileFrontierState();progress.Clear();saveBlocked=false;BombSeconds=-1;director.underground=false;director.worldCamera.transform.position=new Vector3(0,0,-20);director.player.position=new Vector3(-10,director.surfaceY,0);ApplyLayer();Changed();}
   void Update(){
    if(Current!=this||State==null)return;toastAge-=Time.unscaledDeltaTime;
-   if(Input.GetKeyDown(KeyCode.Escape)&&Modal){Close();return;}
-   if(!Busy&&!director.forge.IsOpen&&!director.battle.IsTransitioning){if(Input.GetKeyDown(KeyCode.B))Toggle("bag");if(Input.GetKeyDown(KeyCode.J))Toggle("journal");if(Input.GetKeyDown(KeyCode.F5)){director.CompleteTravel();Save();consumedFrame=Time.frameCount;}if(AtCamp&&Input.GetKeyDown(KeyCode.C))Toggle("frontier");}
+   if(!ShowcaseActive&&Input.GetKeyDown(KeyCode.Escape)&&Modal){Close();return;}
+   if(!ShowcaseActive&&!CinematicActive&&!Busy&&!director.forge.IsOpen&&!director.battle.IsTransitioning){if(Input.GetKeyDown(KeyCode.B))Toggle("bag");if(Input.GetKeyDown(KeyCode.J))Toggle("journal");if(Input.GetKeyDown(KeyCode.F5)){director.CompleteTravel();Save();consumedFrame=Time.frameCount;}if(AtCamp&&Input.GetKeyDown(KeyCode.C))Toggle("frontier");}
    TickEmergency();TickEcology();TickPresentation();TickTreatment();TickCompanions();TickFrontierCamp();TickGuidance();
-   if(BombSeconds>=0&&!Modal&&Explorer&&!Explorer.Paused&&!director.battle.IsTransitioning){BombSeconds-=Time.deltaTime;if(BombSeconds<=0){BombSeconds=-1;StartCoroutine(Restore("before-core"));}}
+   TickStoryCinematics();
+   if(BombSeconds>=0&&!Modal&&!CinematicActive&&Explorer&&!Explorer.Paused&&!director.battle.IsTransitioning){BombSeconds-=Time.deltaTime;if(BombSeconds<=0){BombSeconds=-1;StartCoroutine(Restore("before-core"));}}
    autosave+=Time.unscaledDeltaTime;if(autosave>12){autosave=0;Save();}
   }
   void OnApplicationQuit(){Save();}

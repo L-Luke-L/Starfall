@@ -40,7 +40,7 @@ namespace Starfall {
    if(Input.GetKeyDown(KeyCode.LeftControl))Dash(move);
    if(Input.GetKeyDown(KeyCode.Q))Scan();
    Drive(move,Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift),Input.GetKeyDown(KeyCode.Space),Time.deltaTime);
-   if(Input.GetKeyDown(KeyCode.E)){if(CampaignRuntime.Current&&CampaignRuntime.Current.RegionView&&CampaignRuntime.Current.RegionView.Interact())return;if(returnBeacon&&Vector3.Distance(transform.position,returnBeacon.position)<4)Return();}
+   if(Input.GetKeyDown(KeyCode.E)){if(expedition&&expedition.TryCollectAimedPickup())return;if(CampaignRuntime.Current&&CampaignRuntime.Current.RegionView&&CampaignRuntime.Current.RegionView.Interact())return;if(returnBeacon&&Vector3.Distance(transform.position,returnBeacon.position)<4)Return();}
   }
   public void Look(float yaw,float pitch){if(Paused)return;transform.Rotate(0,yaw,0);Pitch=Mathf.Clamp(Pitch-pitch,-85,85);viewCamera.transform.localRotation=Quaternion.Euler(Pitch,0,0);}
   public void Drive(Vector2 input,bool running,bool jump,float dt){
@@ -102,9 +102,9 @@ namespace Starfall {
     if(session&&Button(new Rect(630,397,340,50),"返回矿井"))Return();
     if(Button(new Rect(630,464,340,44),InteractionFeel.Muted?"声音 · 关闭":"声音 · 开启"))InteractionFeel.Muted=!InteractionFeel.Muted;
     if(Button(new Rect(630,525,340,44),InteractionFeel.ReducedMotion?"镜头反馈 · 减弱":"镜头反馈 · 标准"))InteractionFeel.ReducedMotion=!InteractionFeel.ReducedMotion;
-    Label(new Rect(330,660,940,35),"WASD 移动   ·   Shift 奔跑   ·   空格 跳跃",14,new Color(.65f,.76f,.78f),TextAnchor.MiddleCenter);
-    Label(new Rect(260,700,1080,35),"左键 射击   ·   右键 近战   ·   R 换弹   ·   1/2/3 切枪   ·   Q 扫描   ·   Ctrl 闪避   ·   F 脉冲   ·   E 交互",14,new Color(.65f,.76f,.78f),TextAnchor.MiddleCenter);
-    Label(new Rect(330,741,940,35),"G 爆裂芯   ·   T 声纹诱饵   ·   勘测站旁长按 E",14,new Color(.65f,.76f,.78f),TextAnchor.MiddleCenter);
+    Label(new Rect(330,750,940,35),"WASD 移动   ·   Shift 奔跑   ·   空格 跳跃",14,new Color(.65f,.76f,.78f),TextAnchor.MiddleCenter);
+    Label(new Rect(260,788,1080,35),"左键 射击   ·   右键 近战   ·   R 换弹   ·   1/2/3 切枪   ·   Q 扫描   ·   Ctrl 闪避   ·   F 脉冲   ·   E 交互",14,new Color(.65f,.76f,.78f),TextAnchor.MiddleCenter);
+    Label(new Rect(330,826,940,35),"G 爆裂芯   ·   T 声纹诱饵   ·   勘测站旁长按 E",14,new Color(.65f,.76f,.78f),TextAnchor.MiddleCenter);
    }
    GUI.matrix=prior;
   }

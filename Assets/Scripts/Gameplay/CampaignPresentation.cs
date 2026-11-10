@@ -20,7 +20,9 @@ namespace Starfall {
    var hull=new GameObject("Flight hull").AddComponent<SpriteRenderer>();hull.transform.SetParent(vessel,false);if(art){var source=art.GetComponent<SpriteRenderer>();hull.sprite=source.sprite;hull.transform.localPosition=art.localPosition;hull.transform.localScale=art.localScale;hull.color=new Color(.81f,.89f,.92f);hull.sortingOrder=50;art.gameObject.SetActive(false);}
    var trail=new GameObject("Ion exhaust").AddComponent<SpriteRenderer>();trail.transform.SetParent(vessel,false);trail.sprite=director.glow;trail.color=new Color(.3f,.77f,1,.7f);trail.sortingOrder=49;trail.transform.localPosition=new Vector3(-2,.4f,0);trail.transform.localScale=new Vector3(3,.7f,1);
    for(float t=0;t<3.6f;t+=Time.unscaledDeltaTime){float n=t/3.6f;vessel.position=wreckRest+new Vector3(n*n*15,n*n*13,0);vessel.rotation=Quaternion.Euler(0,0,n*28);yield return null;}
-   Destroy(vessel.gameObject);if(art)art.gameObject.SetActive(true);Busy=false;Open("escaped");
+   Destroy(vessel.gameObject);if(art)art.gameObject.SetActive(true);
+   if(!IsQA&&!ShowcaseActive&&StoryCinematicsEnabled&&!State.Has("cg-seen-departure"))yield return StoryCinematic(CampaignCinematicBeat.Departure,"cg-seen-departure");
+   Busy=false;Open("escaped");
   }
   void DrawPresentation(){
    if(returnFlash>0){GUI.color=new Color(.68f,.89f,1,returnFlash*.7f);GUI.DrawTexture(new Rect(0,0,1600,900),Texture2D.whiteTexture);GUI.color=Color.white;}

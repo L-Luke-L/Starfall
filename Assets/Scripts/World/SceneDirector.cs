@@ -64,6 +64,7 @@ namespace Starfall {
    if(Time.time>=counterDelayUntil&&DisplayedOreCount!=oreCount){DisplayedOreCount=oreCount;counterFlashUntil=Time.time+.65f;}
    if(Input.GetKeyDown(KeyCode.F11))Screen.fullScreen=!Screen.fullScreen;
    if(forge&&forge.IsOpen)return;
+   if(CampaignRuntime.Current&&CampaignRuntime.Current.ShowcaseActive){if(!paused&&!RecoveryLocked&&!CampaignRuntime.Current.Busy&&!CampaignRuntime.Current.Modal)TickHook(Time.deltaTime);return;}
    if(CampaignRuntime.Current&&(CampaignRuntime.Current.Modal||CampaignRuntime.Current.Busy||CampaignRuntime.Current.ConsumedInput))return;
    if(Input.GetKeyDown(KeyCode.Tab))photoMode=!photoMode;
    if(Input.GetKeyDown(KeyCode.Escape))SetPaused(!paused);
@@ -141,6 +142,18 @@ namespace Starfall {
    if(!underground){InteractionFeel.Play(FeelCue.Deny,.4f);return false;}
    InteractionFeel.Play(FeelCue.Cast,.7f);targetAngle=angle;hookState=HookState.Extending;return true;
   }
+  public bool ShowcaseCastAt(Vector3 point){
+   if(!CampaignRuntime.Current||!CampaignRuntime.Current.ShowcaseActive)return false;
+   var delta=point-winchAnchor.position;angle=Mathf.Atan2(delta.x,-delta.y)*Mathf.Rad2Deg;return Cast();
+  }
+  public void ResetShowcaseHook(){
+   if(!CampaignRuntime.Current||!CampaignRuntime.Current.ShowcaseActive)return;
+   CancelHook();
+  }
+  public void CancelHook(){
+   cargo=null;hookState=HookState.Swinging;cableLength=1.1f;moveIntent=0;angle=targetAngle=0;
+   if(hook&&winchAnchor){hook.position=winchAnchor.position+Vector3.down*cableLength;hook.rotation=Quaternion.identity;if(cable){cable.SetPosition(0,winchAnchor.position);cable.SetPosition(1,hook.position);}}
+  }
   void TickHook(float dt){
    if(hookState==HookState.Swinging)angle=Mathf.Sin(Time.time*.86f)*swingDegrees;
    else angle=targetAngle;
@@ -184,7 +197,7 @@ namespace Starfall {
    Text(new Rect(p.x-110,p.y+24,220,22),subtitle,10,muted,TextAnchor.MiddleCenter);
   }
   void OnGUI(){
-   if(!worldCamera||(forge&&forge.IsOpen)||(CampaignRuntime.Current&&CampaignRuntime.Current.Modal))return;
+   if(!worldCamera||(forge&&forge.IsOpen)||(CampaignRuntime.Current&&(CampaignRuntime.Current.Modal||CampaignRuntime.Current.ShowcaseActive||CampaignRuntime.Current.CinematicActive)))return;
    float w=Mathf.Min(Screen.width,Screen.height*16f/9),h=w*9/16;
    float ox=(Screen.width-w)/2,oy=(Screen.height-h)/2;
    // Black areas outside fixed cinematic aspect ratio.
@@ -218,7 +231,7 @@ namespace Starfall {
     if(Button(new Rect(650,433,300,42),InteractionFeel.Muted?"声音 · 关闭":"声音 · 开启"))InteractionFeel.Muted=!InteractionFeel.Muted;
     if(Button(new Rect(650,487,300,42),InteractionFeel.ReducedMotion?"镜头反馈 · 减弱":"镜头反馈 · 标准"))InteractionFeel.ReducedMotion=!InteractionFeel.ReducedMotion;
     if(Button(new Rect(650,554,300,42),"退出游戏"))Application.Quit();
-    Text(new Rect(360,694,880,30),"A / D  移动    E  交互    空格  抓钩    TAB  隐藏界面    F11  全屏",13,muted,TextAnchor.MiddleCenter);
+    Text(new Rect(360,766,880,30),"A / D  移动    E  交互    空格  抓钩    TAB  隐藏界面    F11  全屏",13,muted,TextAnchor.MiddleCenter);
    }
    GUI.matrix=Matrix4x4.identity;
   }

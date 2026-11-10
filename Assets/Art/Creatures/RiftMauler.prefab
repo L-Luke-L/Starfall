@@ -2778,7 +2778,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a0c10ef85eb3b74faab8a8d638b79fa, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Starfall.AlienCreature
   kind: 0
   arena: {fileID: 0}
@@ -2827,7 +2827,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ebfd5d86113e5d24aeec9c400f688860, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Starfall.ImportedCreatureAnimation
   artwork: {fileID: 4822506354842501253}
   installedPrefab: {fileID: 1699653004043148380, guid: 1c9411378b777254cb7059b8946da55e, type: 3}

@@ -81,14 +81,24 @@ namespace Starfall {
      actors[i].kind+" Move animation advances in the player");
     CheckArtwork(actors[i],presentations[i],"Move");
    }
-   var groundBounds=PosedBounds(presentations[0].artwork);var flyingBounds=PosedBounds(presentations[1].artwork);
+   // The appearance layer can replace the retained Quaternius adapter. Measure
+   // the artwork that actually reaches the camera, not its force-hidden fallback.
+   var groundArt=VisibleArtwork(ground,presentations[0]);var flyingArt=VisibleArtwork(flying,presentations[1]);
+   var groundBounds=PosedBounds(groundArt);var flyingBounds=PosedBounds(flyingArt);
    var combined=groundBounds;combined.Encapsulate(flyingBounds);
    Aim(combined.center+new Vector3(0,1,-14),combined.center);
    Capture("gameplay",null);
    Aim(groundBounds.center+new Vector3(3,1.4f,-7.5f),groundBounds.center);
-   Capture("ground",presentations[0].artwork);
+   Capture("ground",groundArt);
    Aim(flyingBounds.center+new Vector3(3,1.4f,-8.5f),flyingBounds.center);
-   Capture("flying",presentations[1].artwork);
+   Capture("flying",flyingArt);
+  }
+
+  Transform VisibleArtwork(AlienCreature actor,ImportedCreatureAnimation fallback){
+   var replacement=actor.visual.GetComponentInChildren<RealismCreatureVisual>(true);
+   var root=replacement&&replacement.gameObject.activeInHierarchy?replacement.transform:fallback.artwork;
+   int visible=0;foreach(var renderer in root.GetComponentsInChildren<Renderer>())if(renderer.enabled&&!renderer.forceRenderingOff&&renderer.gameObject.activeInHierarchy)visible++;
+   Require(visible>0,actor.kind+" actual appearance has renderable geometry");return root;
   }
 
   void Place(AlienCreature creature,Vector3 desired){

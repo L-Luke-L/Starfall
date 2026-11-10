@@ -47,7 +47,7 @@ namespace Starfall {
    var p=g.AddComponent<BasinPickup>();p.data=data;p.expedition=this;pickups.Add(p);return p;
   }
   public bool Collect(BasinPickup p){
-   if(!p||p.expedition!=this||p.data.collected||!player.arena.CanTarget||Vector3.Distance(player.viewCamera.transform.position,p.transform.position)>(CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("magnet")?4.3f:3.3f)||!Visible(p.transform.position,p.transform))return false;
+   if(!p||p.expedition!=this||p.data.collected||!player.arena.Active||player.arena.Downed||Vector3.Distance(player.viewCamera.transform.position,p.transform.position)>(CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("magnet")?4.3f:3.3f)||!Visible(p.transform.position,p.transform))return false;
    if(CampaignRuntime.Current){var campaign=CampaignRuntime.Current;if(!campaign.State.bag.Add(CampaignRuntime.DropItem(p.data.kind),CampaignRuntime.DropCount(p.data.kind))){Tell("背包已满");return false;}p.data.collected=true;campaign.Changed();InteractionFeel.Play(FeelCue.Pickup,.75f);Tell(p.DisplayName);Destroy(p.gameObject);return true;}
    if(p.data.kind==BasinLootKind.Fuel){if(!Inventory)return false;Inventory.AddFuel(2);}
    else if(p.data.kind==BasinLootKind.Ore){if(!Inventory)return false;Inventory.AddGathered(RepairResource.FerricAlloy);}
@@ -68,11 +68,20 @@ namespace Starfall {
    foreach(var r in focusRenderers)if(r&&r.sharedMaterial&&r.sharedMaterial.HasProperty("_EmissionColor")){var original=r.sharedMaterial.GetColor("_EmissionColor");focusBlock.Clear();focusBlock.SetColor("_EmissionColor",original+new Color(.10f,.17f,.16f));r.SetPropertyBlock(focusBlock);}
   }
   public void Interact(bool held,float dt){
-   Prompt=null;if(!initialized||!player.arena.CanTarget){Focus(null);MiningProgress=0;mining=null;return;}
+   Prompt=null;if(!initialized||!player.arena.Active||player.arena.Downed){Focus(null);MiningProgress=0;mining=null;return;}
    if(!Physics.Raycast(player.viewCamera.transform.position,player.viewCamera.transform.forward,out var hit,3.3f,~(1<<30),QueryTriggerInteraction.Ignore)){Focus(null);MiningProgress=0;mining=null;return;}
    var pickup=hit.collider.GetComponentInParent<BasinPickup>();if(pickup){Focus(pickup.transform);Prompt="E  "+pickup.DisplayName;if(held)Collect(pickup);MiningProgress=0;return;}
+   if(!player.arena.CanTarget){Focus(null);MiningProgress=0;mining=null;return;}
    var resource=hit.collider.GetComponentInParent<BasinResource>();if(!resource||resource.Depleted){Focus(null);MiningProgress=0;mining=null;return;}
    Focus(resource.transform);Prompt="按住 E  "+resource.DisplayName;Mine(resource,held,dt);
+  }
+  public bool TryCollectAimedPickup(){
+   if(!initialized||!player.arena.Active||player.arena.Downed||!Physics.Raycast(player.viewCamera.transform.position,player.viewCamera.transform.forward,out var hit,3.3f,~(1<<30),QueryTriggerInteraction.Ignore))return false;
+   var pickup=hit.collider.GetComponentInParent<BasinPickup>();if(!pickup)return false;
+   Focus(pickup.transform);Prompt="E  "+pickup.DisplayName;Collect(pickup);MiningProgressReset();
+   // A full inventory still consumes the attempted interaction so E cannot
+   // unexpectedly activate the return beacon behind the item.
+   return true;
   }
   public bool Mine(BasinResource resource,bool held,float dt){
    if(!initialized||!player.arena.CanTarget||!held||arsenal.IsBusy||dt<=0||!resource||resource.Depleted||!Inventory||Vector3.Distance(player.viewCamera.transform.position,resource.transform.position+Vector3.up*.5f)>3.3f||!Visible(resource.transform.position+Vector3.up*.5f,resource.transform)){MiningProgress=0;mining=null;return false;}

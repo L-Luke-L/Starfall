@@ -20,10 +20,12 @@ namespace Starfall {
   public float ReloadRemaining {get;private set;}
   public bool IsCharging=>charge>0;
   public bool IsBusy=>ReloadRemaining>0||cooldown>.12f||IsCharging;
-  public bool Ready=>initialized&&player.Ready&&player.arena.CanTarget&&!player.Paused;
+  bool Available=>initialized&&player&&player.Ready&&player.arena&&player.arena.Active&&!player.arena.Downed&&!player.Paused;
+  public bool Ready=>Available&&player.arena.CanTarget;
   public int ShotsFired {get;private set;}
   public int ConfirmedHits {get;private set;}
   public float TargetHealth=>target?target.Health:0;
+  int PistolDamage(float multiplier)=>CampaignRuntime.Current?CampaignRules.GunDamage(multiplier):Mathf.RoundToInt(26*multiplier);
   public bool MeleePending=>pendingMelee;
   public bool MinimalHud=>true;
   BasinProgress progress;bool initialized,exhausted,pendingMelee;
@@ -55,11 +57,19 @@ namespace Starfall {
   void WeaponPart(string name,Transform parent,Vector3 at,Vector3 scale,Material material){var g=GameObject.CreatePrimitive(PrimitiveType.Cube);g.name=name;g.transform.SetParent(parent,false);g.transform.localPosition=at;g.transform.localScale=scale;g.layer=30;Destroy(g.GetComponent<Collider>());g.GetComponent<Renderer>().sharedMaterial=material;}
   void ShowWeapon(){if(rifle)rifle.gameObject.SetActive(CurrentWeapon==0);if(shotgun)shotgun.gameObject.SetActive(CurrentWeapon==1);if(rail)rail.gameObject.SetActive(CurrentWeapon==2);}
   public bool SelectWeapon(int index){if(index<0||index>2||index==CurrentWeapon||!initialized||!CampaignRuntime.Current||!CampaignRuntime.Current.WeaponUnlocked(index)||ReloadRemaining>0||cooldown>0)return false;charge=0;CurrentWeapon=index;CampaignRuntime.Current.State.selectedWeapon=index;ShowWeapon();Sync();InteractionFeel.Play(FeelCue.Reload,.45f);return true;}
-  public void AddAmmo(int amount){Reserve=Mathf.Min(180,Reserve+Mathf.Max(0,amount));Sync();}
+  public void AddAmmo(int amount){
+   if(amount<=0)return;
+   var campaign=CampaignRuntime.Current;
+   // Story ammunition is ordinary inventory and can legitimately exceed the
+   // legacy preview's 180-round cap. A pickup must never delete existing rounds.
+   if(campaign){if(campaign.State.bag.Add(ItemId.Ammo,amount))campaign.Changed();}
+   else Reserve=Mathf.Min(180,Reserve+amount);
+   Sync();
+  }
   public void Sync(){if(progress==null)return;progress.magazine=Magazine;progress.reserve=Reserve;if(CampaignRuntime.Current){var state=CampaignRuntime.Current.State;state.magazine=Magazine;state.shotgunMagazine=ShotgunMagazine;state.railMagazine=RailMagazine;state.selectedWeapon=CurrentWeapon;}}
   public bool SpendStamina(float amount){if(!initialized)return true;if(Stamina<amount)return false;Stamina-=amount;restDelay=1.1f;return true;}
   public bool Sprint(float dt){if(!initialized)return true;if(exhausted){if(Stamina<28)return false;exhausted=false;}if(Stamina<26*dt){exhausted=true;return false;}return SpendStamina(26*dt);}
-  public bool Reload(){if(!Ready||ReloadRemaining>0||cooldown>0||charge>0||ActiveMagazine>=ActiveCapacity||Reserve<ActiveCost)return false;float baseDuration=WeaponConfig!=null?WeaponConfig.reload:CurrentWeapon==0?2.35f:CurrentWeapon==1?2.7f:1.8f;reloadDuration=baseDuration*(CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("reload")?.8f:1);ReloadRemaining=reloadDuration;InteractionFeel.Play(FeelCue.Reload,.7f);return true;}
+  public bool Reload(){if(!Available||ReloadRemaining>0||cooldown>0||charge>0||ActiveMagazine>=ActiveCapacity||Reserve<ActiveCost)return false;float baseDuration=WeaponConfig!=null?WeaponConfig.reload:CurrentWeapon==0?2.35f:CurrentWeapon==1?2.7f:1.8f;reloadDuration=baseDuration*(CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("reload")?.8f:1);ReloadRemaining=reloadDuration;InteractionFeel.Play(FeelCue.Reload,.7f);return true;}
   public bool Attack(bool close=false){if(!Ready||ReloadRemaining>0||cooldown>0||expedition.MiningProgress>0)return false;
    if(close){charge=0;if(!SpendStamina(22)){InteractionFeel.Play(FeelCue.Deny,.4f);return false;}cooldown=.82f;melee=.45f;pendingMelee=true;meleeDelay=.13f;InteractionFeel.Play(FeelCue.Slash,.7f);return true;}
    if(CurrentWeapon==2){if(RailMagazine<3){Reload();return false;}if(charge<=0){charge=.001f;InteractionFeel.Play(FeelCue.Alert,.35f);}return true;}
@@ -74,8 +84,8 @@ namespace Starfall {
    return true;
   }
   void ResolveShot(Vector3 direction,float range,int baseDamage,bool piercing){var origin=player.viewCamera.transform.position;bool found=Aim(origin,direction,range,out var hit);Vector3 endpoint=found?hit.point:origin+direction*range;
-   if(found){var bossPart=hit.collider.GetComponent<CampaignBossPart>();if(bossPart){bool weak=bossPart.node==-1&&bossPart.boss.WeakOpen;int value=weak&&WeaponConfig!=null?WeaponConfig.weakDamage:CurrentWeapon==0?CampaignRules.GunDamage(1):baseDamage;if(weak&&CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("weakness"))value=Mathf.RoundToInt(value*1.2f);if(bossPart.boss.Hit(bossPart.node,value)){ConfirmedHits++;hitMarker=.18f;player.arena.Impact(hit.point,Color.cyan);}}
-    else{var vitality=hit.collider.GetComponentInParent<CreatureVitality>();if(vitality&&!vitality.Dead){float multiplier=vitality.DamageMultiplier(hit.point);int value=CurrentWeapon==0?CampaignRules.GunDamage(multiplier):piercing?(multiplier>1?(WeaponConfig!=null?WeaponConfig.weakDamage:120):baseDamage):Mathf.RoundToInt(baseDamage*multiplier);if(CurrentWeapon==1)value=Mathf.RoundToInt(value*Mathf.Lerp(.55f,1,Mathf.Clamp01((range-hit.distance)/(range*.67f))));if(multiplier>1&&CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("weakness"))value=Mathf.RoundToInt(value*1.2f);if(vitality.TakeDamage(value,hit.point)){ConfirmedHits++;hitMarker=.18f;target=vitality;player.arena.Impact(hit.point,Color.cyan);}}else player.arena.Impact(hit.point,Color.gray);}}
+   if(found){var bossPart=hit.collider.GetComponent<CampaignBossPart>();if(bossPart){bool weak=bossPart.node==-1&&bossPart.boss.WeakOpen;int value=weak&&WeaponConfig!=null?WeaponConfig.weakDamage:CurrentWeapon==0?PistolDamage(1):baseDamage;if(weak&&CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("weakness"))value=Mathf.RoundToInt(value*1.2f);if(bossPart.boss.Hit(bossPart.node,value)){ConfirmedHits++;hitMarker=.18f;player.arena.Impact(hit.point,Color.cyan);}}
+    else{var vitality=hit.collider.GetComponentInParent<CreatureVitality>();if(vitality&&!vitality.Dead){float multiplier=vitality.DamageMultiplier(hit.point);int value=CurrentWeapon==0?PistolDamage(multiplier):piercing?(multiplier>1?(WeaponConfig!=null?WeaponConfig.weakDamage:120):baseDamage):Mathf.RoundToInt(baseDamage*multiplier);if(CurrentWeapon==1)value=Mathf.RoundToInt(value*Mathf.Lerp(.55f,1,Mathf.Clamp01((range-hit.distance)/(range*.67f))));if(multiplier>1&&CampaignRuntime.Current&&CampaignRuntime.Current.ModuleEquipped("weakness"))value=Mathf.RoundToInt(value*1.2f);if(vitality.TakeDamage(value,hit.point)){ConfirmedHits++;hitMarker=.18f;target=vitality;player.arena.Impact(hit.point,Color.cyan);}}else player.arena.Impact(hit.point,Color.gray);}}
    var g=new GameObject("Weapon shot tracer");g.transform.SetParent(player.arena.transform);var line=g.AddComponent<LineRenderer>();line.sharedMaterial=tracerMaterial;line.positionCount=2;line.SetPosition(0,CurrentWeapon==1?shotgunMuzzle.position:CurrentWeapon==2?railMuzzle.position:muzzle.position);line.SetPosition(1,endpoint);line.startWidth=CurrentWeapon==2?.065f:.022f;line.endWidth=.006f;line.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;var fx=g.AddComponent<PlayerShotTrace>();fx.arena=player.arena;
   }
   void ResolveMelee(){var origin=player.viewCamera.transform.position;if(!Aim(origin,player.viewCamera.transform.forward,3.2f,out var hit))return;var part=hit.collider.GetComponent<CampaignBossPart>();if(part){if(part.boss.Hit(part.node,44)){ConfirmedHits++;hitMarker=.18f;player.arena.Impact(hit.point,Color.cyan);}return;}var vitality=hit.collider.GetComponentInParent<CreatureVitality>();if(vitality&&!vitality.Dead&&vitality.TakeDamage(44,hit.point)){ConfirmedHits++;hitMarker=.18f;player.arena.Impact(hit.point,Color.cyan);}}

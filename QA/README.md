@@ -1,12 +1,24 @@
 # 开发验证
 
+## 项目缺陷定向回归
+
+先运行 `Tools/TestShowcase.ps1 -Build` 构建当前源码，再运行 `Tools/TestProjectAudit.ps1 -Label audit -Suites @('projectAuditQA','campaignQA','hardQA','monsterVisibilityQA')`。定向回归覆盖抓钩携货中新建/读档、异步进入中恢复、坏场景回退后重试、损坏世界记录与备份、暂停治疗、紫铜原矿应急、回收箱/快速归仓多堆转移、安全区掉落拾取与换弹、高备弹补给、过场边界暂停和检查点结局演出、屏幕坐标映射、区域天空资源卸载。
+
+脚本拒绝早于运行时源码的旧构建，串行运行每个玩家，检查报告新鲜度、退出码、成功标记、失败断言和未处理异常。报告副本与所用程序集 SHA-256 写入 `QA/Reports/ProjectAudit/<Label>/results.json`。`-Suites` 还支持 `showcaseQA`、`lostRealmQA`、`frontierQA`、`interfaceQA`、`guidanceQA`、`creatureQA`、`forgeQA`、`battleQA`、`dragonQA`、`encounterQA`、`immersionQA`、`titanQA`、`portalQA`、`portalReloadQA`、`undergroundQA`；虫洞持久化检查需先运行 `portalQA` 再运行 `portalReloadQA`。完整演示按实际时长运行，至少预留 11 分钟进程时限。
+
+资源存在性检查运行 `python Tools/CheckUnityAssetReferences.py`，输出 `QA/Reports/ProjectAudit/asset-references.json`。它解析 Assets、Packages 和本地 PackageCache 中的 GUID，再检查 Assets/ProjectSettings 序列化引用、工程重复 GUID、孤立/无效 meta；不覆盖 fileID 或视觉质量。修复记录在 `Docs/Design/PROJECT_AUDIT_2026-10-30.md`。
+
+## 主线演示与实时 CG
+
+运行 `Tools/TestShowcase.ps1 -Build -RunQA`，使用 Unity 6000.3.24f1 自带编译器构建全部运行时并检查规则，随后构建现有七个场景，按真实时长运行 `-showcaseQA`。覆盖暂停与恢复、提前退出、原存档隔离、完整五层矿井与五区调查、锻造、修船、机甲、炸弹安全步骤、撤离、主线重建与五至十分钟演示时长。报告输出到 `QA/Reports/Showcase`，日志标记 `SHOWCASE_QA_PASS` 或 `SHOWCASE_QA_FAIL`。相机截图不含 OnGUI；需要完整设置页和字幕验收时应在前台查看。
+
 ## 任务指引
 
-`Tools/TestGuidance.ps1` 使用本机 .NET 9 编译实际任务状态与解析器，运行纯规则检查；`-CompileAll` 同时检查全部运行时源码。它直接使用已安装 Unity 的托管程序集，不安装依赖或引擎。
+`Tools/TestGuidance.ps1` 使用 Unity 6000.3.24f1 自带的 Roslyn、Mono 和参考程序集编译实际任务状态与解析器，运行纯规则检查；`-CompileAll` 同时检查全部运行时源码。它不要求系统安装 .NET SDK，也不安装依赖或引擎。不同安装位置可传 `-Unity <Unity.exe>`，仍支持显式传入 `-UnityManaged <Managed/UnityEngine>`。
 
-`Tools/BuildGuidance.ps1` 在 `Builds/GuidanceWorkspace-20261025` 独立副本构建；源工程版本、场景和其他构建目录保持原状。当前脚本默认使用本机已有 Unity 2022.3.35f1，项目声明仍为 6000.3.24f1，结果须注明引擎版本差异。
+`Tools/BuildGuidance.ps1` 保留旧命令入口，现在转交当前工程的 `TestShowcase.ps1 -Build`，输出 `Builds/Windows`，使用项目版本 Unity 6000.3.24f1。它不再生成强制降级为 Unity 2022 的复制工程；`-Unity` 可指定安装位置，`-Label` 保留单独构建日志。
 
-`Tools/RunGuidanceVerification.ps1` 顺序运行 `-guidanceQA`、`-campaignQA`、`-lostRealmQA`、`-frontierQA`。附加的 `-guidanceSave` 将测试存档放进独立副本的 `QA/GuidanceVerification`，不读取正常玩家故事。汇总输出至 `QA/Reports/GuidanceDelivery`，各套件原始报告和截图保存在独立副本的 `QA/Reports`。
+`Tools/RunGuidanceVerification.ps1` 转交 `TestProjectAudit.ps1`，默认顺序运行 `-guidanceQA`、`-campaignQA`、`-lostRealmQA`、`-frontierQA`。附加的 `-guidanceSave` 将测试存档放进本工程的独立 `QA/GuidanceVerification`，不读取正常玩家故事。汇总输出至 `QA/Reports/ProjectAudit/<Label>`，原始报告和截图保存在本工程 `QA`。运行前必须构建当前源码；过期玩家、旧报告或超时均会报告失败。
 
 专项检查包括目录任务解析、矿井/货舱/绞盘/动态勘测点、真实交互推进、跨区信标、暂停、旧字段恢复、追踪保存、船坞坡道与上层目的地，以及 720p/900p/1080p 全界面截图。截图会检查黑帧并重试；相机渲染与人工新玩家完成任务属于不同验证结论。
 

@@ -5,7 +5,8 @@ using UnityEngine.SceneManagement;
 namespace Starfall {
  [DefaultExecutionOrder(900)]
  public sealed class RealismWorldController:MonoBehaviour {
-  readonly HashSet<Transform> processed=new HashSet<Transform>();float nextScan;Material terrain,metal;bool initialized;RealismStructures structures;
+  readonly HashSet<Transform> processed=new HashSet<Transform>();readonly List<Object> skyResources=new List<Object>();float nextScan;Material terrain,metal;bool initialized;RealismStructures structures;
+  T OwnSky<T>(T resource) where T:Object {skyResources.Add(resource);return resource;}
   [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)] static void Register(){SceneManager.sceneLoaded-=Loaded;SceneManager.sceneLoaded+=Loaded;}
   [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)] static void Existing(){Loaded(SceneManager.GetActiveScene(),LoadSceneMode.Single);}
   static void Loaded(Scene scene,LoadSceneMode mode){if(!scene.name.StartsWith("Scene0")||scene.name.StartsWith("Scene01"))return;foreach(var root in scene.GetRootGameObjects())if(root.GetComponent<RealismWorldController>())return;var host=new GameObject("Starfall realism · appearance layer");SceneManager.MoveGameObjectToScene(host,scene);host.AddComponent<RealismWorldController>();}
@@ -48,13 +49,13 @@ namespace Starfall {
   }
   void Titan(SkyTitan titan){if(titan.GetComponentInChildren<RealismTitanVisual>(true))return;var life=titan.GetComponent<CreatureVitality>();if(life&&life.Dead)return;var model=RealismAssets.Instantiate("AncientDragon",titan.transform);if(!model)return;RealismAssets.Orient(model.transform,"head");model.transform.localRotation=Quaternion.Euler(0,180,0)*model.transform.localRotation;RealismAssets.Fit(model.transform,220,0);RealismAssets.HideOriginal(titan.transform);model.AddComponent<RealismTitanVisual>().Configure(titan);}
   void UpgradeSky(){Transform planet=null,ring=null;foreach(var root in gameObject.scene.GetRootGameObjects())foreach(var t in root.GetComponentsInChildren<Transform>(true)){if(t.name=="Distant gas giant")planet=t;if(t.name=="Planet orbital ring")ring=t;}if(!planet||!ring)return;
-   planet.gameObject.isStatic=false;ring.gameObject.isStatic=false;var planetMat=new Material(Resources.Load<Shader>("StarfallRealism/RealismPlanet"));planetMat.SetTexture("_MainTex",RealismAssets.Texture("Textures/GasGiantClouds"));planet.GetComponent<Renderer>().sharedMaterial=planetMat;
-   float radius=planet.GetComponent<Renderer>().bounds.extents.x;var mesh=RingMesh();ring.GetComponent<MeshFilter>().sharedMesh=mesh;ring.position=planet.position;ring.localScale=Vector3.one*(radius*2.3f);var ringMat=new Material(Resources.Load<Shader>("StarfallRealism/RealismRing"));ring.GetComponent<Renderer>().sharedMaterial=ringMat;
+   planet.gameObject.isStatic=false;ring.gameObject.isStatic=false;var planetMat=OwnSky(new Material(Resources.Load<Shader>("StarfallRealism/RealismPlanet")));planetMat.SetTexture("_MainTex",RealismAssets.Texture("Textures/GasGiantClouds"));planet.GetComponent<Renderer>().sharedMaterial=planetMat;
+   float radius=planet.GetComponent<Renderer>().bounds.extents.x;var mesh=OwnSky(RingMesh());ring.GetComponent<MeshFilter>().sharedMesh=mesh;ring.position=planet.position;ring.localScale=Vector3.one*(radius*2.3f);var ringMat=OwnSky(new Material(Resources.Load<Shader>("StarfallRealism/RealismRing")));ring.GetComponent<Renderer>().sharedMaterial=ringMat;
    var binding=ring.gameObject.AddComponent<RealismSkyBinding>();binding.planet=planet;binding.radius=radius;
-   var sky=new Material(Resources.Load<Shader>("StarfallRealism/RealismStarSky"));sky.SetTexture("_StarMap",RealismAssets.Texture("Textures/StarMap"));RenderSettings.skybox=sky;
+   var sky=OwnSky(new Material(Resources.Load<Shader>("StarfallRealism/RealismStarSky")));sky.SetTexture("_StarMap",RealismAssets.Texture("Textures/StarMap"));RenderSettings.skybox=sky;
   }
   static Mesh RingMesh(){var vertices=new List<Vector3>();var uv=new List<Vector2>();var triangles=new List<int>();const int steps=512;for(int i=0;i<=steps;i++){float a=i*Mathf.PI*2/steps;vertices.Add(new Vector3(Mathf.Cos(a)*.5565f,0,Mathf.Sin(a)*.5565f));vertices.Add(new Vector3(Mathf.Cos(a),0,Mathf.Sin(a)));uv.Add(new Vector2(i/(float)steps,0));uv.Add(new Vector2(i/(float)steps,1));if(i>0){int k=i*2;triangles.AddRange(new[]{k-2,k,k-1,k-1,k,k+1});}}var m=new Mesh{name="Saturn style density rings · no collision"};m.SetVertices(vertices);m.SetUVs(0,uv);m.SetTriangles(triangles,0);m.RecalculateNormals();m.RecalculateBounds();return m;}
-  void OnDestroy(){if(terrain)Destroy(terrain);if(metal)Destroy(metal);if(structures!=null)structures.Dispose();}
+  void OnDestroy(){if(terrain)Destroy(terrain);if(metal)Destroy(metal);if(structures!=null)structures.Dispose();foreach(var resource in skyResources)if(resource)Destroy(resource);skyResources.Clear();}
  }
  public sealed class RealismSkyBinding:MonoBehaviour {
   public Transform planet;public float radius;

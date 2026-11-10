@@ -66,7 +66,7 @@ namespace Starfall {
   }
   void TickCompanions(){if(companionArt==null||State==null)return;for(int i=0;i<3;i++){companionArt[i].SetActive(Exp(CompanionFlags[i]));if(companionArt[i].activeSelf)companionArt[i].transform.localPosition=new Vector3(companionArt[i].transform.localPosition.x,director.surfaceY+(i==0?1.35f:.88f)+Mathf.Sin(Time.time*(i==0?3:1.6f)+i)*.035f,companionArt[i].transform.localPosition.z);}
    facilityArt[0].SetActive(Exp("engineer-rescued"));facilityArt[1].SetActive(Exp("doctor-rescued"));facilityArt[2].SetActive(Exp("greenhouse"));for(int i=0;i<5;i++)relicArt[i].SetActive(Exp("relic-"+(i+1)));if(observatory)observatory.SetActive(Exp("atlas-restored"));}
-  void TickTreatment(){if(treatmentTime<=0)return;if(!AtCamp||Modal&&panel!="workshop"&&!(panel=="companion"&&selectedCompanion==2)){treatmentTime=0;return;}treatmentTime-=Time.unscaledDeltaTime;if(treatmentTime<=0){State.health=100;Notice("治疗完成");Changed();}}
+  void TickTreatment(){if(treatmentTime<=0)return;if(!AtCamp||Modal&&panel!="workshop"&&!(panel=="companion"&&selectedCompanion==2)){treatmentTime=0;return;}if(director.IsPaused)return;treatmentTime-=Time.unscaledDeltaTime;if(treatmentTime<=0){State.health=100;Notice("治疗完成");Changed();}}
   void DrawWorkshop(){
    Caption(new Rect(195,184,1100,34),"岚的工坊 · 装备和材料",22);
    if(Action(new Rect(1110,184,230,36),"建设 / 战术整备"))panel="frontier";

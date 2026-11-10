@@ -10,7 +10,7 @@ namespace Starfall {
   static readonly Vector2 contact=new Vector2(948,487);
   void Fill(Rect r,Color c){GUI.color=c;GUI.DrawTexture(r,Texture2D.whiteTexture);GUI.color=Color.white;}
   void Label(Rect r,string text,int size,Color color,bool bold=false,TextAnchor anchor=TextAnchor.MiddleLeft){GUI.Label(r,text,new GUIStyle(GUI.skin.label){font=director.uiFont,fontSize=size,fontStyle=bold?FontStyle.Bold:FontStyle.Normal,normal={textColor=color},alignment=anchor,wordWrap=false});}
-  bool Action(Rect r,string text,bool enabled=true){return InteractionFeel.Button(r,text,director.uiFont,18,amber,enabled);}
+  bool Action(Rect r,string text,bool enabled=true){return InteractionFeel.Button(r,text,director.uiFont,18,amber,enabled&&(!CampaignRuntime.Current||!CampaignRuntime.Current.ShowcaseActive));}
   void Art(Rect r,Texture texture,float opacity=1,ScaleMode mode=ScaleMode.ScaleToFit){if(!texture)return;GUI.color=new Color(1,1,1,opacity);GUI.DrawTexture(r,texture,mode,true);GUI.color=Color.white;}
   void Stroke(Vector2 a,Vector2 b,float width,Color color){var old=GUI.matrix;GUI.matrix=old*Matrix4x4.TRS(new Vector3(a.x,a.y,0),Quaternion.Euler(0,0,Mathf.Atan2(b.y-a.y,b.x-a.x)*Mathf.Rad2Deg),Vector3.one);Fill(new Rect(0,-width*.5f,Vector2.Distance(a,b),width),color);GUI.matrix=old;}
   Texture2D Pose(){return State==ForgeState.Striking?(StrikeAge<.12f?heroReady:StrikeAge<.25f?heroLift:StrikeAge<.74f?heroStrike:heroReady):heroReady;}

@@ -83,18 +83,23 @@ namespace Starfall {
    InteractionFeel.Play(FeelCue.Click,.5f);State=ForgeState.Closed;Paused=false;return true;
   }
   public void TogglePause(){if(IsWorking){Paused=!Paused;InteractionFeel.Play(FeelCue.Click,.5f);}}
+  public void CancelShowcaseForge(){
+   if(!CampaignRuntime.Current||!CampaignRuntime.Current.ShowcaseActive)return;
+   if(activeOre!=null)inventory.Resolve(activeOre,false);activeOre=null;State=ForgeState.Closed;Paused=false;
+  }
   void Update(){
    if(!IsOpen)return;
-   if(Input.GetKeyDown(KeyCode.Escape)){if(IsWorking)TogglePause();else TryClose();}
+   bool showcase=CampaignRuntime.Current&&CampaignRuntime.Current.ShowcaseActive;
+   if(!showcase&&Input.GetKeyDown(KeyCode.Escape)){if(IsWorking)TogglePause();else TryClose();}
    if(!IsOpen||Paused)return;
-   if(Input.GetKeyDown(KeyCode.Space)){if(State==ForgeState.CampMenu){OpenWorkshop();return;}if(State==ForgeState.Ready||((State==ForgeState.Success||State==ForgeState.Failure)&&!FailurePresentationActive&&!RewardPresentationActive)){BeginForge();return;}}
+   if(!showcase&&Input.GetKeyDown(KeyCode.Space)){if(State==ForgeState.CampMenu){OpenWorkshop();return;}if(State==ForgeState.Ready||((State==ForgeState.Success||State==ForgeState.Failure)&&!FailurePresentationActive&&!RewardPresentationActive)){BeginForge();return;}}
    float dt=Time.unscaledDeltaTime;
    if(State==ForgeState.Timing){
     if(WarmupRemaining>0){float consume=Mathf.Min(dt,WarmupRemaining);WarmupRemaining-=consume;dt-=consume;if(dt<=0)return;}
     roundElapsed+=dt;TimeRemaining=Mathf.Max(0,roundDurations[RoundIndex]-roundElapsed);
     PreviousPointer=Pointer;EvaluateRhythm();
     if(TimeRemaining<=0){Fail("没有及时落锤，矿石冷却碎裂了。");return;}
-    if(Input.GetKeyDown(KeyCode.Space))SubmitStrike();
+    if(!showcase&&Input.GetKeyDown(KeyCode.Space))SubmitStrike();
    }else if(State==ForgeState.Striking){
     float prior=StrikeAge;StrikeAge+=dt;if(prior<.28f&&StrikeAge>=.28f)Play(true);
     if(StrikeAge>=.88f){

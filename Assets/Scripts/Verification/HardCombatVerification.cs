@@ -26,7 +26,7 @@ namespace Starfall {
    Warp(new Vector3(0,0,0));fps.transform.rotation=Quaternion.identity;float x=fps.transform.position.x;float end=Time.time+4.5f;
    while(Time.time<end){fps.Drive(Vector2.right,true,false,Time.deltaTime);yield return null;}
    checks["sprintingConsumesFiniteStamina"]=gun.Stamina<30&&fps.transform.position.x>x+10;
-   yield return new WaitForSeconds(3);checks["staminaRecoversAfterRest"]=gun.Stamina>45;
+   float restingStamina=gun.Stamina;yield return new WaitForSeconds(3);checks["staminaRecoversAfterRest"]=gun.Stamina>restingStamina+25&&gun.Stamina<=gun.MaxStamina;
    var enemy=arena.creatures[0];ResetEnemy(enemy,new Vector3(0,0,0));Warp(new Vector3(0,0,9));var vitality=enemy.GetComponent<CreatureVitality>();Face(enemy.transform.position+Vector3.up*1.55f);
    recording=true;StartCoroutine(Record());int hp=vitality.Health;int ammo=gun.Magazine;checks["primaryAttackFires"]=gun.Attack();checks["raycastDamagesMonster"]=vitality.Health==hp-26&&gun.Magazine==ammo-1;checks["fireCadenceBlocksSpam"]=!gun.Attack();yield return Capture("02-player-rifle-hit");
    yield return new WaitForSeconds(.35f);var wall=GameObject.CreatePrimitive(PrimitiveType.Cube);wall.name="QA ballistic obstruction";wall.transform.position=(fps.transform.position+enemy.transform.position)*.5f+Vector3.up*1.5f;wall.transform.localScale=new Vector3(8,5,1);Physics.SyncTransforms();hp=vitality.Health;gun.Attack();checks["solidCoverBlocksPlayerShot"]=vitality.Health==hp;Destroy(wall);yield return new WaitForSeconds(.35f);
@@ -52,7 +52,13 @@ namespace Starfall {
    checks["gatheredOreKeepsItsMetalThroughForging"]=firstForge&&secondForge&&director.inventory.MetalCount(node2.metal)>0;
    // Actual tougher AI attacks, isolated from the other five patrols.
    var ground=arena.creatures[2];ground.gameObject.SetActive(true);ResetEnemy(ground,new Vector3(0,0,0));ground.enabled=true;Warp(new Vector3(0,0,12));arena.RestoreHealth(100);int charge=ground.Charges;yield return Wait(()=>ground.State==CreatureState.ChargeTell,8);hp=arena.Health;yield return Wait(()=>arena.Health<hp,5);checks["hardChargeDeals44"]=arena.Health==hp-44&&ground.Charges>charge;ground.enabled=false;ground.Agent.isStopped=true;ground.gameObject.SetActive(false);
-   var flyer=arena.creatures[1];ResetEnemy(flyer,new Vector3(0,0,0));flyer.enabled=true;Warp(new Vector3(0,0,14));arena.RestoreHealth(100);int shots=flyer.Shots;yield return Wait(()=>flyer.Shots>=shots+5,8);checks["wyvernFiresFiveShotVolley"]=flyer.Shots>=shots+5;yield return Wait(()=>arena.Health<100,3);checks["wyvernBoltDeals19"]=arena.Health<=81;flyer.enabled=false;flyer.Agent.isStopped=true;arena.ClearBolts();
+   var flyer=arena.creatures[1];ResetEnemy(flyer,new Vector3(0,0,0));flyer.enabled=true;Warp(new Vector3(0,0,14));arena.RestoreHealth(100);int shots=flyer.Shots;
+   Debug.Log("HARD_QA_VOLLEY setup velocity="+fps.Motor.velocity.ToString("F3")+" player="+fps.transform.position.ToString("F3")+" mouth="+flyer.mouth.position.ToString("F3"));
+   Action<AlienBolt,Collider,bool> volleyHit=(bolt,collider,damaged)=>Debug.Log("HARD_QA_VOLLEY hit="+collider.name+" damage="+damaged+" position="+bolt.HitPosition.ToString("F3")+" health="+arena.Health);
+   arena.ProjectileHit+=volleyHit;
+   try{yield return Wait(()=>flyer.Shots>=shots+5,8);checks["wyvernFiresFiveShotVolley"]=flyer.Shots>=shots+5;yield return Wait(()=>arena.Health<100,3);checks["wyvernBoltDeals19"]=arena.Health<=81;}
+   finally{arena.ProjectileHit-=volleyHit;}
+   Debug.Log("HARD_QA_VOLLEY result health="+arena.Health+" aim="+flyer.VolleyAim.ToString("F3")+" shots="+(flyer.Shots-shots));flyer.enabled=false;flyer.Agent.isStopped=true;arena.ClearBolts();
    Warp(new Vector3(0,0,0));arena.RestoreHealth(100);yield return new WaitForSeconds(.5f);titanAttack.AttackEnabled=true;titanAttack.BeginAttack();checks["giantShorterReadableWarning"]=TitanAreaAttack.WarningSeconds==3.2f&&titanAttack.Phase==1;yield return Wait(()=>titanAttack.HitCount>0,6);checks["giantAttackDeals65"]=arena.Health==35;titanAttack.Cancel();titanAttack.AttackEnabled=false;
    var titan=titanAttack.GetComponent<CreatureVitality>();checks["giantHasDamageableHealth"]=titan.Health==1800&&titan.TakeDamage(26,titan.transform.position)&&titan.Health==1774;
    Warp(new Vector3(0,0,0));yield return new WaitForSeconds(.5f);arena.Damage(100,null);yield return Wait(()=>arena.Safe&&!arena.Downed,4);checks["deathRecoversWithoutRevivingKilledMonster"]=arena.Health==100&&vitality.Dead&&!enemy.Agent.enabled;
@@ -61,7 +67,7 @@ namespace Starfall {
    director.wormhole.TryEnter();yield return Wait(()=>director.battle.Explorer&&!director.battle.IsTransitioning,18);yield return new WaitForSeconds(.3f);fps=director.battle.Explorer;checks["wormholeDoesNotRefillAmmoOrHealth"]=fps.arsenal.Magazine==ammo&&fps.arsenal.Reserve==reserve&&fps.arena.Health==hp;checks["wormholeKeepsDefeatedAndMinedState"]=fps.arena.creatures[0].GetComponent<CreatureVitality>().Dead&&fps.expedition.resources[0].Depleted;checks["giantWoundsPersist"]=FindFirstObjectByType<SkyTitan>().GetComponent<CreatureVitality>().Health==1774;
    director.battle.ReturnToExpedition();yield return Wait(()=>!director.battle.IsEngaged,12);File.WriteAllLines(folder+"/frame-times.txt",times);Finish();
   }
-  void Warp(Vector3 p){fps.Motor.enabled=false;fps.transform.position=new Vector3(p.x,AlienSurfaceLandmarks.Height(p.x,p.z)+.08f,p.z);fps.Motor.enabled=true;fps.ResetMotion();fps.Drive(Vector2.zero,false,false,.016f);Physics.SyncTransforms();}
+  void Warp(Vector3 p){fps.Motor.enabled=false;fps.transform.position=new Vector3(p.x,AlienSurfaceLandmarks.Height(p.x,p.z)+.08f,p.z);fps.Motor.enabled=true;fps.ResetMotion();fps.Motor.Move(Vector3.down*.2f);fps.Motor.Move(Vector3.zero);Physics.SyncTransforms();}
   void ResetEnemy(AlienCreature c,Vector3 p){c.ResetToHome();if(NavMesh.SamplePosition(new Vector3(p.x,AlienSurfaceLandmarks.Height(p.x,p.z),p.z),out var h,6,NavMesh.AllAreas))c.Agent.Warp(h.position);c.Agent.isStopped=true;c.transform.rotation=Quaternion.identity;Physics.SyncTransforms();}
   void Face(Vector3 p){var v=p-fps.viewCamera.transform.position;fps.transform.rotation=Quaternion.Euler(0,Mathf.Atan2(v.x,v.z)*Mathf.Rad2Deg,0);fps.Look(0,fps.Pitch+Mathf.Atan2(v.y,new Vector2(v.x,v.z).magnitude)*Mathf.Rad2Deg);}
   IEnumerator Wait(Func<bool> c,float seconds){float end=Time.realtimeSinceStartup+seconds;while(!c()&&Time.realtimeSinceStartup<end)yield return null;}
