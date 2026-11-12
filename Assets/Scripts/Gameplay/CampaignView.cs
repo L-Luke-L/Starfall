@@ -5,6 +5,7 @@ using UnityEngine;
 namespace Starfall {
  public sealed partial class CampaignRuntime {
   string panel="";int tab,selected=-1,warehousePage,selectedJournal;bool fromWarehouse,priorPaused;float priorScale=1,emergencyTime;int emergencyItem=-1;int consumedFrame=-1;
+  internal string CurrentPanel=>panel;
   public bool ConsumedInput=>consumedFrame==Time.frameCount;
   public void Open(string page){director.CompleteTravel();if(!Modal){priorScale=Time.timeScale;priorPaused=Explorer?Explorer.Paused:director.IsPaused;if(Explorer)Explorer.SetPaused(true);else Time.timeScale=0;}if(page=="journal")PrepareGuidanceJournal();panel=page;selected=-1;consumedFrame=Time.frameCount;InteractionFeel.Play(FeelCue.Click,.5f);}
   public void Close(){if(!Modal)return;panel="";emergencyItem=-1;consumedFrame=Time.frameCount;if(Explorer)Explorer.SetPaused(priorPaused);Time.timeScale=priorScale;}
@@ -21,7 +22,19 @@ namespace Starfall {
   bool Action(Rect r,string text,bool enabled=true)=>CampaignGameUI.Button(r,text,director.uiFont,enabled&&!Busy);
   void Paragraph(Rect r,string text,int size=18){CampaignGameUI.Text(r,text,director.uiFont,size,CampaignGameUI.Ink,TextAnchor.UpperLeft,true);}
   void OnGUI(){
-   if(Current!=this||State==null||!director.uiFont||ShowcaseActive)return;var previous=GUI.matrix;GUI.depth=-160;float scale=Mathf.Min(Screen.width/1600f,Screen.height/900f);GUI.matrix=Matrix4x4.TRS(new Vector3((Screen.width-1600*scale)/2,(Screen.height-900*scale)/2,0),Quaternion.identity,Vector3.one*scale);
+   if(Current!=this||State==null||!director.uiFont)return;
+   if(ShowcaseActive){
+    if(Modal&&!CinematicActive)DrawCampaignInterface();
+    DrawShowcaseOverlay();
+    return;
+   }
+   DrawCampaignInterface();
+  }
+  void DrawCampaignInterface(){
+   var previous=GUI.matrix;bool previousEnabled=GUI.enabled;GUI.depth=-160;
+   // Use the normal panel visuals while only the showcase driver can act on them.
+   if(ShowcaseActive&&Event.current.type!=EventType.Repaint)GUI.enabled=false;
+   float scale=Mathf.Min(Screen.width/1600f,Screen.height/900f);GUI.matrix=Matrix4x4.TRS(new Vector3((Screen.width-1600*scale)/2,(Screen.height-900*scale)/2,0),Quaternion.identity,Vector3.one*scale);
    if(!director.forge.IsOpen&&!Modal){
     if(!director.battle.IsEngaged&&!director.underground)DrawCampPrompt();
     if(director.IsPaused||Explorer&&Explorer.Paused){DrawShowcaseSettings(new Rect(650,610,300,36));if(Action(new Rect(650,654,300,36),StoryCinematicsEnabled?"剧情演出 · 开启":"剧情演出 · 关闭"))StoryCinematicsEnabled=!StoryCinematicsEnabled;DrawGuidanceSettings(new Rect(650,698,300,36));}else DrawGuidanceHud();Caption(new Rect(1130,director.underground&&!director.battle.IsEngaged?802:849,430,25),"B 背包   J 手账   F5 保存",12,null,TextAnchor.MiddleRight);
@@ -42,9 +55,10 @@ namespace Starfall {
     if(panel=="showcase")DrawShowcaseSetup();if(panel=="frontier")DrawFrontier();else if(panel=="companion")DrawCompanion();else if(panel=="bag"||panel=="camp"||panel=="warehouse")DrawInventory();else if(panel=="workshop")DrawWorkshop();else if(panel=="forge")DrawForgeSelect();else if(panel=="craft")DrawCraft();else if(panel=="ship")DrawShip();else if(panel=="takeoff")DrawTakeoff();else if(panel=="coordinates")DrawCoordinates();else if(panel=="journal")DrawJournal();else if(panel=="system")DrawSystem();else if(panel=="new-game")DrawNewGame();else if(panel=="layers")DrawLayers();else if(panel=="chest")DrawChest();else if(panel=="terminal")DrawTerminal();else if(panel=="permission")DrawPermission();else if(panel=="core")DrawCore();else if(panel=="detonate")DrawDetonate();else if(panel=="remain")DrawRemain();else if(panel=="escaped"||panel=="saved")DrawEnding();else if(panel=="guide-help")DrawGuidanceHelp();
     CampaignGameUI.Divider(new Rect(154,792,1286,1));
     if(toastAge>0)Caption(new Rect(160,799,1200,27),toast,15,CampaignGameUI.Gold);
-    else Caption(new Rect(160,799,1200,27),"B 物资   ·   J 手账   ·   Esc 返回探索",13,CampaignGameUI.Muted);
+    else Caption(new Rect(160,799,1200,27),ShowcaseActive?"主线演示 · 自动操作":"B 物资   ·   J 手账   ·   Esc 返回探索",13,CampaignGameUI.Muted);
    }
-   DrawPresentation();GUI.matrix=previous;GUI.color=Color.white;
+   if(!ShowcaseActive)DrawPresentation();
+   GUI.enabled=previousEnabled;GUI.matrix=previous;GUI.color=Color.white;
   }
   static string Title(string page){switch(page){case "showcase":return "主线精华演示";case "frontier":return "余烬重建";case "companion":return "营地伙伴";case "workshop":return "营地工坊";case "camp":case "warehouse":return "营地 · 物资整备";case "bag":return "随身背包";case "forge":return "选择原矿";case "craft":return "制作与应急回收";case "ship":return "飞船维修终端";case "coordinates":return "已记录坐标";case "journal":return "探险者手账";case "system":return "故事与存档";case "new-game":return "开始新的故事？";case "layers":return "矿井升降控制";case "chest":return "同盟探险船 · 密封货舱";case "permission":return "现实端出口 · 权限确认";case "terminal":return "区域档案终端";case "core":return "D4核心控制台";case "detonate":return "确认引爆？";case "takeoff":return "确认起飞？";case "remain":return "裂隙已经熄灭";case "escaped":return "结局 · 下一段航程";case "saved":return "结局 · 星球的守望者";default:return page;}}
   void DrawInventory(){DrawInventoryTerminal();}

@@ -40,18 +40,41 @@ namespace Starfall {
    Check("Pause also freezes the real cinematic",cine.IsPlaying&&cine.IsPaused&&Mathf.Abs(cine.Elapsed-cineElapsed)<.01f);
    cine.SetPaused(false);yield return new WaitForSecondsRealtime(.35f);Check("Resume advances showcase clock",!campaign.ShowcasePaused&&campaign.ShowcaseElapsed>elapsed);
    yield return Capture("opening-cg");
+   float mineWait=Time.realtimeSinceStartup+35;
+   while(campaign.ShowcaseActive&&(campaign.CinematicActive||!director.underground||director.Transitioning)&&Time.realtimeSinceStartup<mineWait)yield return null;
+   Check("Demo reaches active mine gameplay",campaign.ShowcaseActive&&!campaign.CinematicActive&&director.underground&&!director.Transitioning);
+   yield return Capture("mine-hud");
+   if(Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-showcaseLifecycleOnly")){
+    campaign.Open("craft");
+    yield return Capture("craft-panel-fixture",true);
+    campaign.SetShowcasePaused(true);
+    yield return Capture("craft-panel-paused");
+    campaign.SetShowcasePaused(false);
+    campaign.Close();
+   }
    Check("Demo save succeeds in separate store",campaign.Save());Check("Demo writes cannot alter original campaign files",SameFiles(originalStore.directory,originalFiles));
    campaign.StopShowcase();float until=Time.realtimeSinceStartup+30;while(campaign.ShowcaseActive&&Time.realtimeSinceStartup<until)yield return null;
    Check("Early exit restores original state and store",!campaign.ShowcaseActive&&ReferenceEquals(campaign.State,original)&&ReferenceEquals(campaign.Store,originalStore));
-   Check("Cancelling CG restores gameplay camera and enabled components",!cine.IsPlaying&&!cine.ShotCamera&&director.worldCamera.enabled&&campaign.enabled&&director.enabled);
+   Check("Early exit restores gameplay camera and enabled components",!cine.IsPlaying&&!cine.ShotCamera&&director.worldCamera.enabled&&campaign.enabled&&director.enabled);
    Check("Early exit restores original progression and surface position",JsonUtility.ToJson(original)==originalJson&&Vector3.Distance(director.player.position,originalPosition)<.05f);
    Check("Early exit keeps original save files unchanged",SameFiles(originalStore.directory,originalFiles));
    if(Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-showcaseLifecycleOnly")){yield return LifecycleEdges();yield break;}
    Check("A fresh complete showcase can restart after cancellation",campaign.StartShowcase());yield return null;originalJson=JsonUtility.ToJson(original);originalFiles=FilesAt(originalStore.directory);
-   int lastStage=-1;var visited=new HashSet<int>();var milestones=new HashSet<string>();var deaths=new Dictionary<int,int>();bool testedForgePause=false;float runStart=Time.realtimeSinceStartup;
+   int lastStage=-1,ammoBeforeCraft=-1;var visited=new HashSet<int>();var milestones=new HashSet<string>();var deaths=new Dictionary<int,int>();bool testedForgePause=false;float runStart=Time.realtimeSinceStartup;
    while(campaign.ShowcaseActive&&!campaign.ShowcaseFinished&&Time.realtimeSinceStartup-runStart<650){
     int stage=campaign.ShowcaseStage;if(stage!=lastStage){lastStage=stage;visited.Add(stage);Debug.Log("SHOWCASE_QA_STAGE "+stage+" elapsed="+campaign.ShowcaseElapsed.ToString("F2"));yield return Capture("stage-"+stage.ToString("D2"));}
     string milestone=Milestone();if(milestone!=null&&milestones.Add(milestone))yield return Capture(milestone);
+    string panelMilestone=PanelMilestone(ref ammoBeforeCraft);
+    if(panelMilestone!=null&&milestones.Add(panelMilestone)){
+     yield return Capture(panelMilestone,true);
+     if(panelMilestone=="ammo-recipe"){
+      campaign.SetShowcasePaused(true);float pausedAt=campaign.ShowcaseElapsed;
+      yield return new WaitForSecondsRealtime(.35f);
+      Check("Pausing on the crafting panel holds the recipe and the showcase clock",campaign.ShowcasePaused&&campaign.CurrentPanel=="craft"&&Mathf.Abs(campaign.ShowcaseElapsed-pausedAt)<.01f);
+      yield return Capture("craft-panel-paused");
+      campaign.SetShowcasePaused(false);
+     }
+    }
     if(campaign.Explorer)deaths[campaign.Explorer.GetInstanceID()]=campaign.Explorer.arena.RespawnCount;
     if(stage==2&&!testedForgePause&&director.forge.IsWorking&&!campaign.CinematicActive){testedForgePause=true;campaign.SetShowcasePaused(true);float pausedAt=campaign.ShowcaseElapsed,pointer=director.forge.Pointer;yield return new WaitForSecondsRealtime(.4f);Check("Gameplay pause freezes clock and unscaled forge QTE",campaign.ShowcasePaused&&director.forge.Paused&&Mathf.Abs(campaign.ShowcaseElapsed-pausedAt)<.01f&&Mathf.Abs(director.forge.Pointer-pointer)<.001f);campaign.SetShowcasePaused(false);}
     if(!string.IsNullOrEmpty(campaign.ShowcaseError))break;yield return null;
@@ -60,6 +83,8 @@ namespace Starfall {
    if(!string.IsNullOrEmpty(campaign.ShowcaseError))results.Add("SHOWCASE_ERROR "+campaign.ShowcaseError);
    Check("Full unskipped presentation lasts between five and ten minutes",campaign.ShowcaseElapsed>=300&&campaign.ShowcaseElapsed<=600);
    Check("All eleven mainline chapters were shown",visited.Count==11);
+   foreach(string panelShot in new[]{"coordinates-panel","chest-panel","forge-select-panel","ammo-recipe","ammo-crafted","archive-panel-2","archive-panel-3","archive-panel-4","archive-panel-5","bomb-recipe","bomb-crafted","ship-repair","ship-ready","core-controls","core-bomb-installed","detonation-panel","ecology-choice","guardian-ending"})
+    Check("Full flow reaches "+panelShot,milestones.Contains(panelShot));
    int deathCount=0;foreach(int count in deaths.Values)deathCount+=count;Check("Directed presentation avoids death and recovery interruptions",deathCount==0);
    Check("Forge pause was exercised during the actual mainline",testedForgePause);
    var state=campaign.State;Check("All five mine layers and all five coordinates were earned",state.unlockedLayer==5&&state.coordinates.Count==5&&campaign.LayerComplete(1)&&campaign.LayerComplete(2)&&campaign.LayerComplete(3)&&campaign.LayerComplete(4)&&campaign.LayerComplete(5));
@@ -113,13 +138,71 @@ namespace Starfall {
    if(campaign.ShowcaseStage==10&&campaign.State.Has("seed-planted"))return "restored-planet";
    return null;
   }
-  IEnumerator Capture(string name){
-   yield return new WaitForEndOfFrame();var cameras=Camera.allCameras;Array.Sort(cameras,(a,b)=>a.depth.CompareTo(b.depth));bool hasWorld=false;foreach(var camera in cameras)if(camera&&camera.isActiveAndEnabled&&camera.targetTexture==null&&camera.cullingMask!=0)hasWorld=true;
-   if(!hasWorld){Check("Active rendered camera exists for "+name,false);yield break;}
-   var target=RenderTexture.GetTemporary(1280,720,24);var active=RenderTexture.active;Texture2D image=null;var priorTargets=new Dictionary<Camera,RenderTexture>();
-   try{RenderTexture.active=target;GL.Clear(true,true,Color.black);foreach(var camera in cameras){if(!camera||!camera.isActiveAndEnabled||camera.targetTexture!=null)continue;priorTargets[camera]=camera.targetTexture;camera.targetTexture=target;camera.Render();camera.targetTexture=priorTargets[camera];}RenderTexture.active=target;image=new Texture2D(1280,720,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,1280,720),0,0);image.Apply();var pixels=image.GetPixels32();int visible=0;for(int i=0;i<pixels.Length;i+=3600)if(pixels[i].r+pixels[i].g+pixels[i].b>35)visible++;Check("Nonblack game camera capture "+name,visible>12);File.WriteAllBytes(Path.Combine(folder,name+".png"),image.EncodeToPNG());}
-   catch(Exception e){Check("Capture "+name+": "+e.Message,false);}
-   finally{foreach(var pair in priorTargets)if(pair.Key)pair.Key.targetTexture=pair.Value;RenderTexture.active=active;RenderTexture.ReleaseTemporary(target);if(image)Destroy(image);}
+  string PanelMilestone(ref int ammoBeforeCraft){
+   switch(campaign.CurrentPanel){
+    case "coordinates":return "coordinates-panel";
+    case "chest":return "chest-panel";
+    case "forge":return "forge-select-panel";
+    case "craft":
+     if(campaign.ShowcaseStage==2){
+      int ammo=campaign.State.bag.Count(ItemId.Ammo);
+      if(ammoBeforeCraft<0)ammoBeforeCraft=ammo;
+      return ammo>=ammoBeforeCraft+24?"ammo-crafted":"ammo-recipe";
+     }
+     return campaign.State.Has("bomb-crafted")?"bomb-crafted":"bomb-recipe";
+    case "terminal":return "archive-panel-"+campaign.State.region;
+    case "ship":
+     if(campaign.State.Has("ship-fueled"))return "ship-ready";
+     return campaign.State.repairs.Count==0?"ship-repair":null;
+    case "core":return campaign.State.Has("bomb-installed")?"core-bomb-installed":"core-controls";
+    case "detonate":return "detonation-panel";
+    case "remain":return "ecology-choice";
+    case "saved":return "guardian-ending";
+    default:return null;
+   }
+  }
+  IEnumerator Capture(string name,bool requirePanel=false){
+   for(int attempt=0;attempt<6;attempt++){
+    if(attempt>0)yield return new WaitForSecondsRealtime(.12f);
+    yield return new WaitForEndOfFrame();
+    Texture2D image=null;
+    try{
+     image=ScreenCapture.CaptureScreenshotAsTexture();
+     if(!image)continue;
+     var pixels=image.GetPixels32();
+     int visible=0;for(int i=0;i<pixels.Length;i+=3600)if(pixels[i].r+pixels[i].g+pixels[i].b>35)visible++;
+     if(visible<=12)continue;
+     if(name=="opening-cg")Check("Opening capture includes the cinematic title overlay",HasHudInk(image,pixels,new Rect(80,52,300,28),false));
+     if(name=="mine-hud")Check("Mine capture includes the live mining readout",HasHudInk(image,pixels,new Rect(1150,49,415,25),true));
+     if(requirePanel)Check("Original gameplay panel is visible in "+name,HasPanelHeader(image,pixels));
+     if(name=="ammo-crafted")Check("Ammo craft feedback is visible in the panel footer",HasInk(image,pixels,new Rect(160,799,390,27),pixel=>pixel.r>155&&pixel.r-pixel.b>55,16));
+     if(name=="craft-panel-paused")Check("Showcase pause title is drawn above the crafting panel",HasInk(image,pixels,new Rect(690,239,220,42),pixel=>pixel.r>155&&pixel.r-pixel.b>55,24));
+     File.WriteAllBytes(Path.Combine(folder,name+".png"),image.EncodeToPNG());
+     Check("Nonblack game capture "+name,true);
+    }
+    catch(Exception e){Check("Capture "+name+": "+e.Message,false);}
+    finally{if(image)Destroy(image);}
+    yield break;
+   }
+   Check("Nonblack game capture "+name,false);
+  }
+  static bool HasPanelHeader(Texture2D image,Color32[] pixels){
+   return HasInk(image,pixels,new Rect(155,84,4,12),pixel=>pixel.r>155&&pixel.r-pixel.b>55,4)
+    &&HasInk(image,pixels,new Rect(154,121,580,23),pixel=>pixel.r>170&&pixel.g>175&&pixel.b>170,24);
+  }
+  static bool HasHudInk(Texture2D image,Color32[] pixels,Rect area,bool cyan){
+   return HasInk(image,pixels,area,pixel=>pixel.g>132&&pixel.b>140&&pixel.g-pixel.r>(cyan?30:12),16);
+  }
+  static bool HasInk(Texture2D image,Color32[] pixels,Rect area,Func<Color32,bool> matches,int minimum){
+   float scale=Mathf.Min(image.width/1600f,image.height/900f);
+   float xOffset=(image.width-1600*scale)/2,yOffset=(image.height-900*scale)/2;
+   int left=Mathf.CeilToInt(xOffset+area.xMin*scale),right=Mathf.FloorToInt(xOffset+area.xMax*scale);
+   int top=Mathf.CeilToInt(yOffset+area.yMin*scale),bottom=Mathf.FloorToInt(yOffset+area.yMax*scale),count=0;
+   for(int y=top;y<bottom;y++)for(int x=left;x<right;x++){
+    var pixel=pixels[(image.height-1-y)*image.width+x];
+    if(matches(pixel)&&++count>=minimum)return true;
+   }
+   return false;
   }
  }
 }

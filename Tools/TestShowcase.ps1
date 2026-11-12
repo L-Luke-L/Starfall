@@ -49,9 +49,10 @@ if($RunQA){
  $showcaseNewestSource=Get-ChildItem -LiteralPath (Join-Path $showcaseRoot 'Assets/Scripts') -Recurse -Filter '*.cs' | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
  if($showcaseAssembly.LastWriteTimeUtc -lt $showcaseNewestSource.LastWriteTimeUtc){throw 'The Windows player predates runtime source changes. Run again with -Build -RunQA to verify the current implementation.'}
  $showcasePlayerLog=Join-Path $showcaseLogs $(if($LifecycleOnly){'showcase-lifecycle-player.log'}else{'showcase-player.log'})
- $showcasePlayerArgs=@('-showcaseQA','-force-d3d11','-screen-fullscreen','0','-screen-width','1280','-screen-height','720','-logFile',('"'+$showcasePlayerLog+'"'))
+ $showcasePlayerArgs=@('-showcaseQA','-force-d3d11','-force-d3d11-bitblt-model','-screen-fullscreen','0','-screen-width','1280','-screen-height','720','-logFile',('"'+$showcasePlayerLog+'"'))
  if($LifecycleOnly){$showcasePlayerArgs+='-showcaseLifecycleOnly'}
- $showcaseProcess=Start-Process -FilePath $showcasePlayer -ArgumentList $showcasePlayerArgs -WindowStyle Hidden -PassThru
+ # OnGUI frame capture needs a visible swap chain.
+ $showcaseProcess=Start-Process -FilePath $showcasePlayer -ArgumentList $showcasePlayerArgs -WindowStyle Normal -PassThru
  if(-not $showcaseProcess.WaitForExit(780000)){Stop-Process -Id $showcaseProcess.Id;throw ('Showcase verification exceeded 13 minutes; see '+$showcasePlayerLog)}
  if($showcaseProcess.ExitCode -ne 0){throw ('Showcase runtime verification failed; see '+$showcasePlayerLog)}
  if(-not (Select-String -LiteralPath $showcasePlayerLog -Pattern '^SHOWCASE_QA_PASS' -Quiet)){throw ('Player exited without a successful showcase report; see '+$showcasePlayerLog)}

@@ -10,7 +10,7 @@
 
 ## 主线演示与实时 CG
 
-运行 `Tools/TestShowcase.ps1 -Build -RunQA`，使用 Unity 6000.3.24f1 自带编译器构建全部运行时并检查规则，随后构建现有七个场景，按真实时长运行 `-showcaseQA`。覆盖暂停与恢复、提前退出、原存档隔离、完整五层矿井与五区调查、锻造、修船、机甲、炸弹安全步骤、撤离、主线重建与五至十分钟演示时长。报告输出到 `QA/Reports/Showcase`，日志标记 `SHOWCASE_QA_PASS` 或 `SHOWCASE_QA_FAIL`。相机截图不含 OnGUI；需要完整设置页和字幕验收时应在前台查看。
+运行 `Tools/TestShowcase.ps1 -Build -RunQA`，使用 Unity 6000.3.24f1 自带编译器构建全部运行时并检查规则，随后构建现有七个场景，按真实时长运行 `-showcaseQA`。覆盖暂停与恢复、提前退出、原存档隔离、完整五层矿井与五区调查、锻造、修船、机甲、炸弹安全步骤、撤离、主线重建与五至十分钟演示时长。报告输出到 `QA/Reports/Showcase`，日志标记 `SHOWCASE_QA_PASS` 或 `SHOWCASE_QA_FAIL`。测试窗口需保持可见，完整截图包含 OnGUI 界面与过场字幕。
 
 ## 任务指引
 

@@ -43,7 +43,8 @@ foreach($auditSuite in $Suites){
  $auditReport=Join-Path $auditRoot ('QA/'+$auditSuiteMap[$auditSuite][0])
  $auditStarted=[DateTime]::UtcNow
  $auditArguments=@(('-'+$auditSuite),'-guidanceSave','-force-d3d11','-force-d3d11-bitblt-model','-screen-fullscreen','0','-screen-width','1280','-screen-height','720','-logFile',('"'+$auditLog+'"'))
- $auditProcess=Start-Process -FilePath $auditPlayer -ArgumentList $auditArguments -WindowStyle Hidden -PassThru
+ $auditWindowStyle=if($auditSuite -eq 'showcaseQA'){'Normal'}else{'Hidden'}
+ $auditProcess=Start-Process -FilePath $auditPlayer -ArgumentList $auditArguments -WindowStyle $auditWindowStyle -PassThru
  $auditSuiteTimeout=if($auditSuite -eq 'showcaseQA'){[Math]::Max(660,$TimeoutSeconds)}else{$TimeoutSeconds}
  $auditTimedOut=-not $auditProcess.WaitForExit($auditSuiteTimeout*1000)
  if($auditTimedOut){Stop-Process -Id $auditProcess.Id -ErrorAction SilentlyContinue;$auditProcess.WaitForExit()}

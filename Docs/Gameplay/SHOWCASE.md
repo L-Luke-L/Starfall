@@ -8,6 +8,8 @@
 
 展示由程序自动操作：抓钩确实下放和收回矿物，锻造确实完成三次命中，武器确实射击、消耗弹药和换弹，机甲确实经历节点、装甲与弱点阶段。观众可以集中观看，不需要在演示中手动操作角色。
 
+切换星界、打开货舱、选择锻材、合成弹药与炸弹、读取档案、维修飞船和核查核心时，演示会打开对应的游戏面板。面板会保留一段时间，展示配方、操作反馈和完成状态。按 Esc 可暂停并留在当前步骤。
+
 ## 主要展示内容
 
 1. 坠落后的星球与营地，开场电影镜头。
@@ -43,8 +45,8 @@
 
 `-Build` 使用原有 `StarfallBuilder.Build` 构建现有七个场景，不重新生成场景。`-RunQA` 执行 `Builds/Windows/Starfall.exe -showcaseQA`，先验证提前退出、存档隔离和暂停，再按真实时长完整跑一遍。验证使用独立测试故事，不读取正常玩家的 `CampaignV1`。不要与其他 QA 参数混用。
 
-输出为 `QA/Reports/Showcase/showcase-report.txt` 及各章游戏相机截图，成功日志标记 `SHOWCASE_QA_PASS`，失败标记 `SHOWCASE_QA_FAIL`。相机截图用于检查实际场景渲染，不包含 OnGUI 设置页和电影字幕；完整界面、字体可读性与最终观感仍应在前台试玩验收。构建与运行日志位于 `QA/Logs/showcase-build.log`、`QA/Logs/showcase-player.log`。
+输出为 `QA/Reports/Showcase/showcase-report.txt` 及各章完整游戏画面，包含 HUD、演示界面与过场字幕。运行时请保持测试窗口可见。成功日志标记 `SHOWCASE_QA_PASS`，失败标记 `SHOWCASE_QA_FAIL`。构建与运行日志位于 `QA/Logs/showcase-build.log`、`QA/Logs/showcase-player.log`。
 
-`-LifecycleOnly` 是独立的快速回归：检查开场演出、暂停、地下和第一人称退出恢复，并拍摄裂隙及机甲实时 CG，不运行八分钟主线。输出独立保存在 `QA/Reports/ShowcaseLifecycle` 和 `QA/Logs/showcase-lifecycle-player.log`，不会覆盖完整流程报告。运行器将启用的游戏相机按深度合成到先清黑的目标纹理，兼容独立的第一人称武器相机与宽银幕区域；CG 视觉夹具只预置 QA 场景，不代替完整流程通关检查。
+`-LifecycleOnly` 运行快速回归，检查开场演出、采矿读数、合成面板渲染、暂停、地下和第一人称退出恢复，并拍摄裂隙及机甲实时 CG。完整流程另外检查弹药合成前后、各星界终端、飞船维修、炸弹安装和结局等面板的实际画面。快速回归结果保存在 `QA/Reports/ShowcaseLifecycle` 和 `QA/Logs/showcase-lifecycle-player.log`。
 
 验收覆盖独立 State/Store、重复启动防护、暂停计时、退出恢复、正常存档字节不变、五矿层/五坐标、五区档案、修船、守核机甲、炸弹和三项安全检查、撤离与尾声，以及五至十分钟的完整未跳过流程。自动生成的生物图鉴或委托计数不属于主动完成支线。
