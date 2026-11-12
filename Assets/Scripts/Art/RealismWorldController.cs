@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 namespace Starfall {
  [DefaultExecutionOrder(900)]
  public sealed class RealismWorldController:MonoBehaviour {
-  readonly HashSet<Transform> processed=new HashSet<Transform>();readonly List<Object> skyResources=new List<Object>();float nextScan;Material terrain,metal;bool initialized;RealismStructures structures;
+  readonly HashSet<Transform> processed=new HashSet<Transform>();readonly List<Transform> transformCache=new List<Transform>(512);readonly List<GameObject> rootCache=new List<GameObject>();readonly List<Object> skyResources=new List<Object>();float nextScan;Material terrain,metal;bool initialized;RealismStructures structures;
   T OwnSky<T>(T resource) where T:Object {skyResources.Add(resource);return resource;}
   [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)] static void Register(){SceneManager.sceneLoaded-=Loaded;SceneManager.sceneLoaded+=Loaded;}
   [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)] static void Existing(){Loaded(SceneManager.GetActiveScene(),LoadSceneMode.Single);}
@@ -15,7 +15,9 @@ namespace Starfall {
   void MakeMaterials(){terrain=new Material(Resources.Load<Shader>("StarfallRealism/RealismTerrain"));terrain.name="Scanned moon soil · visual only";terrain.SetTexture("_MainTex",RealismAssets.Texture("Textures/GroundColor"));terrain.SetTexture("_NormalTex",RealismAssets.Texture("Textures/GroundNormal"));terrain.SetTexture("_RoughTex",RealismAssets.Texture("Textures/GroundRoughness"));terrain.SetTexture("_AOTex",RealismAssets.Texture("Textures/GroundAO"));terrain.SetFloat("_Scale",.32f);
    metal=new Material(Shader.Find("Standard")){name="Detailed industrial alloy",color=new Color(.65f,.69f,.72f),mainTexture=RealismAssets.Texture("Textures/MetalColor")};metal.SetFloat("_Metallic",.72f);metal.SetFloat("_Glossiness",.24f);metal.SetTexture("_BumpMap",RealismAssets.Texture("Textures/MetalNormal"));metal.EnableKeyword("_NORMALMAP");metal.mainTextureScale=Vector2.one*2;metal.SetTextureScale("_BumpMap",Vector2.one*2);
   }
-  void Scan(){processed.RemoveWhere(t=>!t);foreach(var root in gameObject.scene.GetRootGameObjects())foreach(var t in root.GetComponentsInChildren<Transform>(true)){
+  void Scan(){
+   processed.RemoveWhere(t=>!t);gameObject.scene.GetRootGameObjects(rootCache);
+   foreach(var root in rootCache){root.GetComponentsInChildren(true,transformCache);foreach(var t in transformCache){
     if(!t||RealismAssets.InAppearance(t)||processed.Contains(t))continue;processed.Add(t);
     if(t.GetComponent<RegionDeviceVisual>()&&t.name.StartsWith("Signal mast")){structures.Antenna(t);continue;}
     if(t.GetComponentInParent<RegionDeviceVisual>()&&t.parent&&t.parent.name.StartsWith("Signal mast"))continue;
@@ -33,8 +35,8 @@ namespace Starfall {
      bool sample=n.Contains("sample")||n.Contains("chart")||n.Contains("token")||n.Contains("nameplate")||n.Contains("insignia")||n.Contains("record");if(!sample)Replace(t,n.Contains("supply")||n.Contains("salvage")?"Crate":n.Contains("mast")?"Tower":"Control",renderer.bounds);continue;
     }
     if(n.StartsWith("Independent hull rib")||n=="Hull crown"||n=="Buried keel"||n=="Engine pod"||n=="Dock support"||n=="Military gantry"||n=="Medical habitat"||n=="Stored D4 cells"||n.StartsWith("Medical isolation")||n.StartsWith("Habitat ")){structures.Housing(t);continue;}
-    if(n.StartsWith("Evacuation barrier")||n.StartsWith("Gantry foot")||n.StartsWith("Suspended gantry")||n.StartsWith("Vessel ")||n.StartsWith("Broken roof")||n.StartsWith("Broken foredeck")||n.StartsWith("Broken vessel prow")||n.StartsWith("Trench wall")||n.StartsWith("Greenhouse bed")||n.StartsWith("Independent cargo container")||n.StartsWith("D4 ring pylon")||n=="Collapsed hull"||n=="Dark cabin"||n.StartsWith("Distant broken signal tower")||n.StartsWith("Core blast shelter")||n.StartsWith("Dock deck")||n.StartsWith("Shipyard platform")||n=="Broken road"||n.StartsWith("Outer approach cover")||n.StartsWith("Inner approach cover"))structures.Housing(t);
-   }}
+    if(n.StartsWith("Evacuation barrier")||n.StartsWith("Gantry foot")||n.StartsWith("Suspended gantry")||n.StartsWith("Vessel ")||n.StartsWith("Broken roof")||n.StartsWith("Broken foredeck")||n.StartsWith("Broken vessel prow")||n.StartsWith("Trench wall")||n.StartsWith("Greenhouse bed")||n.StartsWith("Independent cargo container")||n.StartsWith("D4 ring pylon")||n=="Collapsed hull"||n=="Dark cabin"||n.StartsWith("Distant broken signal tower")||n.StartsWith("Core blast shelter")||n.StartsWith("Shipyard approach cover")||n.StartsWith("Dock deck")||n.StartsWith("Shipyard platform")||n=="Broken road"||n.StartsWith("Outer approach cover")||n.StartsWith("Inner approach cover"))structures.Housing(t);
+   }}}
   static void Lods(Transform root){if(root.GetComponentInChildren<LODGroup>())return;var all=root.GetComponentsInChildren<Renderer>(true);var levels=new List<LOD>();for(int i=0;i<4;i++){var list=new List<Renderer>();foreach(var r in all)if(r.name.Contains("_LOD"+i))list.Add(r);if(list.Count>0)levels.Add(new LOD(i==0?.25f:i==1?.12f:i==2?.055f:.018f,list.ToArray()));}if(levels.Count>0){var group=root.gameObject.AddComponent<LODGroup>();group.SetLODs(levels.ToArray());group.RecalculateBounds();}}
   void Replace(Transform original,string id,Bounds target){var model=RealismAssets.Instantiate(id,original);if(!model)return;var wrapper=model.transform;wrapper.SetParent(null,false);wrapper.localScale=Vector3.one;wrapper.position=target.center-Vector3.up*target.extents.y;wrapper.rotation=original.rotation;RealismAssets.Fit(wrapper,Mathf.Max(target.size.x,target.size.y,target.size.z));
    // Fit with a uniform scale. Inherited nonuniform primitive scale must never distort an imported model.

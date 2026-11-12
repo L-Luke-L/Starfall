@@ -27,13 +27,18 @@ namespace Starfall {
   public bool Staggered=>staggerTime>0;float staggerTime;
   float age,timer,repath,cooldown,roamTimer,animationClock,turnSign=1,shotTimer;
   Vector3 destination,chargeDirection,lockedAim,lastPosition;int volley;bool struck;
+  TrailRenderer[] chargeWake;
+  MeshRenderer throatGlow;MaterialPropertyBlock attackTint;
   Quaternion[] limbRest,finRest;Vector3 visualRest,coreRest;
   void Awake(){Agent=GetComponent<NavMeshAgent>();Home=transform.position;lastPosition=Home;visualRest=visual.localPosition;coreRest=core.localScale;limbRest=new Quaternion[limbs.Length];for(int i=0;i<limbs.Length;i++)limbRest[i]=limbs[i].localRotation;finRest=new Quaternion[fins.Length];for(int i=0;i<fins.Length;i++)finRest[i]=fins[i].localRotation;}
-  void Start(){ResetToHome();}
+  void Start(){
+   ResetToHome();
+   if(warning)arena.MonsterFx.Style(warning,MonsterAttackFx.Heat,.34f,.57f);
+  }
   public void SetHome(Vector3 position){Home=position;lastPosition=position;}
   public void ResumeFromElite(){SetState(kind==CreatureKind.RiftMauler?CreatureState.Pursue:CreatureState.Orbit);cooldown=2;}
   public bool PulseStagger(float seconds){var life=GetComponent<CreatureVitality>();if(GetComponent<EliteCreature>()||!life||life.Dead||!Agent||!Agent.isOnNavMesh||!arena.CanTarget)return false;SetState(CreatureState.Recover);staggerTime=Mathf.Max(staggerTime,seconds);cooldown=Mathf.Max(cooldown,seconds+1);return true;}
-  void OnDisable(){if(arena)arena.Release(this);}
+  void OnDisable(){SetChargeWake(false);if(throatGlow)throatGlow.enabled=false;if(arena)arena.Release(this);}
   public void ResetToHome(){
    if(!Agent)Agent=GetComponent<NavMeshAgent>();
    if(arena)arena.Release(this);
@@ -44,6 +49,31 @@ namespace Starfall {
   }
   public void RegisterHit(){Hits++;}
   public void AlertToPlayer(){if(!Agent||!Agent.isOnNavMesh||!arena.CanTarget)return;if(State==CreatureState.Roam){SetState(kind==CreatureKind.RiftMauler?CreatureState.Pursue:CreatureState.Orbit);cooldown=.25f;}}
+  void SetChargeWake(bool visible){
+   if(chargeWake==null){
+    if(!visible)return;
+    chargeWake=new[]{
+     arena.MonsterFx.MotionWake(transform,new Vector3(-.72f,.20f,.13f),MonsterAttackFx.Heat,.38f),
+     arena.MonsterFx.MotionWake(transform,new Vector3(.72f,.20f,.13f),MonsterAttackFx.Heat,.38f)
+    };
+   }
+   foreach(var ribbon in chargeWake)ribbon.emitting=visible;
+  }
+  void LateUpdate(){
+   SetChargeWake(arena&&arena.Active&&!arena.Downed&&!Staggered&&State==CreatureState.Charge);
+   bool charging=arena&&arena.Active&&State==CreatureState.VolleyTell;
+   if(!charging){if(throatGlow)throatGlow.enabled=false;return;}
+   Color color=MonsterAttackFx.BoltColor(this);
+   if(!throatGlow){
+    throatGlow=arena.MonsterFx.Glow(transform,"Breath charge",mouth.position,.70f,color);
+    attackTint=new MaterialPropertyBlock();
+   }
+   throatGlow.enabled=true;throatGlow.transform.position=mouth.position;
+   float amount=Mathf.Clamp01(timer/.62f);
+   throatGlow.transform.localScale=Vector3.one*Mathf.Lerp(.30f,.91f,amount);
+   color.a=Mathf.Lerp(.40f,1,amount);
+   MonsterAttackFx.Tint(throatGlow,attackTint,color);
+  }
   void Update(){
    if(!Agent||!Agent.isOnNavMesh)return;
    if(!arena||!arena.Active||arena.Downed){Agent.isStopped=true;warning.enabled=false;return;}
@@ -59,7 +89,7 @@ namespace Starfall {
    if(kind==CreatureKind.RiftMauler)GroundBrain(target,distance,see,dt);else FlyingBrain(target,distance,see,dt);
    Animate(dt);lastPosition=transform.position;
   }
-  void SetState(CreatureState value){State=value;timer=0;repath=0;warning.enabled=false;Agent.ResetPath();Agent.isStopped=false;struck=false;}
+  void SetState(CreatureState value){State=value;if(IsWindingUp)arena.RegisterCreatureTell();timer=0;repath=0;warning.enabled=false;Agent.ResetPath();Agent.isStopped=false;struck=false;}
   void Destination(Vector3 point,float speed){
    Agent.speed=CampaignRuntime.Current?CampaignRules.EnemySpeed(speed):speed;Agent.angularSpeed=kind==CreatureKind.RiftMauler?240:180;
    if(repath>0)return;repath=.3f;
@@ -84,7 +114,7 @@ namespace Starfall {
     case CreatureState.ChargeTell:
      Agent.isStopped=true;Face(transform.position+chargeDirection,dt);warning.enabled=true;
      for(int i=0;i<warning.positionCount;i++){var point=transform.position+chargeDirection*(14*i/(warning.positionCount-1f));point.y=FieldSurface.Height(point.x,point.z,transform.position.y)+.13f;warning.SetPosition(i,point);}
-     if(timer>=.65f){SetState(CreatureState.Charge);Attacks++;Charges++;}break;
+     if(timer>=.65f){SetState(CreatureState.Charge);Attacks++;Charges++;arena.MonsterFx.Burst(transform.position+Vector3.up*.12f,Vector3.up,MonsterAttackFx.Heat,.85f);}break;
     case CreatureState.Charge:
      Agent.isStopped=true;Vector3 from=transform.position;Vector3 step=chargeDirection*(CampaignRuntime.Current?CampaignRules.EnemySpeed(17.5f):17.5f)*dt;
      if(Agent.Raycast(from+step,out var edge)){var elite=GetComponent<EliteCreature>();if(elite)elite.Expose(2.8f);SetState(CreatureState.Recover);cooldown=2.1f;break;}
@@ -93,15 +123,15 @@ namespace Starfall {
      if(timer>1.05f){SetState(CreatureState.Recover);cooldown=2.1f;}break;
     case CreatureState.BiteTell:
      Agent.isStopped=true;if(timer<.25f)Face(target,dt);
-     if(timer>=.42f){Attacks++;Bites++;var biteDirection=target-transform.position;biteDirection.y=0;if(distance<3.8f&&Vector3.Dot(transform.forward,biteDirection.normalized)>.15f&&arena.ClearSight(mouth.position,target+Vector3.up,this)){if(arena.Damage(CampaignRuntime.Current?CampaignRules.EnemyDamage(32):32,this))Hits++;arena.Impact(mouth.position,Color.yellow);}SetState(CreatureState.Recover);cooldown=1.15f;}break;
+     if(timer>=.42f){Attacks++;Bites++;arena.MonsterFx.Sweep(mouth.position,transform.forward,-49,49,.61f,MonsterAttackFx.Heat);var biteDirection=target-transform.position;biteDirection.y=0;if(distance<3.8f&&Vector3.Dot(transform.forward,biteDirection.normalized)>.15f&&arena.ClearSight(mouth.position,target+Vector3.up,this)){if(arena.Damage(CampaignRuntime.Current?CampaignRules.EnemyDamage(32):32,this))Hits++;arena.MonsterFx.Burst(mouth.position,transform.forward,MonsterAttackFx.Heat,.69f);}SetState(CreatureState.Recover);cooldown=1.15f;}break;
     case CreatureState.Recover:Agent.isStopped=true;if(timer>.5f)SetState(CreatureState.Pursue);break;
     default:
      if(!see&&distance>36){SetRoam(dt);break;}
      if(!see&&State==CreatureState.Roam){Roam(dt);break;}
      if(State!=CreatureState.Pursue)SetState(CreatureState.Pursue);
      Destination(target,5.8f);
-     if(see&&cooldown<=0&&distance<3.5f){SetState(CreatureState.BiteTell);}
-     else if(see&&cooldown<=0&&distance>5&&distance<17){chargeDirection=(target-transform.position);chargeDirection.y=0;chargeDirection.Normalize();if(!Agent.Raycast(transform.position+chargeDirection*Mathf.Min(14,distance+1),out var block))SetState(CreatureState.ChargeTell);}
+     if(see&&cooldown<=0&&distance<3.5f&&arena.CanStartCreatureTell){SetState(CreatureState.BiteTell);}
+     else if(see&&cooldown<=0&&distance>5&&distance<17&&arena.CanStartCreatureTell){chargeDirection=(target-transform.position);chargeDirection.y=0;chargeDirection.Normalize();if(!Agent.Raycast(transform.position+chargeDirection*Mathf.Min(14,distance+1),out var block))SetState(CreatureState.ChargeTell);}
      break;
    }
   }
@@ -121,8 +151,9 @@ namespace Starfall {
      if(State!=CreatureState.Orbit)SetState(CreatureState.Orbit);
      Vector3 away=transform.position-target;away.y=0;if(away.sqrMagnitude<.1f)away=Vector3.right;away.Normalize();var side=Vector3.Cross(Vector3.up,away)*turnSign;
      Vector3 goal=distance<9?transform.position+away*7+side*3:distance>17?target+away*13:target+away*13+side*7;
+     if(distance>=9&&repath<=0&&arena.TryFlank(this,target,turnSign,out var flank))goal=flank;
      Destination(goal,5.1f);Face(target,dt);Agent.updateRotation=false;
-     if(see&&distance>=8&&distance<24&&cooldown<=0){SetState(CreatureState.VolleyTell);}break;
+     if(see&&distance>=8&&distance<24&&cooldown<=0&&arena.CanStartCreatureTell){SetState(CreatureState.VolleyTell);}break;
    }
   }
   void Animate(float dt){
