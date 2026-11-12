@@ -5,6 +5,13 @@ namespace Starfall {
   public CampaignRegion region; public int Health {get;private set;} public int NodesRemaining {get;private set;}
   public bool Dead=>Health<=0; public bool WeakOpen=>NodesRemaining==0&&clock%8<3.3f;
   public int Attacks {get;private set;} public bool Telegraphing=>tell>0;
+  internal Vector3 WarningCenter=>aim;
+  internal bool LastAttackInWarning {get;private set;}
+  internal bool InWarning(Vector3 point,float margin=0){
+   if(Mathf.Abs(point.z-aim.z)>=18+margin)return false;
+   foreach(var marker in markers)if(Mathf.Abs(point.x-marker.position.x)<4+margin)return true;
+   return false;
+  }
   readonly int[] nodes=new int[3]; readonly Transform[] nodesVisual=new Transform[3];
   readonly List<Mesh> warningMeshes=new List<Mesh>();Material warning;GuardianMechVisual mech;
   AudioSource music;bool musicPaused,engaged;
@@ -117,14 +124,14 @@ namespace Starfall {
    if(!region.player.arena.CanTarget){mech.SetCharge(0);tell=-1;attackClock=Mathf.Max(attackClock,2);foreach(var m in markers)m.gameObject.SetActive(false);return;}
    mech.SetCharge(tell>0?1-tell/3.2f:0);
    warning.SetFloat("_Charge",tell>0?1-tell/3.2f:0);warning.SetFloat("_Flow",clock);if(tell>0){tell-=dt;if(tell<=0){
-     var p=region.player.transform.position;bool lane=false;foreach(var m in markers){if(Mathf.Abs(p.x-m.position.x)<4&&Mathf.Abs(p.z-m.position.z)<18)lane=true;m.gameObject.SetActive(false);}
-     Vector3 origin=transform.position+new Vector3(0,2.3f,-2);if(lane&&region.player.arena.ClearSight(origin,p+Vector3.up,null))region.player.arena.Damage(84,null);
+     var p=region.player.transform.position;LastAttackInWarning=InWarning(p);foreach(var m in markers)m.gameObject.SetActive(false);
+     Vector3 origin=transform.position+new Vector3(0,2.3f,-2);if(LastAttackInWarning&&region.player.arena.ClearSight(origin,p+Vector3.up,null))region.player.arena.Damage(84,null);
      Blast();InteractionFeel.Play(FeelCue.Shot,1);Attacks++;attackClock=4.5f;tell=-1;
     }}else{attackClock-=dt;if(attackClock<=0){aim=region.player.transform.position;tell=3.2f;arena.Soundscape?.Action(0,.26f);for(int i=0;i<3;i++)PaintWarning(i,aim.x+(i-1)*12,aim.z);InteractionFeel.Play(FeelCue.Alert,.9f);}}
   }
-  void OnGUI(){if(!region||Dead||!region.player.Ready||region.player.Paused)return;float w=Screen.width;
-   InteractionFeel.Text(new Rect(w/2-280,28,560,32),"D4 守核机甲 · "+(NodesRemaining>0?"供能节点 "+NodesRemaining:WeakOpen?"核心暴露":"装甲闭合"),region.player.uiFont,20,new Color(.95f,.75f,.48f),TextAnchor.MiddleCenter);
-   GUI.color=new Color(.15f,.2f,.23f,.85f);GUI.DrawTexture(new Rect(w/2-220,65,440,4),Texture2D.whiteTexture);GUI.color=new Color(.92f,.4f,.18f);GUI.DrawTexture(new Rect(w/2-220,65,440*Health/880f,4),Texture2D.whiteTexture);GUI.color=Color.white;
+  void OnGUI(){if(!region||Dead||!region.player.Ready||region.player.Paused)return;float w=Screen.width,y=region.campaign.ShowcaseActive?Screen.height*.112f:28;
+   InteractionFeel.Text(new Rect(w/2-280,y,560,32),"D4 守核机甲 · "+(NodesRemaining>0?"供能节点 "+NodesRemaining:WeakOpen?"核心暴露":"装甲闭合"),region.player.uiFont,20,new Color(.95f,.75f,.48f),TextAnchor.MiddleCenter);
+   GUI.color=new Color(.15f,.2f,.23f,.85f);GUI.DrawTexture(new Rect(w/2-220,y+37,440,4),Texture2D.whiteTexture);GUI.color=new Color(.92f,.4f,.18f);GUI.DrawTexture(new Rect(w/2-220,y+37,440*Health/880f,4),Texture2D.whiteTexture);GUI.color=Color.white;
    if(tell>0)InteractionFeel.Text(new Rect(w/2-300,105,600,30),"离开亮区 / 进入掩体",region.player.uiFont,18,new Color(1,.55f,.25f),TextAnchor.MiddleCenter);
   }
   void OnDestroy(){foreach(var mesh in warningMeshes)if(mesh)Destroy(mesh);if(warning)Destroy(warning);foreach(var marker in markers)if(marker)Destroy(marker.gameObject);}

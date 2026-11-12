@@ -21,7 +21,9 @@ namespace Starfall {
   bool Action(Rect r,string text,bool enabled=true)=>CampaignGameUI.Button(r,text,director.uiFont,enabled&&!Busy);
   void Paragraph(Rect r,string text,int size=18){CampaignGameUI.Text(r,text,director.uiFont,size,CampaignGameUI.Ink,TextAnchor.UpperLeft,true);}
   void OnGUI(){
-   if(Current!=this||State==null||!director.uiFont||ShowcaseActive)return;var previous=GUI.matrix;GUI.depth=-160;float scale=Mathf.Min(Screen.width/1600f,Screen.height/900f);GUI.matrix=Matrix4x4.TRS(new Vector3((Screen.width-1600*scale)/2,(Screen.height-900*scale)/2,0),Quaternion.identity,Vector3.one*scale);
+   if(Current!=this||State==null||!director.uiFont)return;
+   if(ShowcaseActive&&(!Modal||ShowcasePaused||ShowcaseFinished||CinematicActive||Event.current.type!=EventType.Repaint))return;
+   var previous=GUI.matrix;GUI.depth=-160;float scale=Mathf.Min(Screen.width/1600f,Screen.height/900f);GUI.matrix=Matrix4x4.TRS(new Vector3((Screen.width-1600*scale)/2,(Screen.height-900*scale)/2,0),Quaternion.identity,Vector3.one*scale);
    if(!director.forge.IsOpen&&!Modal){
     if(!director.battle.IsEngaged&&!director.underground)DrawCampPrompt();
     if(director.IsPaused||Explorer&&Explorer.Paused){DrawShowcaseSettings(new Rect(650,610,300,36));if(Action(new Rect(650,654,300,36),StoryCinematicsEnabled?"剧情演出 · 开启":"剧情演出 · 关闭"))StoryCinematicsEnabled=!StoryCinematicsEnabled;DrawGuidanceSettings(new Rect(650,698,300,36));}else DrawGuidanceHud();Caption(new Rect(1130,director.underground&&!director.battle.IsEngaged?802:849,430,25),"B 背包   J 手账   F5 保存",12,null,TextAnchor.MiddleRight);
@@ -40,9 +42,10 @@ namespace Starfall {
     if(Action(new Rect(1335,109,90,35),"Esc"))Close();
     CampaignGameUI.Divider(new Rect(154,177,1286,1));
     if(panel=="showcase")DrawShowcaseSetup();if(panel=="frontier")DrawFrontier();else if(panel=="companion")DrawCompanion();else if(panel=="bag"||panel=="camp"||panel=="warehouse")DrawInventory();else if(panel=="workshop")DrawWorkshop();else if(panel=="forge")DrawForgeSelect();else if(panel=="craft")DrawCraft();else if(panel=="ship")DrawShip();else if(panel=="takeoff")DrawTakeoff();else if(panel=="coordinates")DrawCoordinates();else if(panel=="journal")DrawJournal();else if(panel=="system")DrawSystem();else if(panel=="new-game")DrawNewGame();else if(panel=="layers")DrawLayers();else if(panel=="chest")DrawChest();else if(panel=="terminal")DrawTerminal();else if(panel=="permission")DrawPermission();else if(panel=="core")DrawCore();else if(panel=="detonate")DrawDetonate();else if(panel=="remain")DrawRemain();else if(panel=="escaped"||panel=="saved")DrawEnding();else if(panel=="guide-help")DrawGuidanceHelp();
-    CampaignGameUI.Divider(new Rect(154,792,1286,1));
-    if(toastAge>0)Caption(new Rect(160,799,1200,27),toast,15,CampaignGameUI.Gold);
-    else Caption(new Rect(160,799,1200,27),"B 物资   ·   J 手账   ·   Esc 返回探索",13,CampaignGameUI.Muted);
+    float footer=ShowcaseActive?765:792;
+    CampaignGameUI.Divider(new Rect(154,footer,1286,1));
+    if(toastAge>0)Caption(new Rect(160,footer+7,1200,27),toast,15,CampaignGameUI.Gold);
+    else if(!ShowcaseActive)Caption(new Rect(160,footer+7,1200,27),"B 物资   ·   J 手账   ·   Esc 返回探索",13,CampaignGameUI.Muted);
    }
    DrawPresentation();GUI.matrix=previous;GUI.color=Color.white;
   }
@@ -72,7 +75,8 @@ namespace Starfall {
   void DrawPermission(){Paragraph(new Rect(275,245,1040,235),"完整授权会向中继开放现实端出口权限。\n质量请求超过单人救援需求，你尚无法确认对方的身份。\n\n局部诊断足以继续探索。完整授权可在此撤销；核心隔离会强制切断该权限。",23);if(Action(new Rect(310,585,450,58),"保留锁定 / 撤销授权")){SetExitPermission(false);panel="terminal";}if(Action(new Rect(845,585,450,58),"确认开放完整出口权限")){if(SetExitPermission(true))Notice("完整权限已开放，调查军用质量请求");panel="terminal";}}
   void DrawCore(){RegionView?.DrawCoreView();}
   void DrawDetonate(){Paragraph(new Rect(275,240,1040,240),"确认前可返回营地补给并保存。\n\n已切断现实耦合、锁定安全锚点、检查全部生命维持舱。\n启动后有45秒返回信标跃迁，装置将永久失效。\n未及时撤离会恢复“引爆前”检查点。",23);if(Action(new Rect(350,596,400,65),"启动核心崩解",SavingReady&&State.Has("bomb-installed")))BeginDetonation();if(Action(new Rect(870,596,400,65),"暂不引爆"))panel="core";}
-  void DrawRemain(){Paragraph(new Rect(270,238,1040,225),"爆炸亮起时，你回到了现实。背后的裂隙熄灭，D4与军用中继不复存在。\n\n污染源停止了，但荒原尚未恢复。\n飞船剩余设备可以改建为固定生态站。",23);if(Action(new Rect(400,583,800,65),"留下，将设备改造成生态站")){State.Flag("ecology-chosen");Changed();Close();}}
+  void DrawRemain(){Paragraph(new Rect(270,238,1040,225),"爆炸亮起时，你回到了现实。背后的裂隙熄灭，D4与军用中继不复存在。\n\n污染源停止了，但荒原尚未恢复。\n飞船剩余设备可以改建为固定生态站。",23);if(Action(new Rect(400,583,800,65),"留下，将设备改造成生态站"))ChooseEcology();}
+  void ChooseEcology(){State.Flag("ecology-chosen");Changed();Close();}
   void DrawEnding(){string text=panel=="escaped"?(State.Knows("J06")?"你驶离了星球，带走了调查记录。\n你知道裂隙后还留着什么，但选择继续自己的航程。\n异空间的未来仍未确定。":"飞船离开了荒原。\n你保住了自己找到的记录。\n远处，微弱的异常信号渐渐消失在导航屏外。") :"数月后。\n净水设施重新工作，第一簇幼苗扎下了根。\n这片星球不会一夜复苏，而你选择留下，继续修复。";Paragraph(new Rect(270,240,1060,270),text,26);if(Action(new Rect(380,597,370,58),"继续结局前的探索"))StartCoroutine(Restore(panel=="escaped"?"before-flight":"before-core"));if(Action(new Rect(870,597,370,58),"查看手账"))panel="journal";}
   void DrawSystem(){Paragraph(new Rect(245,226,1070,96),"自动保存 + F5 手动保存。旧试玩的虫洞记录独立保留，新故事使用统一存档。\n绑定装备、知识、安装结构和回收箱跨读档保留。",18);if(Action(new Rect(250,371,430,50),"保存当前进度")){if(Save())Notice("已保存");}if(Action(new Rect(870,371,430,50),"读取当前存档"))StartCoroutine(Restore("campaign"));if(Action(new Rect(250,461,430,50),"恢复起飞前",System.IO.File.Exists(Store.PathFor("before-flight"))))StartCoroutine(Restore("before-flight"));if(Action(new Rect(870,461,430,50),"恢复引爆前",System.IO.File.Exists(Store.PathFor("before-core"))))StartCoroutine(Restore("before-core"));if(Action(new Rect(510,626,570,50),"新故事（保留上一轮备份）"))panel="new-game";}
   void DrawNewGame(){Paragraph(new Rect(310,265,980,180),"会从迫降重新开始。当前故事先保存到独立备份，正常自动存档将用于新故事。\n\n新故事从手枪12发装填、24发备用与2份应急燃料开始。",23);if(Action(new Rect(380,580,360,60),"确认开始"))StartCoroutine(NewGame());if(Action(new Rect(860,580,360,60),"返回"))panel="system";}

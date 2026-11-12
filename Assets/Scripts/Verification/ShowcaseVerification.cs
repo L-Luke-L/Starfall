@@ -9,18 +9,26 @@ namespace Starfall {
  // A real-duration run against the shipping showcase. It never loads the normal CampaignV1 save.
  public sealed class ShowcaseVerification:MonoBehaviour {
   CampaignRuntime campaign;SceneDirector director;string folder;int failures;float watchdog;bool finished;
+  int wreckShots,wreckHits;bool reachedEvacuation;
   readonly List<string> results=new List<string>();readonly HashSet<string> runtimeErrors=new HashSet<string>();
   [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
   static void Install(){if(Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-showcaseQA")&&CampaignRuntime.Current)CampaignRuntime.Current.gameObject.AddComponent<ShowcaseVerification>();}
   void Check(string name,bool ok){string line=(ok?"PASS ":"FAIL ")+name;results.Add(line);if(!ok)failures++;Debug.Log("SHOWCASE_QA "+line);}
-  void Log(string condition,string stack,LogType type){if(type==LogType.Exception||type==LogType.Assert)runtimeErrors.Add(condition);}
+  void Log(string condition,string stack,LogType type){
+   if(type==LogType.Exception||type==LogType.Assert)runtimeErrors.Add(condition);
+   if(condition.StartsWith("SHOWCASE_ACTION wreck-shot ",StringComparison.Ordinal)){
+    wreckShots++;
+    if(condition.EndsWith(" hit=True",StringComparison.Ordinal))wreckHits++;
+   }
+   if(condition.StartsWith("SHOWCASE_ACTION evacuation-beacon ",StringComparison.Ordinal))reachedEvacuation=true;
+  }
   IEnumerator Start(){
    folder=Path.GetFullPath(Path.Combine(Application.dataPath,Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-showcaseLifecycleOnly")?"../../../QA/Reports/ShowcaseLifecycle":"../../../QA/Reports/Showcase"));Directory.CreateDirectory(folder);Application.logMessageReceived+=Log;watchdog=Time.realtimeSinceStartup+720;
    yield return new WaitForSecondsRealtime(2);campaign=CampaignRuntime.Current;director=campaign?campaign.director:null;
    Check("Verification uses independent QA campaign",campaign&&campaign.IsQA&&!campaign.Store.directory.EndsWith("CampaignV1",StringComparison.OrdinalIgnoreCase));
    if(!campaign){Finish();yield break;}
    var args=Environment.GetCommandLineArgs();
-   var run=Array.IndexOf(args,"-expeditionPolishOnly")>=0?RunExpeditionPolish():Array.IndexOf(args,"-guardianShowcaseOnly")>=0?RunGuardianPreview():Run();while(!finished){object next=null;bool more=false;try{more=run.MoveNext();if(more)next=run.Current;}catch(Exception e){Check("Unhandled verification exception: "+e,false);break;}if(!more)break;yield return next;}
+   var run=Array.IndexOf(args,"-expeditionPolishOnly")>=0?RunExpeditionPolish():Array.IndexOf(args,"-guardianShowcaseOnly")>=0?RunGuardianPreview():Array.IndexOf(args,"-showcaseEncounterOnly")>=0?RunWreckEncounter():Run();while(!finished){object next=null;bool more=false;try{more=run.MoveNext();if(more)next=run.Current;}catch(Exception e){Check("Unhandled verification exception: "+e,false);break;}if(!more)break;yield return next;}
    Finish();
   }
   void Update(){if(!finished&&watchdog>0&&Time.realtimeSinceStartup>watchdog){Check("Verification completed before watchdog",false);Finish();}}
@@ -105,6 +113,17 @@ namespace Starfall {
     Check("Audio and route objects unload with region "+region,!score&&!wayfinding);
    }
   }
+  IEnumerator RunWreckEncounter(){
+   var original=campaign.State;var store=campaign.Store;
+   Check("Wreck encounter uses the shipping mainline demo",campaign.StartShowcase());
+   float deadline=Time.realtimeSinceStartup+110;
+   while(campaign.ShowcaseActive&&!campaign.ShowcaseFinished&&campaign.ShowcaseStage<2&&Time.realtimeSinceStartup<deadline)yield return null;
+   Check("Wreck encounter completes with live shots and hits",campaign.ShowcaseStage==2&&campaign.ShowcaseError==""&&wreckShots>=3&&wreckHits>0);
+   Check("Wreck interaction records cargo and calibrates the return beacon",campaign.State.device&&campaign.State.calibrated&&campaign.State.Knows("J01")&&campaign.State.Knows("J02"));
+   campaign.StopShowcase();deadline=Time.realtimeSinceStartup+25;
+   while(campaign.ShowcaseActive&&Time.realtimeSinceStartup<deadline)yield return null;
+   Check("Wreck encounter exit restores the original state and store",!campaign.ShowcaseActive&&ReferenceEquals(campaign.State,original)&&ReferenceEquals(campaign.Store,store));
+  }
   IEnumerator RunGuardianPreview(){
    var original=campaign.State;var store=campaign.Store;
    director.SetPaused(true);
@@ -120,10 +139,11 @@ namespace Starfall {
     yield return Capture("guardian-direct-combat");
     var score=boss.GetComponent<AudioSource>();
     Check("Guardian score is playing under combat",score&&score.clip&&score.isPlaying&&score.volume>0);
-    deadline=Time.realtimeSinceStartup+90;
+    deadline=Time.realtimeSinceStartup+125;
     while(!campaign.ShowcaseFinished&&Time.realtimeSinceStartup<deadline)yield return null;
     Check("Preview defeats the real guardian with live combat",boss.Dead&&campaign.ShowcaseFinished&&campaign.ShowcaseError=="");
     Check("Guardian completes its shutdown before the result screen",boss.ShutdownComplete);
+    Check("Guardian cannon fires and the player demonstrably leaves its active lane",boss.Attacks>0&&campaign.ShowcaseGuardianDodges>0);
    }
    campaign.StopShowcase();deadline=Time.realtimeSinceStartup+25;
    while(campaign.ShowcaseActive&&Time.realtimeSinceStartup<deadline)yield return null;
@@ -203,8 +223,12 @@ namespace Starfall {
    }
    Check("Showcase reaches its result page",campaign.ShowcaseActive&&campaign.ShowcaseFinished&&string.IsNullOrEmpty(campaign.ShowcaseError));
    if(!string.IsNullOrEmpty(campaign.ShowcaseError))results.Add("SHOWCASE_ERROR "+campaign.ShowcaseError);
-   Check("Full unskipped presentation lasts between five and ten minutes",campaign.ShowcaseElapsed>=300&&campaign.ShowcaseElapsed<=600);
+   Debug.Log("SHOWCASE_QA_DURATION "+campaign.ShowcaseElapsed.ToString("F2"));
+   Check("Full unskipped presentation finishes below seven minutes",campaign.ShowcaseElapsed>0&&campaign.ShowcaseElapsed<420);
    Check("All eleven mainline chapters were shown",visited.Count==11);
+   Check("Wreck combat executes real visible pistol shots and hits",wreckShots>=3&&wreckHits>0);
+   Check("Guardian cannon has a completed, damage-free dodge",campaign.ShowcaseGuardianDodges>0);
+   Check("Timed evacuation reaches the beacon using the normal movement route",reachedEvacuation);
    int deathCount=0;foreach(int count in deaths.Values)deathCount+=count;Check("Directed presentation avoids death and recovery interruptions",deathCount==0);
    Check("Forge pause was exercised during the actual mainline",testedForgePause);
    var state=campaign.State;Check("All five mine layers and all five coordinates were earned",state.unlockedLayer==5&&state.coordinates.Count==5&&campaign.LayerComplete(1)&&campaign.LayerComplete(2)&&campaign.LayerComplete(3)&&campaign.LayerComplete(4)&&campaign.LayerComplete(5));

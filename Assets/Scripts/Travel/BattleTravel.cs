@@ -19,6 +19,7 @@ namespace Starfall {
   public string TransitionError {get;private set;}="";
   public event Action<EncounterRequest> Entered;
   public event Action Returned;
+  AudioListener expeditionListener;bool expeditionListenerEnabled;
   readonly List<GameObject> hiddenRoots=new List<GameObject>();
   Scene expedition;float fade;bool originalDirectorEnabled;float oldTimeScale;int oldAA;bool oldFog;Color oldFogColor,oldAmbient,oldSkyAmbient,oldEquator,oldGround;float oldFogDensity;Material oldSky;Light oldSun;UnityEngine.Rendering.AmbientMode oldAmbientMode;FogMode oldFogMode;CursorLockMode oldCursor;bool oldCursorVisible;
   void OnEnable(){if(encounter)encounter.BattleRequested+=Enter;}
@@ -33,6 +34,9 @@ namespace Starfall {
    oldFog=RenderSettings.fog;oldFogColor=RenderSettings.fogColor;oldFogDensity=RenderSettings.fogDensity;oldSky=RenderSettings.skybox;oldAmbient=RenderSettings.ambientLight;
    oldSun=RenderSettings.sun;oldAmbientMode=RenderSettings.ambientMode;oldFogMode=RenderSettings.fogMode;oldSkyAmbient=RenderSettings.ambientSkyColor;oldEquator=RenderSettings.ambientEquatorColor;oldGround=RenderSettings.ambientGroundColor;
    yield return FadeTo(1);
+   expeditionListener=director.worldCamera?director.worldCamera.GetComponent<AudioListener>():null;
+   expeditionListenerEnabled=expeditionListener&&expeditionListener.enabled;
+   if(expeditionListener)expeditionListener.enabled=false;
    int region=CampaignRuntime.Current?CampaignRuntime.Current.State.region:0;activeScene=region==1?"Scene03_WreckRift":region==2?"Scene04_Battlefield":region==3?"Scene05_Medical":region==4?"Scene06_Shipyard":region==5?"Scene07_Core":SceneName;
    AsyncOperation load=null;string failure=null;
    if(!Application.CanStreamedLevelBeLoaded(activeScene))failure="星界场景未包含在当前构建中："+activeScene;
@@ -45,7 +49,7 @@ namespace Starfall {
    SceneManager.SetActiveScene(battle);
    foreach(var root in expedition.GetRootGameObjects())if(root!=gameObject&&root.activeSelf){hiddenRoots.Add(root);root.SetActive(false);}
    director.enabled=false;QualitySettings.antiAliasing=4;
-   if(Explorer){Explorer.Automated=Array.Exists(Environment.GetCommandLineArgs(),x=>x.EndsWith("QA",StringComparison.OrdinalIgnoreCase));Explorer.Begin(this);if(CampaignRuntime.Current)CampaignRuntime.Current.ConfigureRegion(Explorer);if(Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-titanPreview"))Explorer.Look(0,16);}
+   if(Explorer){Explorer.Automated=(CampaignRuntime.Current&&CampaignRuntime.Current.ShowcaseActive)||Array.Exists(Environment.GetCommandLineArgs(),x=>x.EndsWith("QA",StringComparison.OrdinalIgnoreCase));Explorer.Begin(this);if(CampaignRuntime.Current)CampaignRuntime.Current.ConfigureRegion(Explorer);if(Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-titanPreview"))Explorer.Look(0,16);}
    yield return FadeTo(0);IsTransitioning=false;Entered?.Invoke(Request);
   }
   IEnumerator FailedEntry(string message,Scene loaded){
@@ -59,6 +63,7 @@ namespace Starfall {
   }
   void RestoreExpedition(){
    foreach(var root in hiddenRoots)if(root)root.SetActive(true);hiddenRoots.Clear();if(director)director.enabled=originalDirectorEnabled;
+   if(expeditionListener)expeditionListener.enabled=expeditionListenerEnabled;expeditionListener=null;
    RenderSettings.fog=oldFog;RenderSettings.fogColor=oldFogColor;RenderSettings.fogDensity=oldFogDensity;RenderSettings.skybox=oldSky;RenderSettings.ambientLight=oldAmbient;QualitySettings.antiAliasing=oldAA;Time.timeScale=oldTimeScale;
    RenderSettings.sun=oldSun;RenderSettings.ambientMode=oldAmbientMode;RenderSettings.fogMode=oldFogMode;RenderSettings.ambientSkyColor=oldSkyAmbient;RenderSettings.ambientEquatorColor=oldEquator;RenderSettings.ambientGroundColor=oldGround;
   }

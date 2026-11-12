@@ -2,7 +2,7 @@
 
 ## 玩法与操作
 
-- [主线演示：约8分钟自动流程与实时CG](Gameplay/SHOWCASE.md)
+- [主线演示：自动流程与实时CG](Gameplay/SHOWCASE.md)
 
 - [任务指引：分步目标、导航与详细帮助](Gameplay/QUEST_GUIDANCE.md)
 

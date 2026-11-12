@@ -9,7 +9,7 @@ namespace Starfall {
  public sealed partial class CampaignRuntime {
   GuidanceStep guidanceStep;CampaignState guidanceState;GuidanceContext guidanceContext;float guidanceRefresh,guidanceNavRefresh,guidanceIdle;
   GuidanceNavigation guidanceNavigation;string guidanceIdentity="",guidanceNavIdentity="",guidanceTracked="",guidanceTutorial="";float guidanceTutorialUntil;
-  int guidanceLastRegion=-1;readonly NavMeshPath guidancePath=new NavMeshPath();
+  int guidanceLastRegion=-1;NavMeshPath guidancePath;
   public static int GuidanceDetail {get=>Mathf.Clamp(PlayerPrefs.GetInt("Starfall.TaskGuidance.Detail",2),0,2);set{PlayerPrefs.SetInt("Starfall.TaskGuidance.Detail",Mathf.Clamp(value,0,2));PlayerPrefs.Save();}}
   public GuidanceContext GetGuidanceContext(){
    if(guidanceContext==null){guidanceContext=new GuidanceContext();guidanceContext.canEmergency=CanEmergency;guidanceContext.hasRegionOre=GuidanceRegionOre;guidanceContext.hasLivingEnemy=GuidanceHasLivingEnemy;}
@@ -62,6 +62,7 @@ namespace Starfall {
   }
   bool TryGuidancePath(Vector3 target,out Vector3[] corners){
    corners=null;if(!Explorer||!NavMesh.SamplePosition(Explorer.transform.position,out var start,3,NavMesh.AllAreas))return false;
+   if(guidancePath==null)guidancePath=new NavMeshPath();
    for(int i=0;i<9;i++){float a=(i-1)*Mathf.PI/4;var probe=target+(i==0?Vector3.zero:new Vector3(Mathf.Cos(a),0,Mathf.Sin(a))*2.4f);if(!NavMesh.SamplePosition(probe,out var goal,2,NavMesh.AllAreas)||Mathf.Abs(goal.position.y-target.y)>2)continue;if(NavMesh.CalculatePath(start.position,goal.position,NavMesh.AllAreas,guidancePath)&&guidancePath.status==NavMeshPathStatus.PathComplete){corners=guidancePath.corners;return corners.Length>0;}}
    return false;
   }
