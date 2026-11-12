@@ -21,7 +21,7 @@ namespace Starfall {
   CampaignCinematics cinematics;
   CampaignState showcaseOriginal;
   CampaignStore showcaseOriginalStore;
-  bool showcaseOriginalSaveBlocked,showcaseStop;
+  bool showcaseOriginalSaveBlocked,showcaseStop,guardianOnly;
   bool showcaseOriginalUnderground;
   float showcaseOriginalX,showcaseOriginalScale,showcaseCastSpeed,showcaseRetrieveSpeed,showcaseOriginalBomb,showcaseOriginalPitch,showcaseOriginalAutosave;
   int showcaseOriginalRegion;
@@ -32,7 +32,11 @@ namespace Starfall {
   CampaignShowcaseDriver showcaseDriver;
   readonly string[] showcaseTitles={"迫降之后 · 地下的另一片天空","穿过裂隙 · 取回回家的线索","营地整备 · 三次落锤","撤离战场 · 救援的呼声","医疗档案 · 裂隙的真相","军用船坞 · 门后的舰队","第五矿层 · 最后的隔离方案","回家或留下 · 准备最后一战","守核机甲 · 击破供能与弱点","核心崩解 · 最后四十五秒","星球的守望者 · 让荒原重新生长"};
 
-  public bool StartShowcase(){
+  public bool StartShowcase()=>StartShowcase(false);
+  public bool StartGuardianShowcase()=>StartShowcase(true);
+
+  bool StartShowcase(bool guardian){
+
    if(!presentationReady||ShowcaseActive||ShowcaseRestoring||Busy||CinematicActive||director.Transitioning||director.battle.IsTransitioning||director.forge.IsOpen||director.hookState!=SceneDirector.HookState.Swinging)return false;
    Close();if(!saveBlocked)Save();
    showcaseOriginal=State;showcaseOriginalStore=Store;showcaseOriginalSaveBlocked=saveBlocked;
@@ -40,7 +44,10 @@ namespace Starfall {
    if(Explorer){showcaseOriginalPosition=Explorer.transform.position;showcaseOriginalRotation=Explorer.transform.rotation;showcaseOriginalPitch=Explorer.Pitch;}
    showcaseOriginalScale=Time.timeScale;showcaseOriginalBomb=BombSeconds;showcaseOriginalAutosave=autosave;autosave=0;showcaseOriginalMetal=director.inventory.SelectedMetal;
    showcaseCastSpeed=director.castSpeed;showcaseRetrieveSpeed=director.retrieveSpeed;
-   Store=new CampaignStore(Path.Combine(Application.persistentDataPath,"CampaignShowcase","active"));
+   guardianOnly=guardian;
+   Store=new CampaignStore(guardian
+    ?Path.Combine(Path.GetDirectoryName(Store.directory),"GuardianShowcase")
+    :Path.Combine(Application.persistentDataPath,"CampaignShowcase","active"));
    State=CampaignState.New();State.guidanceRoute="investigate";saveBlocked=false;progress.Clear();
    ShowcaseActive=true;ShowcaseFinished=false;ShowcasePaused=false;ShowcaseRestoring=false;ShowcaseError="";ShowcaseElapsed=0;ShowcaseStage=0;showcaseStop=false;
    BombSeconds=-1;ecologyTask=-1;emergencyItem=-1;treatmentTime=0;
@@ -70,7 +77,7 @@ namespace Starfall {
   }
   IEnumerator DriveShowcase(){
    // Pump nested iterators so an exception in a helper also reaches the result page.
-   var stack=new Stack<IEnumerator>();stack.Push(ShowcaseStory());
+   var stack=new Stack<IEnumerator>();stack.Push(guardianOnly?ShowcaseGuardian():ShowcaseStory());
    while(stack.Count>0&&!showcaseStop&&ShowcaseError==""){
     bool moved=false;object next=null;
     try{moved=stack.Peek().MoveNext();if(moved)next=stack.Peek().Current;}
@@ -130,6 +137,23 @@ namespace Starfall {
    showcaseReadout=layer==2?"撤离队列被空间异常截断。\n频道里仍有人请求你修复中继。\n\n那个自称救援站的人，身份尚未证实。":layer==3?"D4 武器撕裂空间，使本土生物发生变异。\n中继请求的质量，远超平民救援需求。\n\n仅发送局部诊断；现实出口继续锁定。":"军令、舰队清单与 D4 档案相互印证：\n所谓救援站，是远征议会的军需系统。\n他们想借你的坐标，把战争带入现实。";
    Open("terminal");yield return ShowcaseWait(6);Close();showcaseReadout="";yield return ShowcaseReturn();yield return ShowcaseUntil(end);
   }
+  IEnumerator ShowcaseGuardian(){
+   if(director.battle.IsEngaged){director.battle.ReturnToExpedition();while(director.battle.IsEngaged)yield return null;}
+   State.coordinates.Add(5);
+   State.bag.Add(ItemId.Ammo,150);
+   State.bag.Add(ItemId.Medkit,24);
+   ShowcaseChapter(8,"守核机甲 · 供能节点与暴露核心","自动战斗 · Esc 暂停或退出");
+   yield return ShowcaseEnter(5);
+   var boss=RegionView.boss;
+   ShowcaseRequire(boss,"守核机甲未加载");
+   var entrance=boss.transform.position+new Vector3(-3.8f,0,-7);
+   if(UnityEngine.AI.NavMesh.SamplePosition(entrance,out var stand,4,UnityEngine.AI.NavMesh.AllAreas))
+    CampaignShowcaseDriver.Warp(Explorer,stand.position);
+   yield return showcaseDriver.FightGuardian(75);
+   ShowcaseDriverCheck();
+   ShowcaseRequire(boss.Dead,"守核机甲尚未击败");
+   yield return ShowcaseWait(GuardianMechVisual.ShutdownSeconds+.50f);
+  }
   IEnumerator ShowcaseStory(){
    if(director.battle.IsEngaged){director.battle.ReturnToExpedition();while(director.battle.IsEngaged)yield return null;}
    State=CampaignState.New();State.guidanceRoute="investigate";progress.Clear();director.CancelTravel();director.ResetShowcaseHook();director.underground=false;director.worldCamera.transform.position=new Vector3(0,0,-20);director.player.position=new Vector3(-10,director.surfaceY,0);ApplyLayer();
@@ -164,7 +188,7 @@ namespace Starfall {
    for(int i=0;i<4;i++){ShowcaseRequire(Repair(i),"飞船维修失败 "+i);showcaseReadout="正在安装："+CampaignRules.RepairNames[i]+"\n\n已修复 "+State.repairs.Count+" / 4 项 · 使用原配方材料";yield return ShowcaseWait(1);}
    ShowcaseRequire(CalibrateNavigation()&&FuelShip()&&EscapeReady,"飞船起飞条件未完成");showcaseReadout="四项修复、导航校准与燃料装填全部完成。\n逃离结局已经具备条件。\n\n这一次，你选择留下，关闭 D4。";yield return ShowcaseWait(5);showcaseReadout="";yield return ShowcaseUntil(345);
    ShowcaseChapter(8,"先摧毁供能节点，再抓住胸部弱点暴露的时机。","守核机甲战 · 三处供能节点 / 范围炮预警 / 换弹与弱点射击。演示提供持续医疗补给。");
-   yield return ShowcaseEnter(5);yield return ShowcaseShot(CampaignCinematicBeat.Guardian);yield return showcaseDriver.FightGuardian(65);ShowcaseDriverCheck();ShowcaseRequire(State.Has("boss-defeated"),"守核机甲尚未击败");yield return ShowcaseUntil(410);
+   yield return ShowcaseEnter(5);yield return ShowcaseShot(CampaignCinematicBeat.Guardian);yield return showcaseDriver.FightGuardian(65);ShowcaseDriverCheck();ShowcaseRequire(State.Has("boss-defeated"),"守核机甲尚未击败");yield return ShowcaseWait(GuardianMechVisual.ShutdownSeconds+.25f);yield return ShowcaseUntil(410);
    ShowcaseChapter(9,"广播、隔离、锚定。最后一次跃迁，必须回到现实。","核查生命维持 → 切断现实耦合 → 锁定锚点 → 安装炸弹 → 原版 45 秒撤离。");
    yield return ShowcaseApproach("core");for(int i=0;i<3;i++){ShowcaseRequire(RegionView.CoreStep(i),"隔离安全步骤失败 "+i);yield return ShowcaseWait(2);}
    ShowcaseRequire(InstallBomb(),"炸弹安装失败");ShowcaseRequire(BeginDetonation(),"引爆检查点保存失败");yield return ShowcaseShot(CampaignCinematicBeat.Collapse);
@@ -194,11 +218,15 @@ namespace Starfall {
    BombSeconds=showcaseOriginalBomb;ShowcaseActive=false;ShowcasePaused=false;ShowcaseRestoring=false;showcaseOriginal=null;
    Time.timeScale=showcaseOriginalScale>0?showcaseOriginalScale:1;
    if(Explorer)Explorer.SetPaused(true);else director.SetPaused(true);
-   Notice("已退出主线演示，原故事进度已恢复");
+   Notice(guardianOnly?"已退出机甲战演示，原故事进度已恢复":"已退出主线演示，原故事进度已恢复");
+   guardianOnly=false;
   }
   void DrawShowcaseSettings(Rect rect){
    if(ShowcaseActive||CinematicActive)return;
-   if(Action(rect,"主线演示 · 约8分钟"))Open("showcase");
+   var left=rect;left.x-=rect.width*.5f+8;
+   var right=rect;right.x+=rect.width*.5f+8;
+   if(Action(left,"主线演示 · 约8分钟"))Open("showcase");
+   if(Action(right,"直看机甲战")&&!StartGuardianShowcase())Notice("请等待当前交互完成后开始演示");
   }
   void DrawShowcaseSetup(){
    Paragraph(new Rect(250,215,1100,95),"主线精华演示   /   约 8 分钟",29);
@@ -213,10 +241,10 @@ namespace Starfall {
    if(!ShowcaseActive||!director.uiFont||CinematicActive)return;
    var matrix=GUI.matrix;var depth=GUI.depth;float scale=Mathf.Min(Screen.width/1600f,Screen.height/900f);GUI.matrix=Matrix4x4.TRS(new Vector3((Screen.width-1600*scale)/2,(Screen.height-900*scale)/2,0),Quaternion.identity,Vector3.one*scale);GUI.depth=-590;
    CampaignGameUI.Solid(new Rect(0,0,1600,86),new Color(.015f,.028f,.04f,.96f));
-   Caption(new Rect(35,12,1240,35),"主线演示   /   "+(ShowcaseStage+1).ToString("D2")+"   "+showcaseTitles[Mathf.Clamp(ShowcaseStage,0,showcaseTitles.Length-1)],22,CampaignGameUI.Gold);
+   Caption(new Rect(35,12,1240,35),guardianOnly?"守核机甲战   /   自动演示":"主线演示   /   "+(ShowcaseStage+1).ToString("D2")+"   "+showcaseTitles[Mathf.Clamp(ShowcaseStage,0,showcaseTitles.Length-1)],22,CampaignGameUI.Gold);
    Caption(new Rect(35,49,1400,25),showcaseSubtitle,17);
-   Caption(new Rect(1300,19,265,35),Mathf.FloorToInt(ShowcaseElapsed/60).ToString("D2")+":"+Mathf.FloorToInt(ShowcaseElapsed%60).ToString("D2")+"  /  约08:00",18,null,TextAnchor.MiddleRight);
-   CampaignGameUI.Solid(new Rect(0,86,1600*Mathf.Clamp01(ShowcaseElapsed/ShowcaseTargetSeconds),3),CampaignGameUI.Gold);
+   Caption(new Rect(1300,19,265,35),Mathf.FloorToInt(ShowcaseElapsed/60).ToString("D2")+":"+Mathf.FloorToInt(ShowcaseElapsed%60).ToString("D2")+(guardianOnly?"":"  /  约08:00"),18,null,TextAnchor.MiddleRight);
+   if(!guardianOnly)CampaignGameUI.Solid(new Rect(0,86,1600*Mathf.Clamp01(ShowcaseElapsed/ShowcaseTargetSeconds),3),CampaignGameUI.Gold);
    CampaignGameUI.Solid(new Rect(0,804,1600,96),new Color(.015f,.028f,.04f,.96f));Paragraph(new Rect(35,817,1270,65),showcaseDetail,17);
    if(showcaseReadout!=""){
     CampaignGameUI.Panel(new Rect(900,160,650,255));Caption(new Rect(925,178,600,36),showcaseReadoutTitle,23,CampaignGameUI.Gold);CampaignGameUI.Divider(new Rect(925,224,600,1));Paragraph(new Rect(925,242,600,150),showcaseReadout,20);
@@ -224,8 +252,8 @@ namespace Starfall {
    if(CampaignGameUI.Button(new Rect(1350,825,210,43),ShowcasePaused?"继续演示":"Esc 暂停",director.uiFont,!ShowcaseFinished))SetShowcasePaused(!ShowcasePaused);
    if(ShowcasePaused||ShowcaseFinished||ShowcaseRestoring){
     CampaignGameUI.Solid(new Rect(0,0,1600,900),new Color(.005f,.012f,.02f,.84f));
-    Caption(new Rect(290,225,1020,70),ShowcaseRestoring?"正在恢复原故事…":ShowcaseFinished?(ShowcaseError==""?"主线演示完成":"演示已中断"):"演示暂停",36,CampaignGameUI.Gold,TextAnchor.MiddleCenter);
-    Paragraph(new Rect(360,329,880,140),ShowcaseFinished?(ShowcaseError==""?"五层矿井 · 五个星界 · 真相调查 · 守核机甲\n核心隔离与撤离 · 星球的守望者\n\n原游戏还保留独立的修船逃离结局。":ShowcaseError):"演示计时、战斗与倒计时已暂停。\n退出后回到进入演示前的故事。",23);
+    Caption(new Rect(290,225,1020,70),ShowcaseRestoring?"正在恢复原故事…":ShowcaseFinished?(ShowcaseError==""?(guardianOnly?"守核机甲已击败":"主线演示完成"):"演示已中断"):"演示暂停",36,CampaignGameUI.Gold,TextAnchor.MiddleCenter);
+    Paragraph(new Rect(360,329,880,140),ShowcaseFinished?(ShowcaseError==""?(guardianOnly?"退出后回到进入演示前的故事。":"五层矿井 · 五个星界 · 真相调查 · 守核机甲\n核心隔离与撤离 · 星球的守望者\n\n原游戏还保留独立的修船逃离结局。"):ShowcaseError):"演示计时、战斗与倒计时已暂停。\n退出后回到进入演示前的故事。",23);
     if(!ShowcaseRestoring){if(!ShowcaseFinished&&CampaignGameUI.Button(new Rect(440,548,720,55),"继续演示",director.uiFont))SetShowcasePaused(false);if(CampaignGameUI.Button(new Rect(440,624,720,55),"退出演示 · 恢复原故事",director.uiFont))StopShowcase();}
    }
    GUI.matrix=matrix;GUI.depth=depth;GUI.color=Color.white;

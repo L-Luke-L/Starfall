@@ -18,16 +18,16 @@ namespace Starfall {
     if(IsOwner(hit.collider))continue;
     // SphereCastAll reports zero as the point for initial overlaps. Keep the
     // impact at the actual contact instead of spawning it at the world origin.
-    Hit(hit.collider,hit.distance<=0?hit.collider.ClosestPoint(transform.position):hit.point);return;
+    Hit(hit.collider,hit.distance<=0?hit.collider.ClosestPoint(transform.position):hit.point,hit.normal);return;
    }
    transform.position+=velocity*dt;
   }
   bool IsOwner(Collider collider)=>owner&&collider.GetComponentInParent<AlienCreature>()==owner;
-  void Hit(Collider collider,Vector3 point){
+  void Hit(Collider collider,Vector3 point,Vector3 normal){
    resolved=true;HitPosition=point;bool damaged=false;var player=collider.GetComponentInParent<FirstPersonExplorer>();
    if(player==arena.player){damaged=arena.Damage(CampaignRuntime.Current?CampaignRules.EnemyDamage(19):19,owner);if(damaged&&owner)owner.RegisterHit();}
    else {HitWorld=true;arena.BlockedProjectiles++;}
-   arena.ReportProjectileHit(this,collider,damaged);arena.Impact(point,Color.cyan);Destroy(gameObject);
+   arena.ReportProjectileHit(this,collider,damaged);arena.MonsterFx.Burst(point+normal*.035f,normal.sqrMagnitude>.1f?normal:-velocity.normalized,MonsterAttackFx.BoltColor(owner),.90f);Destroy(gameObject);
   }
  }
 }

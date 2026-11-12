@@ -11,19 +11,66 @@ namespace Starfall {
   IEnumerator Start(){
    if(!Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-campaignQA"))yield break;
    folder=Path.GetFullPath(Path.Combine(Application.dataPath,"../../../QA/Reports/Campaign"));Directory.CreateDirectory(folder);yield return new WaitForSeconds(2);
-   c=CampaignRuntime.Current;d=GetComponent<SceneDirector>();var run=Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-mineTravelOnly")?MineTravelVerification.Run(c,d,Check):Run();
+   c=CampaignRuntime.Current;d=GetComponent<SceneDirector>();var run=Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-mineTravelOnly")?MineTravelVerification.Run(c,d,Check):Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-guardianOnly")?GuardianReview():Run();
    while(true){object value=null;bool more=false;try{more=run.MoveNext();if(more)value=run.Current;}catch(Exception e){Check("Unhandled: "+e,false);break;}if(!more)break;yield return value;}
    File.WriteAllLines(Path.Combine(folder,"campaign-report.txt"),results);Debug.Log(failures==0?"CAMPAIGN_QA_PASS":"CAMPAIGN_QA_FAIL "+failures);Application.Quit(failures==0?0:2);
   }
   IEnumerator Until(Func<bool> ready,float seconds=12){float end=Time.realtimeSinceStartup+seconds;while(!ready()&&Time.realtimeSinceStartup<end)yield return null;Check("Wait completed",ready());}
-  IEnumerator Shot(string name){
+  IEnumerator Shot(string name,Vector3? from=null,Vector3? focus=null){
    yield return new WaitForEndOfFrame();var camera=c.Explorer?c.Explorer.viewCamera:d.worldCamera;var target=RenderTexture.GetTemporary(1600,900,24);var old=camera.targetTexture;var active=RenderTexture.active;Texture2D image=null;
-   try{camera.targetTexture=target;camera.Render();RenderTexture.active=target;image=new Texture2D(1600,900,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,1600,900),0,0);image.Apply();File.WriteAllBytes(Path.Combine(folder,name+".png"),image.EncodeToPNG());}
+   Vector3 position=camera.transform.position;Quaternion rotation=camera.transform.rotation;
+   try{
+    if(from.HasValue&&focus.HasValue)camera.transform.SetPositionAndRotation(from.Value,Quaternion.LookRotation(focus.Value-from.Value));
+    camera.targetTexture=target;camera.Render();RenderTexture.active=target;image=new Texture2D(1600,900,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,1600,900),0,0);image.Apply();File.WriteAllBytes(Path.Combine(folder,name+".png"),image.EncodeToPNG());}
    catch(Exception e){Check("Screenshot "+name+": "+e.Message,false);}
-   finally{camera.targetTexture=old;RenderTexture.active=active;RenderTexture.ReleaseTemporary(target);if(image)Destroy(image);}
+   finally{camera.transform.SetPositionAndRotation(position,rotation);camera.targetTexture=old;RenderTexture.active=active;RenderTexture.ReleaseTemporary(target);if(image)Destroy(image);}
   }
   void Warp(Vector3 p){var f=c.Explorer;f.Motor.enabled=false;f.transform.position=p;f.Motor.enabled=true;f.ResetMotion();Physics.SyncTransforms();}
   void Face(Vector3 point){var f=c.Explorer;var v=point-f.viewCamera.transform.position;f.transform.rotation=Quaternion.Euler(0,Mathf.Atan2(v.x,v.z)*Mathf.Rad2Deg,0);f.Look(0,f.Pitch+Mathf.Atan2(v.y,new Vector2(v.x,v.z).magnitude)*Mathf.Rad2Deg);}
+  bool RayReachesBossPart(CampaignBossPart part){
+   Physics.SyncTransforms();
+   var point=part.transform.position;
+   bool reached=Physics.Raycast(point+Vector3.back*2.8f,Vector3.forward,out var hit,3.3f)&&hit.collider.GetComponent<CampaignBossPart>()==part;
+   if(!reached)Debug.Log("Guardian ray to "+part.name+" at "+point+" first hit "+(hit.collider?hit.collider.name:"nothing"));
+   return reached;
+  }
+  IEnumerator GuardianReview(){
+   c.State.coordinates.Add(5);
+   Check("Open core region",c.EnterRegion(5));
+   yield return Until(()=>c.Explorer&&!d.battle.IsTransitioning,25);
+   if(!c.RegionView||!c.RegionView.boss)yield break;
+   var boss=c.RegionView.boss;
+   var p=boss.transform.position;
+   var arena=c.Explorer.arena;
+   Warp(new Vector3(0,AlienSurfaceLandmarks.Height(0,4),4));
+   yield return null;
+   Check("Combat active",arena.CanTarget);
+   Check("Three power nodes and closed core",boss.NodesRemaining==3&&!boss.WeakOpen&&!boss.Hit(-1,44));
+   foreach(var part in boss.GetComponentsInChildren<CampaignBossPart>())
+    if(part.node>=0)Check("Power cell ray reaches target "+part.node,RayReachesBossPart(part));
+   yield return Shot("guardian-armor",p+new Vector3(4.5f,2.95f,-8.0f),p+Vector3.up*2.85f);
+
+   typeof(CampaignBoss).GetField("attackClock",BindingFlags.NonPublic|BindingFlags.Instance).SetValue(boss,.1f);
+   int damageCount=arena.DamageCount;
+   yield return Until(()=>boss.Telegraphing,3);
+   yield return new WaitForSeconds(1.8f);
+   yield return Shot("guardian-warning",p+new Vector3(8.5f,7.2f,-13.5f),p+new Vector3(-1,1.7f,-3));
+   Check("Warning deals no damage",arena.DamageCount==damageCount);
+   yield return Until(()=>boss.Attacks>0,5);
+   yield return Shot("guardian-discharge",p+new Vector3(6.4f,3.1f,-9.6f),p+Vector3.up*2.75f);
+   Check("Exposed player takes cannon damage",arena.DamageCount>damageCount&&arena.Health==16);
+   arena.RestoreHealth(100);
+   for(int i=0;i<3;i++){Check("Power cell accepts pick damage "+i,boss.Hit(i,44)&&boss.Hit(i,44));}
+   Check("All cells destroyed",boss.NodesRemaining==0);
+   yield return Until(()=>boss.WeakOpen,9);
+   yield return null;
+   var core=Array.Find(boss.GetComponentsInChildren<CampaignBossPart>(),part=>part.node==-1);
+   Check("Lowered reactor is reachable",core&&RayReachesBossPart(core));
+   Check("Armor rejects damage",!boss.Hit(-2,44));
+   yield return Shot("guardian-weak-point",p+new Vector3(1.1f,2.6f,-5.8f),p+Vector3.up*2.65f);
+   for(int i=0;i<20;i++)boss.Hit(-1,44);
+   Check("Defeat flag and shutdown",boss.Dead&&c.State.Has("boss-defeated")&&!boss.Telegraphing);
+  }
   IEnumerator Run(){
    yield return MineTravelVerification.Run(c,d,Check);
    Check("New story 12+24 rounds, 2 fuel, protected pistol",c.State.magazine==12&&c.State.bag.Count(ItemId.Ammo)==24&&c.State.bag.Count(ItemId.Fuel)==2&&!c.State.device);

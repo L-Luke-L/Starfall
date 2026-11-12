@@ -21,6 +21,11 @@ namespace Starfall {
   public void Initialize(){
    if(initialized)return;initialized=true;Progress=player.session!=null?player.session.Progress:new BasinProgress();
    if(!player.session)localInventory=gameObject.AddComponent<OreInventory>();arsenal.Initialize(Progress);player.arena.RestoreHealth(Progress.health);
+   var campaign=CampaignRuntime.Current;
+   var route=new GameObject("Expedition route lighting");
+   route.transform.SetParent(player.arena.transform,false);
+   var wayfinding=route.AddComponent<ExpeditionWayfinding>();
+   wayfinding.Build(player.returnBeacon,campaign?campaign.State.region:0);
    foreach(var c in player.arena.creatures)if(c&&c.gameObject.activeInHierarchy)c.GetComponent<CreatureVitality>().Initialize(this);
    var titan=FindFirstObjectByType<SkyTitan>();if(titan)titan.GetComponent<CreatureVitality>().Initialize(this);
    foreach(var r in resources)if(Progress.mined.Contains(r.id))r.Exhaust();foreach(var drop in Progress.drops)if(!drop.collected)SpawnPickup(drop);

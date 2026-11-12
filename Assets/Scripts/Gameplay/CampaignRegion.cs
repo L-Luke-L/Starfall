@@ -8,7 +8,7 @@ namespace Starfall {
   readonly Dictionary<string,Transform> sites=new Dictionary<string,Transform>();readonly List<Material> materials=new List<Material>();readonly Dictionary<string,GameObject> crates=new Dictionary<string,GameObject>();
   public Material steel,accent,dark,warningMaterial;GameObject root;string focus;Mesh armorMesh;
   public void Configure(CampaignRuntime owner,int region){
-   campaign=owner;id=region;player=GetComponent<FirstPersonExplorer>();root=new GameObject("Campaign region "+region);root.transform.SetParent(player.arena.transform);
+   campaign=owner;id=region;player=GetComponent<FirstPersonExplorer>();root=new GameObject("Campaign region "+region);root.transform.SetParent(player.arena.transform);player.arena.SetSoundRegion(region);
    steel=Mat("Weathered alloy",new Color(.24f,.29f,.31f));accent=Mat("Anchor glow",new Color(.25f,.76f,.84f),.7f);dark=Mat("Dark panels",new Color(.07f,.10f,.13f));warningMaterial=Mat("D4 amber warning",new Color(1,.32f,.08f),.65f);armorMesh=CampaignGeometry.Armor();
    if(region==1){foreach(var resource in player.expedition.resources)resource.gameObject.SetActive(false);player.expedition.resources=new BasinResource[0];Wreck();}
    else{
@@ -17,12 +17,18 @@ namespace Starfall {
     for(int i=0;i<player.expedition.resources.Length;i++){var r=player.expedition.resources[i];r.metal=region==2?(i%2==0?RepairResource.FerricAlloy:RepairResource.CopperCompound):region==3?RepairResource.CobaltSilicate:RepairResource.RareComposite;r.gameObject.SetActive(region!=5);var block=new MaterialPropertyBlock();block.SetColor("_Color",OreInventory.MetalColor(r.metal)*.48f);block.SetColor("_EmissionColor",OreInventory.MetalColor(r.metal)*.08f);foreach(var renderer in r.crystals.GetComponentsInChildren<Renderer>())renderer.SetPropertyBlock(block);}
     var station=MakeSite("terminal",new Vector3(-6,0,-20),"档案与补给");Box("Console",station,new Vector3(0,.6f,0),new Vector3(1.7f,1.2f,.7f),steel,true);Box("Screen",station,new Vector3(0,1.28f,-.08f),new Vector3(1.4f,.10f,.8f),accent,false);
     // Each campaign region carries its own saved geometry and navigation scene.
+    if(region==4){
+     foreach(var cover in new[]{new Vector3(-15.4f,0,-2),new Vector3(-2.8f,0,7.8f)}){
+      float floor=FieldSurface.Height(cover.x,cover.z,AlienSurfaceLandmarks.Height(cover.x,cover.z));
+      Box("Shipyard approach cover",root.transform,new Vector3(cover.x,floor+.87f,cover.z),new Vector3(3.25f,1.74f,1.13f),steel,true);
+     }
+    }
     if(region==5){boss=new GameObject("D4 guardian mech").AddComponent<CampaignBoss>();boss.transform.SetParent(root.transform);boss.Configure(this);var control=MakeSite("core",new Vector3(0,0,21),"D4核心");Box("Isolation terminal",control,Vector3.up*.9f,new Vector3(2.2f,1.8f,1),steel,true);Box("Isolation light",control,new Vector3(0,1.5f,-.53f),new Vector3(1.8f,.45f,.03f),accent,false);}
    }
    BuildExpansion();BuildFrontier();RelocateSavedLoot();foreach(var c in campaign.State.crates)if(c.region==id)SpawnCrate(c);
   }
   Material Mat(string name,Color color,float glow=0){var m=new Material(Shader.Find("Standard")){name=name,color=color};m.SetFloat("_Metallic",.6f);m.SetFloat("_Glossiness",.25f);if(glow>0){m.EnableKeyword("_EMISSION");m.SetColor("_EmissionColor",color*glow);}materials.Add(m);return m;}
-  public Transform Box(string name,Transform parent,Vector3 local,Vector3 size,Material material,bool collide){var g=GameObject.CreatePrimitive(PrimitiveType.Cube);g.name=name;g.transform.SetParent(parent,false);g.transform.localPosition=local;g.transform.localScale=size;g.GetComponent<Renderer>().sharedMaterial=material;g.GetComponent<MeshFilter>().sharedMesh=armorMesh;if(!collide)Destroy(g.GetComponent<Collider>());else if(name=="Medical habitat"||name=="Stored D4 cells"||name.StartsWith("Core blast shelter")||name.StartsWith("Power barrier")){var obstacle=g.AddComponent<NavMeshObstacle>();obstacle.shape=NavMeshObstacleShape.Box;obstacle.size=Vector3.one;obstacle.carving=true;}return g.transform;}
+  public Transform Box(string name,Transform parent,Vector3 local,Vector3 size,Material material,bool collide){var g=GameObject.CreatePrimitive(PrimitiveType.Cube);g.name=name;g.transform.SetParent(parent,false);g.transform.localPosition=local;g.transform.localScale=size;g.GetComponent<Renderer>().sharedMaterial=material;g.GetComponent<MeshFilter>().sharedMesh=armorMesh;if(!collide)Destroy(g.GetComponent<Collider>());else if(name=="Medical habitat"||name=="Stored D4 cells"||name.StartsWith("Core blast shelter")||name.StartsWith("Shipyard approach cover")||name.StartsWith("Power barrier")){var obstacle=g.AddComponent<NavMeshObstacle>();obstacle.shape=NavMeshObstacleShape.Box;obstacle.size=Vector3.one;obstacle.carving=true;}return g.transform;}
   Transform MakeSite(string key,Vector3 position,string label){var g=new GameObject(label).transform;g.SetParent(root.transform);if(Mathf.Abs(position.y)<.001f)position.y=AlienSurfaceLandmarks.Height(position.x,position.z);if(NavMesh.SamplePosition(position,out var nav,5,NavMesh.AllAreas))position=nav.position;g.position=position;sites[key]=g;return g;}
   void Wreck(){
    var wreck=MakeSite("wreck",new Vector3(0,0,-4),"Half buried explorer ship");wreck.rotation=Quaternion.Euler(0,-14,-7);

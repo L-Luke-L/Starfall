@@ -11,6 +11,13 @@ namespace Starfall {
   public FirstPersonExplorer player;
   public Transform beacon;
   public Material projectileMaterial,impactMaterial;
+  MonsterAttackFx monsterFx;
+  bool coordinatedCombat;
+  float lastCreatureTell=-10;
+  NavMeshPath flankPath;
+  readonly RaycastHit[] sightHits=new RaycastHit[24];
+  internal ExpeditionSoundscape Soundscape {get;private set;}
+  internal MonsterAttackFx MonsterFx=>monsterFx??(monsterFx=new MonsterAttackFx(this));
   public int Health {get;private set;}=100;
   public int DamageCount {get;private set;}
   public int RespawnCount {get;private set;}
@@ -29,10 +36,43 @@ namespace Starfall {
   public event Action<AlienBolt,Collider,bool> ProjectileHit;
   NavMeshDataInstance nav;float hitFlash,immune,downTimer,quiet,regeneration;
   void Awake(){if(navigation)nav=NavMesh.AddNavMeshData(navigation);foreach(var c in creatures)if(c)c.GetComponent<NavMeshAgent>().enabled=true;if(Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-battleQA"))SimulationEnabled=false;}
+  void Start(){
+   if(!Soundscape){Soundscape=gameObject.AddComponent<ExpeditionSoundscape>();Soundscape.Configure(this);}
+  }
+  internal void SetSoundRegion(int region){
+   if(!Soundscape){Soundscape=gameObject.AddComponent<ExpeditionSoundscape>();Soundscape.Configure(this);}
+   Soundscape.SetRegion(region);coordinatedCombat=region==2||region==4;
+  }
+  internal bool CanStartCreatureTell=>!coordinatedCombat||Time.time-lastCreatureTell>=.86f;
+  internal void RegisterCreatureTell(){
+   lastCreatureTell=Time.time;
+   Soundscape?.Action(4.3f,.24f);
+  }
+  internal bool TryFlank(AlienCreature flyer,Vector3 playerPoint,float side,out Vector3 goal){
+   goal=default;
+   if(!coordinatedCombat||!flyer.Agent.isOnNavMesh)return false;
+   foreach(var partner in pursuers){
+    if(!partner||partner==flyer||!partner.isActiveAndEnabled||partner.kind!=CreatureKind.RiftMauler)continue;
+    Vector3 front=partner.transform.position-playerPoint;front.y=0;
+    if(front.sqrMagnitude<4)continue;
+    front.Normalize();
+    Vector3 lateral=Vector3.Cross(Vector3.up,front);
+    for(int i=0;i<2;i++){
+     float sign=i==0?side:-side;
+     Vector3 desired=playerPoint+lateral*sign*12+front*3.5f;
+     if(!NavMesh.SamplePosition(desired,out var point,3.4f,NavMesh.AllAreas))continue;
+     if(!ClearSight(point.position+Vector3.up*3.25f,playerPoint+Vector3.up,flyer))continue;
+     if(flankPath==null)flankPath=new NavMeshPath();
+     if(!flyer.Agent.CalculatePath(point.position,flankPath)||flankPath.status!=NavMeshPathStatus.PathComplete)continue;
+     goal=point.position;return true;
+    }
+   }
+   return false;
+  }
   public void RestoreHealth(int health){Health=Mathf.Clamp(health,1,100);}
   public bool Heal(int amount){if(Downed||Health>=100)return false;Health=Mathf.Min(100,Health+amount);return true;}
   public void SetPaused(bool paused){foreach(var c in creatures)if(c&&c.Agent&&c.Agent.isActiveAndEnabled&&c.Agent.isOnNavMesh){c.Agent.isStopped=paused;c.Agent.updatePosition=!paused;if(paused)c.Agent.nextPosition=c.transform.position;}}
-  void OnDestroy(){if(nav.valid)nav.Remove();}
+  void OnDestroy(){if(nav.valid)nav.Remove();monsterFx?.Dispose();}
   public static float FlatDistance(Vector3 a,Vector3 b){a.y=b.y=0;return Vector3.Distance(a,b);}
   void Update(){
    if(!Active)return;float dt=Time.deltaTime;hitFlash=Mathf.Max(0,hitFlash-dt);immune=Mathf.Max(0,immune-dt);quiet+=dt;
@@ -41,15 +81,20 @@ namespace Starfall {
   }
   public bool Damage(int amount,AlienCreature source){
    if(!CanTarget||immune>0||amount<=0)return false;
+   Soundscape?.Action(6,.28f);
    InteractionFeel.Play(FeelCue.Hurt,.8f);player.ImpactPulse(.65f);Health=Mathf.Max(0,Health-amount);DamageCount++;immune=.32f;hitFlash=.45f;quiet=0;PlayerDamaged?.Invoke(amount,source);
    if(Downed){downTimer=1.5f;ClearBolts();if(CampaignRuntime.Current){if(CampaignRuntime.Current.BombSeconds>=0)CampaignRuntime.Current.StartCoroutine(CampaignRuntime.Current.Restore("before-core"));else CampaignRuntime.Current.DropOnDeath(player.transform.position);}}return true;
   }
   public void ClearBolts(){foreach(var b in GetComponentsInChildren<AlienBolt>())Destroy(b.gameObject);}
   internal void ReportProjectileHit(AlienBolt bolt,Collider collider,bool damaged){ProjectileHit?.Invoke(bolt,collider,damaged);}
   public AlienBolt Fire(AlienCreature owner,Vector3 origin,Vector3 aim){
-   var g=GameObject.CreatePrimitive(PrimitiveType.Sphere);g.name="Dragon plasma · swept collision";g.transform.SetParent(transform);g.transform.position=origin;g.transform.localScale=Vector3.one*.28f;var collider=g.GetComponent<Collider>();collider.enabled=false;Destroy(collider);g.GetComponent<Renderer>().sharedMaterial=projectileMaterial;
+   Soundscape?.Action(5,.19f);
+   var g=new GameObject("Dragon plasma");
+   g.transform.SetParent(transform,false);g.transform.position=origin;
    var bolt=g.AddComponent<AlienBolt>();bolt.arena=this;bolt.owner=owner;bolt.velocity=(aim-origin).normalized*19;
-   var trail=g.AddComponent<TrailRenderer>();trail.sharedMaterial=projectileMaterial;trail.time=.23f;trail.startWidth=.21f;trail.endWidth=.015f;trail.minVertexDistance=.08f;
+   Color color=MonsterAttackFx.BoltColor(owner);
+   MonsterFx.Projectile(g,color);
+   MonsterFx.Burst(origin,bolt.velocity.normalized,color,.43f);
    return bolt;
   }
   public void Impact(Vector3 position,Color color){
@@ -61,10 +106,16 @@ namespace Starfall {
    }
   }
   public bool ClearSight(Vector3 from,Vector3 to,AlienCreature owner){
-   var delta=to-from;foreach(var hit in Physics.RaycastAll(from,delta.normalized,delta.magnitude,~0,QueryTriggerInteraction.Ignore)){
-    if((owner&&hit.collider.GetComponentInParent<AlienCreature>()==owner)||hit.collider.GetComponentInParent<FirstPersonExplorer>()==player)continue;
+   var delta=to-from;
+   var hits=sightHits;
+   int count=Physics.RaycastNonAlloc(from,delta.normalized,hits,delta.magnitude,~0,QueryTriggerInteraction.Ignore);
+   if(count==hits.Length){hits=Physics.RaycastAll(from,delta.normalized,delta.magnitude,~0,QueryTriggerInteraction.Ignore);count=hits.Length;}
+   for(int i=0;i<count;i++){
+    var collider=hits[i].collider;
+    if((owner&&collider.GetComponentInParent<AlienCreature>()==owner)||collider.GetComponentInParent<FirstPersonExplorer>()==player)continue;
     return false;
-   }return true;
+   }
+   return true;
   }
   void OnGUI(){
    if(!player||!player.Ready||player.Paused)return;

@@ -31,6 +31,10 @@ namespace Starfall {
    if(State.Has("detonation-active"))yield return Restore("before-core");
    if(Store.RecoveredFromBackup)Notice("主存档损坏，已从备份恢复；原文件已保留。");
    if(State.Has("rift-destroyed")&&!State.saviorComplete)Notice("污染源已经关闭。营地等待你的决定。");
+   if(Array.IndexOf(Environment.GetCommandLineArgs(),"-guardianDemo")>=0){
+    while(director.battle.IsTransitioning||Busy)yield return null;
+    if(!StartGuardianShowcase())Notice("按 Esc 选择「直看机甲战」");
+   }
   }
   void RecoverForge(){if(State.pendingForge<0)return;var id=(ItemId)State.pendingForge;if(!State.bag.Add(id,1)&&!State.warehouse.Add(id,1)){var crate=new SavedCrate{id=Guid.NewGuid().ToString("N"),region=0,position=Vector3.zero};crate.items.Add(id,1);State.crates.Add(crate);}State.pendingForge=-1;}
   public void Notice(string message){toast=message;toastAge=3;InteractionFeel.Play(FeelCue.Click,.35f);}

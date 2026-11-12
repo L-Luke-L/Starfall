@@ -47,7 +47,7 @@ namespace Starfall {
    if(!Ready||Paused||(arena&&arena.Downed)||dt<=0)return;input=Vector2.ClampMagnitude(input,1);
    bool grounded=motor.isGrounded;if(grounded&&vertical<0)vertical=-2;
    running=grounded&&running&&input.sqrMagnitude>.01f&&(!arsenal||arsenal.Sprint(dt));
-   if(grounded&&jump&&(!arsenal||arsenal.SpendStamina(14))){InteractionFeel.Play(FeelCue.Step,.55f);vertical=Mathf.Sqrt(2*18*jumpHeight);}vertical-=18*dt;
+   if(grounded&&jump&&(!arsenal||arsenal.SpendStamina(14))){PlayStep(.55f);vertical=Mathf.Sqrt(2*18*jumpHeight);}vertical-=18*dt;
    // World-space momentum is chosen on the ground, then preserved throughout flight.
    // Looking around, releasing Shift and changing WASD cannot steer the airborne body.
    if(grounded){
@@ -64,14 +64,18 @@ namespace Starfall {
    }
    bool dashing=dashDistance>0;
    if(dashDistance>0){var beforeDash=transform.position;motor.Move(dashDirection*Mathf.Min(dashDistance,18*dt));dashDistance-=CreatureArena.FlatDistance(beforeDash,transform.position);if(CreatureArena.FlatDistance(beforeDash,transform.position)<.02f)dashDistance=0;}
-   float moved=CreatureArena.FlatDistance(before,transform.position);steps+=moved;if(motor.isGrounded&&steps>(running?1.9f:1.5f)){steps=0;InteractionFeel.Play(FeelCue.Step,running?.65f:.38f);}
-   if(!grounded&&motor.isGrounded&&vertical<-5){ImpactPulse(.3f);InteractionFeel.Play(FeelCue.Step,.8f);}
+   float moved=CreatureArena.FlatDistance(before,transform.position);steps+=moved;if(motor.isGrounded&&steps>(running?1.9f:1.5f)){steps=0;PlayStep(running?.69f:.48f);}
+   if(!grounded&&motor.isGrounded&&vertical<-5){ImpactPulse(.3f);PlayStep(.84f);}
    if(transform.position.y<-25)Respawn();
    // Advance with distance actually travelled, so walls and airborne motion do not produce steps.
    float walking=motor.isGrounded&&!jump&&!dashing?Mathf.Clamp01(moved/(walkSpeed*dt)):0;
    if(walking>0)bob=Mathf.Repeat(bob+moved*Mathf.PI/(running?1.9f:1.5f),Mathf.PI*2);
    float amplitude=walking*(running?runBobMultiplier:1);
    bobTarget=new Vector3(Mathf.Sin(bob)*walkBobSide,Mathf.Cos(bob*2)*walkBobHeight,0)*amplitude;
+  }
+  void PlayStep(float weight){
+   if(arena&&arena.Soundscape)arena.Soundscape.Step(new Vector3(transform.position.x,motor.bounds.min.y,transform.position.z),weight);
+   else InteractionFeel.Play(FeelCue.Step,weight);
   }
   void Dash(Vector2 input){if(dashCooldown>0||!motor.isGrounded||!arsenal||!arsenal.SpendStamina(30))return;var desired=transform.right*input.x+transform.forward*input.y;desired.y=0;if(desired.sqrMagnitude<.01f)desired=transform.forward;dashDirection=desired.normalized;dashDistance=3;dashCooldown=2.5f;ImpactPulse(.26f);InteractionFeel.Play(FeelCue.Slash,.4f);}
   void Scan(){if(scanCooldown>0||!CampaignRuntime.Current||!CampaignRuntime.Current.ScanUnlocked)return;scanCooldown=12;scanUntil=Time.time+4;ImpactPulse(.08f);InteractionFeel.Play(FeelCue.Alert,.45f);if(CampaignRuntime.Current.RegionView)CampaignRuntime.Current.RegionView.Scan();}
