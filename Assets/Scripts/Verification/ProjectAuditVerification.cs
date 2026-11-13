@@ -27,6 +27,7 @@ namespace Starfall {
   void Finish(){if(finished)return;finished=true;Application.logMessageReceived-=Log;Check("No unhandled runtime exceptions during audit",errors.Count==0);foreach(var error in errors)report.Add("EXCEPTION "+error);File.WriteAllLines(Path.Combine(folder,"audit-report.txt"),report);Debug.Log(failures==0?"PROJECT_AUDIT_PASS":"PROJECT_AUDIT_FAIL "+failures);Application.Quit(failures==0?0:2);}
   IEnumerator Run(){
    campaign.Close();director.SetPaused(false);
+   Check("The surface has one active audio listener",SingleListener(director.worldCamera));
    CampaignStateAuditChecks.RunStoreChecks(Check);
    yield return CampaignStateAuditChecks.RunTreatmentChecks(campaign,Check);
    yield return CampaignStateAuditChecks.RunEmergencyChecks(campaign,Check);
@@ -79,14 +80,22 @@ namespace Starfall {
    Check("Transition new story leaves no stale encounter or progress",!director.battle.IsEngaged&&campaign.State.region==0&&campaign.State.coordinates.Count==0);
   }
   static IEnumerator Complete(IEnumerator routine,Action completed){yield return routine;completed();}
+  static bool SingleListener(Camera owner){
+   if(!owner)return false;
+   var expected=owner.GetComponent<AudioListener>();
+   return expected&&expected.isActiveAndEnabled&&
+    Array.FindAll(FindObjectsByType<AudioListener>(FindObjectsSortMode.None),listener=>listener.isActiveAndEnabled).Length==1;
+  }
   IEnumerator SkyOwnershipChecks(){
    campaign.State.coordinates.Add(1);Check("Sky resource fixture enters a real region",campaign.EnterRegion(1));
    yield return Until(()=>campaign.Explorer&&!director.battle.IsTransitioning,18,"Sky resource fixture scene loads");if(!campaign.Explorer)yield break;
+   Check("The loaded region uses only its first-person audio listener",SingleListener(campaign.Explorer.viewCamera));
    yield return null;yield return null;yield return null;
    var planet=FindInRegion("Distant gas giant");var ring=FindInRegion("Planet orbital ring");
    var sky=RenderSettings.skybox;var planetMaterial=planet?planet.GetComponent<Renderer>().sharedMaterial:null;var ringMaterial=ring?ring.GetComponent<Renderer>().sharedMaterial:null;var ringMesh=ring?ring.GetComponent<MeshFilter>().sharedMesh:null;
    Check("Region owns its generated planet, ring and sky resources",sky&&planetMaterial&&ringMaterial&&ringMesh);
    director.battle.ReturnToExpedition();yield return Until(()=>!director.battle.IsEngaged,18,"Sky resource fixture unloads the region");yield return null;yield return null;
+   Check("Returning from a region restores the surface audio listener",SingleListener(director.worldCamera));
    Check("Unloading a region releases generated planet material",!planetMaterial);
    Check("Unloading a region releases generated ring mesh and material",!ringMaterial&&!ringMesh);
    Check("Unloading a region releases generated sky material",!sky);

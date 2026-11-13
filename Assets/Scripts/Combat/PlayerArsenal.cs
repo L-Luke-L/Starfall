@@ -12,6 +12,7 @@ namespace Starfall {
   LostRealmCatalog.Weapon WeaponConfig=>LostRealmCatalog.Current?LostRealmCatalog.Current.WeaponAt(CurrentWeapon):null;
   public int ActiveMagazine=>CurrentWeapon==1?ShotgunMagazine:CurrentWeapon==2?RailMagazine:Magazine;
   public int ActiveCapacity=>WeaponConfig!=null?WeaponConfig.magazine:CurrentWeapon==1?8:CurrentWeapon==2?3:12;
+  internal float ActiveRange=>WeaponConfig!=null?WeaponConfig.range:CurrentWeapon==1?18:CurrentWeapon==2?100:160;
   public int ActiveCost=>WeaponConfig!=null?WeaponConfig.ammoPerShot:CurrentWeapon==1?2:CurrentWeapon==2?3:1;
   int legacyReserve=60;
   public int Reserve {get=>CampaignRuntime.Current?CampaignRuntime.Current.State.bag.Count(ItemId.Ammo):legacyReserve;private set {if(CampaignRuntime.Current){int delta=value-Reserve;if(delta>0)CampaignRuntime.Current.State.bag.Add(ItemId.Ammo,delta);else if(delta<0)CampaignRuntime.Current.State.bag.Remove(ItemId.Ammo,-delta);}else legacyReserve=value;}}
@@ -87,8 +88,8 @@ namespace Starfall {
    player.arena.Soundscape?.Action(4.25f,.31f);
    ShotsFired++;cooldown=WeaponConfig!=null?WeaponConfig.interval:CurrentWeapon==0?.28f:CurrentWeapon==1?.72f:1.25f;recoil=Mathf.Min(.40f,recoil+(CurrentWeapon==0?.10f:CurrentWeapon==1?.19f:.24f));recoilVelocity=.65f;flash=CurrentWeapon==0?.048f:.075f;charge=0;
    InteractionFeel.Play(FeelCue.Shot,CurrentWeapon==0?.85f:1);player.ImpactPulse(CurrentWeapon==0?.2f:.35f);Sync();
-   if(CurrentWeapon==1){for(int i=0;i<6;i++){float a=i*2.39996f;Vector3 spread=player.viewCamera.transform.forward+player.viewCamera.transform.right*Mathf.Cos(a)*.075f+player.viewCamera.transform.up*Mathf.Sin(a)*.075f;ResolveShot(spread.normalized,WeaponConfig!=null?WeaponConfig.range:18,WeaponConfig!=null?WeaponConfig.bodyDamage:14,false);}}
-   else ResolveShot(player.viewCamera.transform.forward,WeaponConfig!=null?WeaponConfig.range:CurrentWeapon==2?100:160,WeaponConfig!=null?WeaponConfig.bodyDamage:CurrentWeapon==2?70:26,CurrentWeapon==2);
+   if(CurrentWeapon==1){for(int i=0;i<6;i++){float a=i*2.39996f;Vector3 spread=player.viewCamera.transform.forward+player.viewCamera.transform.right*Mathf.Cos(a)*.075f+player.viewCamera.transform.up*Mathf.Sin(a)*.075f;ResolveShot(spread.normalized,ActiveRange,WeaponConfig!=null?WeaponConfig.bodyDamage:14,false);}}
+   else ResolveShot(player.viewCamera.transform.forward,ActiveRange,WeaponConfig!=null?WeaponConfig.bodyDamage:CurrentWeapon==2?70:26,CurrentWeapon==2);
    return true;
   }
   void ResolveShot(Vector3 direction,float range,int baseDamage,bool piercing){var origin=player.viewCamera.transform.position;bool found=Aim(origin,direction,range,out var hit);Vector3 endpoint=found?hit.point:origin+direction*range;

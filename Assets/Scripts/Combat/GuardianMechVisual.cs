@@ -8,7 +8,7 @@ namespace Starfall {
         Material armor, trim, dark, steel, brass, glass, amber, cyan;
         readonly Transform[] muzzles = new Transform[2];
         readonly MeshRenderer[] chargeGlows = new MeshRenderer[2];
-        readonly MaterialPropertyBlock tint = new MaterialPropertyBlock();
+        MaterialPropertyBlock tint;
         Material reactorLight, barrelLight;
         Transform reactorAssembly, chassis;
         Transform[] cannons;
@@ -17,6 +17,10 @@ namespace Starfall {
         public const float ShutdownSeconds = 2.25f;
         public bool ShutdownComplete => shutdownTime >= ShutdownSeconds;
         bool coreOpen, corePowered = true;
+
+        void Awake() {
+            tint = new MaterialPropertyBlock();
+        }
 
         public void Build(Transform core, Transform[] arms, Transform[] nodes, CreatureArena arena) {
             armor = Surface("Weathered ceramic armor", new Color(.57f, .60f, .55f), .32f, .34f);

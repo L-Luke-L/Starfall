@@ -67,9 +67,11 @@ namespace Starfall {
   public void DrawTerminalView(){
    campaign.StoryText(new Rect(240,215,1110,165),id==2?"撤离记录仍在循环。\n军需官（救援站频道）：先修好中继，我们就能一起回家。":id==3?"医疗报告、裂隙实验与中继日志保存在这里。\n诊断上传只需要局部数据；完整请求包含现实端出口权限。":id==4?"军用船坞内的军令、原型维护记录与舰队清单相互吻合。\n指挥官：把装置交出来，我们可以一起离开。你也能分享下一次远征。":"同盟最后的隔离方案与种源库记录已找到。\n共用核心连接全部星界，切断现实耦合才能限制坍缩。",22);
    if(campaign.StoryAction(new Rect(260,429,1040,55),"读取档案与领取补给")){ReadArchive();}
-   if(id==3){if(campaign.StoryAction(new Rect(260,514,480,48),"仅发送局部诊断")){campaign.State.Flag("partial-data");campaign.Changed();campaign.Notice("出口权限保持锁定");}if(campaign.StoryAction(new Rect(805,514,495,48),"查看完整出口权限请求")){campaign.ReviewPermission();}}
-   if(id==4){string[] choices={"拒绝交出装置","拖延并调查","假意配合，记录路线"};for(int i=0;i<3;i++)if(campaign.StoryAction(new Rect(230+i*380,550,350,48),choices[i])){campaign.State.Flag("commander-route");campaign.Changed();campaign.Notice("通路已记录，装置仍由你掌握");}}
+   if(id==3){if(campaign.StoryAction(new Rect(260,514,480,48),"仅发送局部诊断"))SendPartialDiagnosis();if(campaign.StoryAction(new Rect(805,514,495,48),"查看完整出口权限请求")){campaign.ReviewPermission();}}
+   if(id==4){string[] choices={"拒绝交出装置","拖延并调查","假意配合，记录路线"};for(int i=0;i<3;i++)if(campaign.StoryAction(new Rect(230+i*380,550,350,48),choices[i]))RecordCommanderRoute();}
   }
+  internal void SendPartialDiagnosis(){campaign.State.Flag("partial-data");campaign.Changed();campaign.Notice("出口权限保持锁定");}
+  internal void RecordCommanderRoute(){campaign.State.Flag("commander-route");campaign.Changed();campaign.Notice("通路已记录，装置仍由你掌握");}
   public void DrawCoreView(){
    campaign.StoryText(new Rect(245,209,1100,90),campaign.State.Has("boss-defeated")?"守核机甲已停机。指挥官拒绝放下武器，仍试图启动D4。":"远征议会指挥官：你以为你修好的是回家的路。那是我们重新出征的航道。\n先击破三处供能节点，等待胸部弱点暴露。",21);
    string[] labels={"广播解除武装与撤离窗口，核查生命维持舱","切断现实端能量耦合","锁定现实安全锚点"};string[] flags={"life-support-checked","coupling-cut","evac-anchor"};
