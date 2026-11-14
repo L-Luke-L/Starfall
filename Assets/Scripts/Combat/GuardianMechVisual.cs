@@ -12,6 +12,7 @@ namespace Starfall {
         Material reactorLight, barrelLight;
         Transform reactorAssembly, chassis;
         Transform[] cannons;
+        readonly Transform[] strideLegs=new Transform[2];
         readonly Quaternion[] shutdownArmStart = new Quaternion[2];
         float shutdownTime;
         public const float ShutdownSeconds = 2.25f;
@@ -37,13 +38,15 @@ namespace Starfall {
             chassis = Pivot(transform, "D4 articulated chassis", Vector3.zero);
             var body = Pivot(chassis, "D4 armor assembly", Vector3.zero);
             var legs = Pivot(transform, "Grounded legs", Vector3.zero);
-            var bases = Pivot(transform, "Stationary power pedestals", Vector3.zero);
+            var bases = Pivot(transform, "Mobile power outriggers", Vector3.zero);
             cannons = arms;
             core.SetParent(chassis, false);
             BuildBody(body);
             for (int i = 0; i < arms.Length; i++) {
                 int side = i == 0 ? -1 : 1;
-                BuildLimb(body, legs, side);
+                strideLegs[i]=Pivot(legs,"Articulated leg "+i,Vector3.zero);
+                BuildLimb(body, strideLegs[i], side);
+                Batch(strideLegs[i]);
                 arms[i].SetParent(chassis, false);
                 // Original pivots and their scaled box colliders still drive the cannons.
                 var gun = Unscaled(arms[i], "Articulated pulse cannon");
@@ -72,10 +75,17 @@ namespace Starfall {
                 Batch(cell);
             }
             Batch(body);
-            Batch(legs);
+
             Batch(bases);
             Batch(reactorAssembly);
             SetCoreState(false, nodes[0].gameObject.activeSelf || nodes[1].gameObject.activeSelf || nodes[2].gameObject.activeSelf);
+        }
+
+        public void SetStride(float phase,float amount) {
+            for(int i=0;i<strideLegs.Length;i++) {
+                float wave=Mathf.Sin(phase+i*Mathf.PI);
+                strideLegs[i].localPosition=new Vector3(0,Mathf.Max(0,wave)*.23f,wave*.22f)*amount;
+            }
         }
 
         public Vector3 Muzzle(int index) => muzzles[index].position;
@@ -104,7 +114,7 @@ namespace Starfall {
         }
 
         public void ShutDown(CreatureArena arena, bool animate) {
-            SetCharge(0);
+            SetCharge(0);SetStride(0,0);
             for (int i = 0; i < cannons.Length; i++) shutdownArmStart[i] = cannons[i].localRotation;
             shutdownTime = animate ? 0 : ShutdownSeconds;
             ApplyShutdownPose();

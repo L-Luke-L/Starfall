@@ -23,6 +23,7 @@ namespace Starfall {
   void Paragraph(Rect r,string text,int size=18){CampaignGameUI.Text(r,text,director.uiFont,size,CampaignGameUI.Ink,TextAnchor.UpperLeft,true);}
   void OnGUI(){
    if(Current!=this||State==null||!director.uiFont)return;
+   if(LaunchMenuActive){DrawLaunchMenu();return;}
    if(ShowcaseActive){
     if(Modal&&!CinematicActive)DrawCampaignInterface();
     DrawShowcaseOverlay();

@@ -18,6 +18,33 @@ namespace Starfall {
   internal bool ScoreActive=>music&&music.volume>.01f;
   public bool ShutdownComplete=>Dead&&mech&&mech.ShutdownComplete;
   Transform chest;Transform[] arms=new Transform[2];Transform[] markers=new Transform[3];float clock,attackClock=5,tell=-1;Vector3 aim;BasinProgress progress;
+  float movePlan,strafe=1,gait;
+  Vector3 moveGoal;
+  internal float DistanceTravelled {get;private set;}
+  readonly RaycastHit[] movementHits=new RaycastHit[32];
+  void MoveGuardian(float dt){
+   bool canMove=dt>0&&region.player.arena.CanTarget&&!region.campaign.CinematicActive&&!Telegraphing&&!WeakOpen&&CreatureArena.FlatDistance(region.player.transform.position,transform.position)<28;
+   if(!canMove){mech.SetStride(gait,0);return;}
+   movePlan-=dt;
+   var position=transform.position;
+   if(movePlan<=0||CreatureArena.FlatDistance(position,moveGoal)<.35f){
+    if(movePlan<=0||Mathf.Abs(position.x)>3.7f)strafe=-strafe;
+    var player=region.player.transform.position;
+    moveGoal=new Vector3(Mathf.Clamp(player.x+strafe*5,-4,4),position.y,Mathf.Clamp(player.z+12,8,14));
+    movePlan=3.5f;
+   }
+   float speed=Health<440?2.15f:1.45f;
+   var next=Vector3.MoveTowards(position,moveGoal,speed*dt);
+   // Keep the entire mech footprint clear of the player and solid arena cover.
+   if(CreatureArena.FlatDistance(next,region.player.transform.position)<6){mech.SetStride(gait,0);return;}
+   var delta=next-position;bool blocked=false;
+   int count=Physics.BoxCastNonAlloc(position+Vector3.up*3,new Vector3(4.6f,2.35f,2.7f),delta.normalized,movementHits,Quaternion.identity,delta.magnitude+.12f,~0,QueryTriggerInteraction.Ignore);
+   for(int i=0;i<count;i++){var hit=movementHits[i];if(hit.collider.transform.IsChildOf(transform)||hit.normal.y>.6f)continue;blocked=true;break;}
+   if(blocked){movePlan=0;mech.SetStride(gait,0);return;}
+   next.y=FieldSurface.Height(next.x,next.z,AlienSurfaceLandmarks.Height(next.x,next.z));
+   float distance=CreatureArena.FlatDistance(position,next);transform.position=next;DistanceTravelled+=distance;
+   gait+=distance*3;mech.SetStride(gait,distance>.001f?1:0);
+  }
   const string Key="af7187df-3a32-46d6-8595-0f13bf346301";
   public void Configure(CampaignRegion owner){
    region=owner;progress=owner.campaign.ProgressFor(5);Health=progress.enemyHealth.TryGetValue(Key,out int hp)?hp:880;
@@ -115,9 +142,9 @@ namespace Starfall {
    if(!region||!mech)return;
    var arena=region.player.arena;float dt=Time.deltaTime;
    UpdateMusic(arena,dt);
-   if(!arena.Active)return;
+   if(!arena.Active||region.campaign.CinematicActive)return;
    if(Dead){mech.StepShutdown(arena,dt);return;}
-   clock+=dt;
+   clock+=dt;MoveGuardian(dt);
    // Opening lowers the exposed core to pick height.
    chest.localPosition=new Vector3(0,WeakOpen?1.65f:3.6f,-1.22f);mech.SetCoreState(WeakOpen,NodesRemaining>0);
    for(int i=0;i<2;i++)arms[i].localRotation=Quaternion.Euler(tell>0?-18:Mathf.Sin(clock*.7f+i)*2,0,(i==0?-1:1)*5);

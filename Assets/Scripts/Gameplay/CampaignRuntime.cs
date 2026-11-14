@@ -11,20 +11,24 @@ namespace Starfall {
   public static CampaignRuntime Current {get;private set;}
   public SceneDirector director;public CampaignState State {get;private set;}public CampaignStore Store {get;private set;}
   public CampaignRegion RegionView {get;private set;}public bool Busy {get;private set;}public float BombSeconds {get;private set;}=-1;
-  public bool Modal=>panel!="";public bool IsQA=>Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-campaignQA"||x=="-lostRealmQA"||x=="-frontierQA"||x=="-guidanceQA"||x=="-interfaceQA"||x=="-showcaseQA"||x=="-projectAuditQA");
+  public bool Modal=>panel!="";public bool IsQA=>Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-campaignQA"||x=="-lostRealmQA"||x=="-frontierQA"||x=="-guidanceQA"||x=="-interfaceQA"||x=="-showcaseQA"||x=="-projectAuditQA"||x=="-launchQA");
   public bool AtCamp=>!director.battle.IsEngaged&&!director.underground&&!director.Transitioning&&Mathf.Abs(director.player.position.x-director.camp.transform.position.x)<=Mathf.Max(director.camp.radius,5.4f);
   public bool AtShip=>!director.battle.IsEngaged&&!director.underground&&Mathf.Abs(director.player.position.x-director.wreck.transform.position.x)<=director.wreck.radius;
   public FirstPersonExplorer Explorer=>director.battle.Explorer;
   bool loading,saveBlocked;float autosave,toastAge;string toast;Vector3[] oreOrigins;List<SubsurfaceDefinition> generated=new List<SubsurfaceDefinition>();
   readonly Dictionary<int,BasinProgress> progress=new Dictionary<int,BasinProgress>();
   void Awake(){
-   if(Array.Exists(Environment.GetCommandLineArgs(),x=>(x.EndsWith("QA",StringComparison.OrdinalIgnoreCase)&&x!="-campaignQA"&&x!="-lostRealmQA"&&x!="-frontierQA"&&x!="-guidanceQA"&&x!="-interfaceQA"&&x!="-showcaseQA"&&x!="-projectAuditQA")||x=="-battlePreview"||x=="-titanPreview")){enabled=false;return;}
-   Current=this;if(!director)director=GetComponent<SceneDirector>();bool guidanceVerification=Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-guidanceQA"||x=="-guidanceSave");Store=new CampaignStore(guidanceVerification?Path.GetFullPath(Path.Combine(Application.dataPath,"../../../QA/GuidanceVerification")):Path.Combine(Application.persistentDataPath,IsQA?"CampaignVerification":"CampaignV1"));
-   State=IsQA?CampaignState.New():Store.Load()??CampaignState.New();saveBlocked=!IsQA&&Store.Error!=null;RecoverForge();ReconcileExpansionState();ReconcileFrontierState();
+   if(Array.Exists(Environment.GetCommandLineArgs(),x=>(x.EndsWith("QA",StringComparison.OrdinalIgnoreCase)&&x!="-campaignQA"&&x!="-lostRealmQA"&&x!="-frontierQA"&&x!="-guidanceQA"&&x!="-interfaceQA"&&x!="-showcaseQA"&&x!="-projectAuditQA"&&x!="-launchQA")||x=="-battlePreview"||x=="-titanPreview")){enabled=false;return;}
+   Current=this;if(!director)director=GetComponent<SceneDirector>();bool guidanceVerification=Array.Exists(Environment.GetCommandLineArgs(),x=>x=="-guidanceQA"||x=="-guidanceSave");Store=new CampaignStore(guidanceVerification?Path.GetFullPath(Path.Combine(Application.dataPath,"../../../QA/GuidanceVerification")):Path.Combine(Application.persistentDataPath,Array.IndexOf(Environment.GetCommandLineArgs(),"-launchQA")>=0?Path.Combine("LaunchVerification",Guid.NewGuid().ToString("N")):IsQA?"CampaignVerification":"CampaignV1"));
+   State=IsQA?CampaignState.New():Store.Load()??CampaignState.New();saveBlocked=!IsQA&&Store.Error!=null;RecoverForge();ReconcileExpansionState();ReconcileFrontierState();InitializeLaunchMenu();
   }
   IEnumerator Start(){
    if(Current!=this)yield break;yield return null;CreateBonusNodes();oreOrigins=new Vector3[director.ores.Count];for(int i=0;i<oreOrigins.Length;i++)oreOrigins[i]=director.ores[i].transform.position;
    ApplyLayer();CreateSurfaceSites();CreateCompanions();CreateFrontierCamp();SetupPresentation();director.player.position=new Vector3(State.surfaceX,director.surfaceY,0);
+   if(LaunchMenuActive){ShowLaunchMenu();yield break;}
+   yield return ResumeInitialWorld();
+  }
+  IEnumerator ResumeInitialWorld(){
    if(saveBlocked){Notice("存档读取异常，已保留原文件。请在手账中选择新故事或重试读档。");Open("system");yield break;}
    if(State.region>0&&!State.Has("rift-destroyed")){int area=State.region;State.region=0;EnterRegion(area);}
    else if(State.underground)yield return director.Travel(true);
@@ -40,7 +44,7 @@ namespace Starfall {
   public void Notice(string message){toast=message;toastAge=3;InteractionFeel.Play(FeelCue.Click,.35f);}
   public void Changed(){InvalidateGuidance();director.inventory.NotifyChanged();Save();}
   public bool Save(string slot="campaign"){
-   if(loading||saveBlocked||State==null)return false;
+   if(loading||saveBlocked||State==null||LaunchMenuActive||(initialWorldPending&&!ShowcaseActive))return false;
    if(Explorer&&Explorer.expedition&&Explorer.expedition.Initialized){Explorer.expedition.Save();Explorer.arsenal.Sync();State.health=Explorer.arena.Downed?100:Explorer.arena.Health;}
    State.surfaceX=director.player.position.x;State.underground=director.underground;
    foreach(var pair in progress){var target=State.Region(pair.Key);target.enemies.Clear();foreach(var e in pair.Value.enemyHealth)target.enemies.Add(new SavedEnemy{id=e.Key,health=e.Value});target.mined=new List<int>(pair.Value.mined);target.drops=pair.Value.drops;}
@@ -130,9 +134,9 @@ namespace Starfall {
    if(director.battle.IsEngaged){director.battle.ReturnToExpedition();while(director.battle.IsEngaged)yield return null;}
    Close();State=restored;State.escapeComplete|=escape;State.saviorComplete|=savior;State.region=0;State.underground=false;State.flags.Remove("escape-view");progress.Clear();RecoverForge();ReconcileExpansionState();ReconcileFrontierState();director.worldCamera.transform.position=new Vector3(0,0,-20);director.underground=false;director.player.position=new Vector3(State.surfaceX,director.surfaceY,0);ApplyLayer();loading=false;saveBlocked=false;Changed();Notice("已恢复检查点，物资与任务进度已保留");
   }
-  public IEnumerator NewGame(){director.CancelTravel();director.CancelHook();Close();while(director.battle.IsTransitioning)yield return null;if(director.battle.IsEngaged){director.battle.ReturnToExpedition();while(director.battle.IsEngaged)yield return null;}if(!saveBlocked)Save("previous-story");State=CampaignState.New();ReconcileFrontierState();progress.Clear();saveBlocked=false;BombSeconds=-1;director.underground=false;director.worldCamera.transform.position=new Vector3(0,0,-20);director.player.position=new Vector3(-10,director.surfaceY,0);ApplyLayer();Changed();}
+  public IEnumerator NewGame(){director.CancelTravel();director.CancelHook();Close();while(director.battle.IsTransitioning)yield return null;if(director.battle.IsEngaged){director.battle.ReturnToExpedition();while(director.battle.IsEngaged)yield return null;}if(!saveBlocked&&!LaunchMenuActive)Save("previous-story");State=CampaignState.New();ReconcileFrontierState();progress.Clear();saveBlocked=false;BombSeconds=-1;director.underground=false;director.worldCamera.transform.position=new Vector3(0,0,-20);director.player.position=new Vector3(-10,director.surfaceY,0);ApplyLayer();Changed();}
   void Update(){
-   if(Current!=this||State==null)return;toastAge-=Time.unscaledDeltaTime;
+   if(Current!=this||State==null)return;if(LaunchMenuActive){TickLaunchMenu();return;}toastAge-=Time.unscaledDeltaTime;
    if(!ShowcaseActive&&Input.GetKeyDown(KeyCode.Escape)&&Modal){Close();return;}
    if(!ShowcaseActive&&!CinematicActive&&!Busy&&!director.forge.IsOpen&&!director.battle.IsTransitioning){if(Input.GetKeyDown(KeyCode.B))Toggle("bag");if(Input.GetKeyDown(KeyCode.J))Toggle("journal");if(Input.GetKeyDown(KeyCode.F5)){director.CompleteTravel();Save();consumedFrame=Time.frameCount;}if(AtCamp&&Input.GetKeyDown(KeyCode.C))Toggle("frontier");}
    TickEmergency();TickEcology();TickPresentation();TickTreatment();TickCompanions();TickFrontierCamp();TickGuidance();

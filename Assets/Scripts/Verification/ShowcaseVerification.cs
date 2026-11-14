@@ -27,6 +27,10 @@ namespace Starfall {
    yield return new WaitForSecondsRealtime(2);campaign=CampaignRuntime.Current;director=campaign?campaign.director:null;
    Check("Verification uses independent QA campaign",campaign&&campaign.IsQA&&!campaign.Store.directory.EndsWith("CampaignV1",StringComparison.OrdinalIgnoreCase));
    if(!campaign){Finish();yield break;}
+   // A hidden swap chain may ignore v-sync. Bound QA simulation and warm rendering.
+   QualitySettings.vSyncCount=0;Application.targetFrameRate=60;
+   Screen.SetResolution(960,720,false);yield return new WaitForSecondsRealtime(.3f);
+   Screen.SetResolution(1280,720,false);yield return new WaitForSecondsRealtime(.3f);
    var args=Environment.GetCommandLineArgs();
    var run=Array.IndexOf(args,"-expeditionPolishOnly")>=0?RunExpeditionPolish():Array.IndexOf(args,"-guardianShowcaseOnly")>=0?RunGuardianPreview():Array.IndexOf(args,"-showcaseEncounterOnly")>=0?RunWreckEncounter():Run();while(!finished){object next=null;bool more=false;try{more=run.MoveNext();if(more)next=run.Current;}catch(Exception e){Check("Unhandled verification exception: "+e,false);break;}if(!more)break;yield return next;}
    Finish();
@@ -139,10 +143,17 @@ namespace Starfall {
     yield return Capture("guardian-direct-combat");
     var score=boss.GetComponent<AudioSource>();
     Check("Guardian score is playing under combat",score&&score.clip&&score.isPlaying&&score.volume>0);
+    Check("Guardian actually changes position in combat",boss.DistanceTravelled>1);
+    campaign.SetShowcasePaused(true);var pausedPosition=boss.transform.position;
+    yield return new WaitForSecondsRealtime(.4f);
+    Check("Guardian movement freezes during pause",Vector3.Distance(pausedPosition,boss.transform.position)<.001f);
+    campaign.SetShowcasePaused(false);
     deadline=Time.realtimeSinceStartup+125;
     while(!campaign.ShowcaseFinished&&Time.realtimeSinceStartup<deadline)yield return null;
     Check("Preview defeats the real guardian with live combat",boss.Dead&&campaign.ShowcaseFinished&&campaign.ShowcaseError=="");
     Check("Guardian completes its shutdown before the result screen",boss.ShutdownComplete);
+    var deadPosition=boss.transform.position;yield return new WaitForSecondsRealtime(.3f);
+    Check("Defeated guardian stays in place",Vector3.Distance(deadPosition,boss.transform.position)<.001f);
     Check("Guardian cannon fires and the player demonstrably leaves its active lane",boss.Attacks>0&&campaign.ShowcaseGuardianDodges>0);
    }
    campaign.StopShowcase();deadline=Time.realtimeSinceStartup+25;

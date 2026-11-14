@@ -63,6 +63,7 @@ namespace Starfall {
    FitCamera();
    if(Time.time>=counterDelayUntil&&DisplayedOreCount!=oreCount){DisplayedOreCount=oreCount;counterFlashUntil=Time.time+.65f;}
    if(Input.GetKeyDown(KeyCode.F11))Screen.fullScreen=!Screen.fullScreen;
+   if(CampaignRuntime.Current&&CampaignRuntime.Current.LaunchMenuActive)return;
    if(forge&&forge.IsOpen)return;
    if(CampaignRuntime.Current&&CampaignRuntime.Current.ShowcaseActive){if(!paused&&!RecoveryLocked&&!CampaignRuntime.Current.Busy&&!CampaignRuntime.Current.Modal)TickHook(Time.deltaTime);return;}
    if(CampaignRuntime.Current&&(CampaignRuntime.Current.Modal||CampaignRuntime.Current.Busy||CampaignRuntime.Current.ConsumedInput))return;
@@ -197,7 +198,7 @@ namespace Starfall {
    Text(new Rect(p.x-110,p.y+24,220,22),subtitle,10,muted,TextAnchor.MiddleCenter);
   }
   void OnGUI(){
-   if(!worldCamera||(forge&&forge.IsOpen)||(CampaignRuntime.Current&&(CampaignRuntime.Current.Modal||CampaignRuntime.Current.ShowcaseActive||CampaignRuntime.Current.CinematicActive)))return;
+   if(!worldCamera||(forge&&forge.IsOpen)||(CampaignRuntime.Current&&(CampaignRuntime.Current.LaunchMenuActive||CampaignRuntime.Current.Modal||CampaignRuntime.Current.ShowcaseActive||CampaignRuntime.Current.CinematicActive)))return;
    float w=Mathf.Min(Screen.width,Screen.height*16f/9),h=w*9/16;
    float ox=(Screen.width-w)/2,oy=(Screen.height-h)/2;
    // Black areas outside fixed cinematic aspect ratio.

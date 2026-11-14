@@ -172,13 +172,35 @@ namespace Starfall {
    ShowcaseRequire(boss.Dead,"守核机甲尚未击败");
    yield return ShowcaseWait(GuardianMechVisual.ShutdownSeconds+.50f);
   }
+  IEnumerator ShowcaseInterfaceTour(){
+   ShowcaseDirection("界面导览：任务指引、背包、仓库与手账。接下来实际存入和取回补给。");
+   yield return ShowcaseWait(2);
+   Open("bag");TraceShowcase("ui-bag");yield return ShowcaseWait(3);Close();
+   yield return ShowcaseSurface(director.camp.transform.position.x);
+   inventoryFilter=0;bagPage=warehousePage=0;
+   Open("warehouse");TraceShowcase("ui-warehouse");
+   showcaseReadoutTitle="物资终端 / 双向仓储";showcaseReadout="左侧随身背包 · 中间营地仓库 · 右侧物品详情。Shift 单击快速存取。";
+   yield return ShowcaseWait(3);
+   int before=State.bag.Count(ItemId.Medkit);
+   ShowcaseRequire(State.bag.TransferTo(State.warehouse,ItemId.Medkit,2),"仓库演示存入失败");Changed();
+   fromWarehouse=true;selected=State.warehouse.stacks.FindIndex(stack=>stack.item==ItemId.Medkit);
+   Notice("已将 2 份医疗包存入仓库");TraceShowcase("ui-deposit");yield return ShowcaseWait(3);
+   ShowcaseRequire(State.warehouse.TransferTo(State.bag,ItemId.Medkit,2)&&State.bag.Count(ItemId.Medkit)==before,"仓库演示取回失败");Changed();
+   fromWarehouse=false;selected=State.bag.stacks.FindIndex(stack=>stack.item==ItemId.Medkit);
+   Notice("已取回医疗包，补给准备完成");TraceShowcase("ui-withdraw");yield return ShowcaseWait(2.5f);
+   inventoryFilter=3;selected=-1;showcaseReadout="分类筛选可快速找到弹药、燃料与医疗包。容量条显示剩余空间。";
+   TraceShowcase("ui-filter");yield return ShowcaseWait(2.5f);inventoryFilter=0;Close();
+   Open("journal");showcaseReadoutTitle="探险者手账 / 任务追踪";showcaseReadout="查看当前目标、调查线索与修船进度；跟随指引返回探索。";
+   TraceShowcase("ui-journal");yield return ShowcaseWait(4);Close();showcaseReadout="";
+  }
   IEnumerator ShowcaseStory(){
    if(director.battle.IsEngaged){director.battle.ReturnToExpedition();while(director.battle.IsEngaged)yield return null;}
    State=CampaignState.New();State.guidanceRoute="investigate";progress.Clear();director.CancelTravel();director.ResetShowcaseHook();director.underground=false;director.worldCamera.transform.position=new Vector3(0,0,-20);director.player.position=new Vector3(-10,director.surfaceY,0);ApplyLayer();
    // Only logistics are condensed: no knowledge, layer, boss, safety or ending flags are granted.
    State.bag.Add(ItemId.Ammo,150);State.bag.Add(ItemId.Medkit,8);Changed();
    ShowcaseChapter(0,"求生，从一钩矿石开始。","自动操作演示 · 抓钩保留真实碰撞与回收；后续重复开采加快。Esc 暂停 / 退出。");
-   yield return ShowcaseShot(CampaignCinematicBeat.Crash);yield return ShowcaseMine(1);
+   yield return ShowcaseShot(CampaignCinematicBeat.Crash);
+   yield return ShowcaseInterfaceTour();yield return ShowcaseMine(1);
    ShowcaseChapter(1,"裂纹中藏着另一片天空；遗骸里留着回家的图纸。","第一人称探索与射击 · 取回货舱档案，再校准返程信标。");
    yield return ShowcaseEnter(1);yield return ShowcaseShot(CampaignCinematicBeat.RiftArrival);
    if(RegionView.TryGuidancePoint("chest",out var cargo))yield return showcaseDriver.Face(cargo+Vector3.up*1.2f,.7f);
@@ -243,7 +265,7 @@ namespace Starfall {
    director.underground=showcaseOriginalUnderground;director.player.position=new Vector3(showcaseOriginalX,director.surfaceY,0);
    director.worldCamera.transform.position=new Vector3(0,director.underground?director.undergroundCameraY:0,-20);ApplyLayer();InvalidateGuidance();director.inventory.NotifyChanged();
    // EnterRegion saves normally, so rebuild the previous view directly while saves are blocked.
-   if(showcaseOriginalRegion>0&&!State.Has("rift-destroyed")){
+   if(!showcaseFromLaunch&&showcaseOriginalRegion>0&&!State.Has("rift-destroyed")){
     loading=true;director.battle.Enter(null);while(director.battle.IsTransitioning)yield return null;
     if(Explorer){CampaignShowcaseDriver.Warp(Explorer,showcaseOriginalPosition);Explorer.transform.rotation=showcaseOriginalRotation;Explorer.Automated=IsQA;Explorer.SetPaused(false);Explorer.Look(0,Explorer.Pitch-showcaseOriginalPitch);}loading=false;
    }
@@ -252,6 +274,7 @@ namespace Starfall {
    if(Explorer)Explorer.SetPaused(true);else director.SetPaused(true);
    Notice(guardianOnly?"已退出机甲战演示，原故事进度已恢复":"已退出主线演示，原故事进度已恢复");
    guardianOnly=false;
+   if(showcaseFromLaunch){showcaseFromLaunch=false;ShowLaunchMenu();}
   }
   void DrawShowcaseSettings(Rect rect){
    if(ShowcaseActive||CinematicActive)return;

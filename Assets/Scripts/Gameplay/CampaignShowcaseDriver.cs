@@ -301,6 +301,7 @@ namespace Starfall {
    while(Active&&elapsed<seconds&&!boss.Dead){
     float dt=Delta;
     if(dt<=0){yield return null;continue;}
+    center=boss.transform.position;centerView=center+Vector3.up*1.6f;
     elapsed+=dt;resumeFire=Mathf.Max(0,resumeFire-dt);nextPlan-=dt;
     if(boss.Attacks!=attacks){
      bool evaded=warningStarted&&startedInLane&&!boss.LastAttackInWarning&&player.arena.Health==warningHealth;
@@ -361,7 +362,7 @@ namespace Starfall {
    player.ResetMotion();
    GuardianDodges=dodges;
    LastSucceeded=boss.Dead&&owner.State.Has("boss-defeated")&&dodges>0;
-   owner.TraceShowcase("guardian-end",$"health={boss.Health} nodes={boss.NodesRemaining} dodges={dodges}");
+   owner.TraceShowcase("guardian-end",$"health={boss.Health} nodes={boss.NodesRemaining} dodges={dodges} moved={boss.DistanceTravelled:F2}");
    if(!LastSucceeded)Fail($"演示决战未完成：机甲生命 {boss.Health}，供能节点 {boss.NodesRemaining}，有效躲避 {dodges}");
   }
  }

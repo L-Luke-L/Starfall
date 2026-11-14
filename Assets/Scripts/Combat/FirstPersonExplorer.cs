@@ -23,7 +23,7 @@ namespace Starfall {
   public CharacterController Motor=>motor;
   CharacterController motor;Vector3 spawn;float vertical,bob,tipUntil,steps,impact,baseFov,dashCooldown,dashDistance,scanCooldown,scanUntil;Vector3 dashDirection;Vector2 smoothInput;
   public void ImpactPulse(float strength){impact=Mathf.Max(impact,strength);}
-  void Awake(){motor=GetComponent<CharacterController>();spawn=transform.position;baseFov=viewCamera.fieldOfView;cameraRest=viewCamera.transform.localPosition;if(!uiFont)uiFont=Font.CreateDynamicFontFromOSFont(new[]{"Microsoft YaHei","Arial"},20);}
+  void Awake(){motor=GetComponent<CharacterController>();motor.minMoveDistance=0;spawn=transform.position;baseFov=viewCamera.fieldOfView;cameraRest=viewCamera.transform.localPosition;if(!uiFont)uiFont=Font.CreateDynamicFontFromOSFont(new[]{"Microsoft YaHei","Arial"},20);}
   void Start(){tipUntil=Time.unscaledTime+4;if(session==null)Ready=true;}
   public void Begin(BattleTravel owner){session=owner;Ready=true;Paused=false;tipUntil=Time.unscaledTime+4;if(!Automated)CaptureMouse();}
   void CaptureMouse(){Cursor.lockState=CursorLockMode.Locked;Cursor.visible=false;Input.ResetInputAxes();}
